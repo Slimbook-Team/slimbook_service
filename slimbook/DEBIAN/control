@@ -1,0 +1,6 @@
+Package: slimbook
+Version: 0.0
+Architecture: all
+Maintainer: Slimbook <dev@slimbook.es>
+Description: Slimbook software.
+Depends: python3-evdev, libnotify-bin
