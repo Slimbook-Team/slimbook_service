@@ -1,14 +1,20 @@
 #!/usr/bin/python3
+from distutils.log import error
+from email.policy import default
 import subprocess
-import evdev, os, logging, getpass
+import evdev
+import os
+import logging
+import getpass
 
 logger = logging.getLogger("main")
 logging.basicConfig(format='%(levelname)s-%(message)s')
 logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.INFO)
 
+
 def get_user():
-    user_name=None
+    user_name = None
     try:
         user_name = getpass.getuser()
     except Exception as e:
@@ -20,58 +26,79 @@ def get_user():
         else:
             logger.debug('last case')
             user_name = None
-            user_names = subprocess.getoutput('last -wn10 | head -n 10 | cut -f 1 -d " "').split('\n')
+            user_names = subprocess.getoutput(
+                'last -wn10 | head -n 10 | cut -f 1 -d " "').split('\n')
 
             for n in range(len(user_names)-1):
-                user_name=user_names[n]
+                user_name = user_names[n]
                 logger.debug(user_name)
                 if user_name != 'reboot':
                     logger.info("Username: {}".format(user_name))
                     break
     return user_name
 
+
 user = get_user()
 uid = subprocess.getoutput("id -u {}".format(user))
 logger.debug(uid + " " + user)
 logger.debug(subprocess.getoutput("groups"))
 
+qc71_dirname = '/sys/devices/platform/qc71_laptop'
+QC71_mod_loaded = True if os.path.isdir(qc71_dirname) else False
+
+
 def notify_send(msg):
-    command = "su {} -c \"notify-send 'Slimbook Notification' '{}'\"".format(user, msg)
+    command = "su {} -c \"notify-send 'Slimbook Notification' '{}'\"".format(
+        user, msg)
     os.system(command)
+
 
 def detect_touchpad():
     touchpad_device = None
     for file in os.listdir('/dev'):
         if file.startswith('hidraw'):
             logger.debug(file)
-            data_file =  '/sys/class/hidraw/{file}/device/uevent'.format(file=file)
+            data_file = '/sys/class/hidraw/{file}/device/uevent'.format(
+                file=file)
             logger.debug(data_file)
             for line in open(data_file).readlines():
-                if line.startswith('HID_NAME=') and line.find('UNIW0001:00 093A:')!=-1:
+                if line.startswith('HID_NAME=') and line.find('UNIW0001:00 093A:') != -1:
                     try:
-                        logger.debug('Found touchpad at: '+ '/dev/{}'.format(file))
+                        logger.debug('Found keyboard at: ' +
+                                     '/dev/{}'.format(file))
                         touchpad_device = open('/dev/{}'.format(file), 'r')
                     except Exception as e:
                         logger.error(e)
     return touchpad_device
 
+
 def detect_keyboard():
     keyboard_device_path = None
     for file in os.listdir('/dev/input/by-path'):
-        if file.endswith('event-kbd') and file.find('i8042')!=-1:
+        if file.endswith('event-kbd') and file.find('i8042') != -1:
             file_path = os.path.join('/dev/input/by-path', file)
-            keyboard_device_path = os.path.realpath(os.path.join(file_path, os.readlink(file_path)))
-            logger.debug('Found keyboard at: '+ keyboard_device_path)
+            keyboard_device_path = os.path.realpath(
+                os.path.join(file_path, os.readlink(file_path)))
+            logger.debug('Found keyboard at: ' + keyboard_device_path)
     return keyboard_device_path
+
 
 device = evdev.InputDevice(detect_keyboard())
 DEV = detect_touchpad()
 EVENTS = {
-    104: {"key": "F2", "msg": "Super Key enabled/disabled", "type": ""},
-    105: {"key": "F5", "msg": "Workmode changed", "type": ""},
+    104: {
+        "key": "F2",
+        "msg": {0: "Super Key Lock disabled", 1: "Super Key Lock enabled", 'default': "Super Key Lock state changed"},
+        "type": "",
+    },
+    105: {
+        "key": "F5",
+        "msg": {0: "Silent Mode disabled", 1: "Silent Mode enabled", 'default': "Silent Mode state changed"},
+        "type": "",
+    },
     118: {
         "key": "Touchpad button",
-        "msg": {0: "Touchpad disabled", 1: "Touchpad enabled"},
+        "msg": {0: "Touchpad disabled", 1: "Touchpad enabled", 'default': "Touchpad state changed"},
         "type": "",
     },
 }
@@ -85,9 +112,35 @@ for event in device.read_loop():
             state_int = None
             if event.value == 104:
                 send_notification = True
+                if QC71_mod_loaded:
+                    qc71_filename = '/sys/devices/platform/qc71_laptop/silent_mode'
+                    file = open(qc71_filename, mode='r')
+                    content = file.read()
+                    # line = file.readline()
+                    file.close()
+                    try:
+                        state_int = int(content)
+                    except:
+                        logger.error("Silent mode state read error")
+                else:
+                    logger.info('qc71_laptop not loaded')
 
             elif event.value == 105:
                 send_notification = True
+
+                if QC71_mod_loaded:
+                    qc71_filename = '/sys/devices/platform/qc71_laptop/silent_mode'
+                    file = open(qc71_filename, mode='r')
+                    content = file.read()
+                    # line = file.readline()
+                    file.close()
+                    try:
+                        state_int = int(content)
+                    except:
+                        logger.error("Silent mode state read error")
+
+                else:
+                    logger.info('qc71_laptop not loaded')
 
             elif event.value == 118:
                 from fcntl import ioctl
@@ -115,7 +168,8 @@ for event in device.read_loop():
                     logger.error(e)
 
                 try:
-                    ioctl(DEV, HIDIOCSFEATURE, STATES.get(int(state_int)).get("bytes"))
+                    ioctl(DEV, HIDIOCSFEATURE, STATES.get(
+                        int(state_int)).get("bytes"))
                 except Exception as e:
                     logger.error(e)
 
@@ -126,10 +180,10 @@ for event in device.read_loop():
                 msg = (
                     ((EVENTS.get(event.value)).get("msg")).get(state_int)
                     if state_int != None
-                    else EVENTS.get(event.value).get("msg")
+                    else EVENTS.get(event.value).get("msg").get('default')
                 )
                 if send_notification:
-                    logger.info("Should notify " + msg)
+                    logger.info("Should notify " + str(msg))
                     notify_send(msg)
                 else:
                     logger.debug(send_notification)
