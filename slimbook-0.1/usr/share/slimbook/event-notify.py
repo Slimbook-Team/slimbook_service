@@ -47,7 +47,7 @@ QC71_mod_loaded = True if os.path.isdir(qc71_dirname) else False
 
 def notify_send(msg):
     print(user)
-    command = "su {} -c \"notify-send -t 500 -u low 'Slimbook Notification' '{}'\"".format(
+    command = "su {} -c \"notify-send -t 50 -u low 'Slimbook Notification' '{}'\"".format(
         user, msg)
     os.system(command)
 
@@ -112,7 +112,7 @@ for event in device.read_loop():
             if event.value == 104:
                 send_notification = True
                 if QC71_mod_loaded:
-                    qc71_filename = '/sys/devices/platform/qc71_laptop/silent_mode'
+                    qc71_filename = '/sys/devices/platform/qc71_laptop/super_key_lock'
                     file = open(qc71_filename, mode='r')
                     content = file.read()
                     # line = file.readline()
@@ -120,7 +120,7 @@ for event in device.read_loop():
                     try:
                         state_int = int(content)
                     except:
-                        logger.error("Silent mode state read error")
+                        logger.error("Super Key Lock mode state read error")
                 else:
                     logger.info('qc71_laptop not loaded')
 

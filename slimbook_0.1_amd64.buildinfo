@@ -7,17 +7,17 @@ Binary: slimbook
 Architecture: all source
 Version: 0.1
 Checksums-Md5:
- 41b642a0afb909d0f13eda752236cbfb 1070 slimbook_0.1.dsc
- 44b3cb7d91d6f8b34f7e734d093e9aab 4328 slimbook_0.1_all.deb
+ 6df47e51a4822dfc5a6248dc42a1896c 1070 slimbook_0.1.dsc
+ 537385da43c0d2541e0f3c39f25276b6 4348 slimbook_0.1_all.deb
 Checksums-Sha1:
- 0ed4f87e4b1364628d3acacc43b73c2e7bec9928 1070 slimbook_0.1.dsc
- 363f1d06b8b17ace4c3452bad914af253c41da66 4328 slimbook_0.1_all.deb
+ a5c45b68fe2cfb759dd56b75124bb89b9d01d624 1070 slimbook_0.1.dsc
+ 3ae1a4720c1e05654b9c6bd83963cfe0d6742c29 4348 slimbook_0.1_all.deb
 Checksums-Sha256:
- 405d36823ee1aefad257f4b2ce52993567dcdb878909d19bab4f728ee4d6da0d 1070 slimbook_0.1.dsc
- 662679d4ecb3132de48fa9f12b204a3dd7f0fde02097c555a3b444c57f190551 4328 slimbook_0.1_all.deb
+ fcb237a6ee09ffdb452557e27ed436b4d6847dc7ad20444377c362157c58c868 1070 slimbook_0.1.dsc
+ 12bc2aa4d687788065ac44ba5dce6bdf8ee06081670864ff40aa2ed029ac6be1 4348 slimbook_0.1_all.deb
 Build-Origin: Ubuntu
 Build-Architecture: amd64
-Build-Date: Fri, 19 Aug 2022 15:00:40 +0200
+Build-Date: Fri, 19 Aug 2022 16:23:17 +0200
 Build-Tainted-By:
  usr-local-has-includes
  usr-local-has-libraries
@@ -208,12 +208,12 @@ Environment:
 
 -----BEGIN PGP SIGNATURE-----
 
-iQFEBAEBCgAuFiEEEGfJFF0v5kGrVyvMlN/3qoNiWnYFAmL/iXoQHGRldkBzbGlt
-Ym9vay5lcwAKCRCU3/eqg2JadoqJCACTSMMgbs0aI8W9lzZOnHQSEJ4SNuYISpVh
-tRwm6T79PX34JYT737lgW9gdi6rcuWsewwIw/MZj9WxEkb4A0Zjo1MQBXMPd4ydI
-1014r1QZph3NrjflyL3OBd1hdkK8Roa6FZAskXAhBzBrLmzCAes8ru/s2lXbX+xs
-qRKqmcNLKl/A7l6OG4xCvbKL0jZ5r1PiBsLglstJwcNxn2GqchRRG7J7+mtp0ROD
-EtKtAHKQLtdvzGXfAZtfS2jSxqagkEesrfevTfhco+XoSpMe1cWYeJWbTsfYbe1W
-COx/3rjVNhxl9AyNjXjXQqck9LtmhmwHI8141XXXCY2e5oWoniv0
-=Iw6I
+iQFEBAEBCgAuFiEEEGfJFF0v5kGrVyvMlN/3qoNiWnYFAmL/nNsQHGRldkBzbGlt
+Ym9vay5lcwAKCRCU3/eqg2JadmX+B/9NmcSg1cmM/Y5spFqDMvvH5bTiLzFWVFaf
+SMMI3T+RImoPI2+xvu7+ICvf6Qkz6I7qj5+6HrxHGdjKKTrtHW+ZwavDw6IfvZdD
+AV3H3SvzKhaQtmoaO+AUP4YicxFQwciECw6zoXTO8on6YUeVM6c6zR3JJ6fPhg1s
+UEfJxhMPJY+ypnrj++0nNN2mfytYVm3LACpxHvkVKnKjxQHZ8JFpAoD+tSH+GHml
+WSVP/gEHq6jzqzoChkofLSjNvStEHAcKWQG6vSk9icYP8Uu8fKcn+uWN7/xQY09U
+6eqT/rpTl08PNd+2j0pFa7cEjrR3VJHg6111AyMN2iL83MpH2y5k
+=GLEV
 -----END PGP SIGNATURE-----

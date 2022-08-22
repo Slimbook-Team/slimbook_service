@@ -18,29 +18,29 @@ Changes:
  .
    * Initial release
 Checksums-Sha1:
- 0ed4f87e4b1364628d3acacc43b73c2e7bec9928 1070 slimbook_0.1.dsc
- 18c2d994cd5f3a46283be046a5ea5fe9cb9f5e90 3258 slimbook_0.1.tar.gz
- 363f1d06b8b17ace4c3452bad914af253c41da66 4328 slimbook_0.1_all.deb
- 4756e335822d178c88c29c19eee9898f5358b952 7065 slimbook_0.1_amd64.buildinfo
+ a5c45b68fe2cfb759dd56b75124bb89b9d01d624 1070 slimbook_0.1.dsc
+ db15cd541da2a64bd4e0f7f1e74faa740b8f737f 3275 slimbook_0.1.tar.gz
+ 3ae1a4720c1e05654b9c6bd83963cfe0d6742c29 4348 slimbook_0.1_all.deb
+ 5ea0e89c231821b6328cd88a807842b4931c0fc2 7065 slimbook_0.1_amd64.buildinfo
 Checksums-Sha256:
- 405d36823ee1aefad257f4b2ce52993567dcdb878909d19bab4f728ee4d6da0d 1070 slimbook_0.1.dsc
- 0a075b284e8bedf819dc80af2482564a0907c2c5cfcfb71f1933ed1f9ba6bdc0 3258 slimbook_0.1.tar.gz
- 662679d4ecb3132de48fa9f12b204a3dd7f0fde02097c555a3b444c57f190551 4328 slimbook_0.1_all.deb
- 8f0a401061c1a66438b1ec5bd616f5786f4b6a8cc02c65c5379e6bcfcf23b32c 7065 slimbook_0.1_amd64.buildinfo
+ fcb237a6ee09ffdb452557e27ed436b4d6847dc7ad20444377c362157c58c868 1070 slimbook_0.1.dsc
+ 10591319ae965854d9a681b1c17734891a1b1087adce3619aafd5f1a78500218 3275 slimbook_0.1.tar.gz
+ 12bc2aa4d687788065ac44ba5dce6bdf8ee06081670864ff40aa2ed029ac6be1 4348 slimbook_0.1_all.deb
+ de7dba26b2e606f496e120aceab87fe2ce695e115249e2913c31772423af3856 7065 slimbook_0.1_amd64.buildinfo
 Files:
- 41b642a0afb909d0f13eda752236cbfb 1070 unknown extra slimbook_0.1.dsc
- 6873576eb1cbd84a2e8632f2de8763e6 3258 unknown extra slimbook_0.1.tar.gz
- 44b3cb7d91d6f8b34f7e734d093e9aab 4328 unknown extra slimbook_0.1_all.deb
- 8b6ce2f28a4979f895ad668d8694ad0a 7065 unknown extra slimbook_0.1_amd64.buildinfo
+ 6df47e51a4822dfc5a6248dc42a1896c 1070 unknown extra slimbook_0.1.dsc
+ 9151bf349d9c87c985e36ef02dca55fd 3275 unknown extra slimbook_0.1.tar.gz
+ 537385da43c0d2541e0f3c39f25276b6 4348 unknown extra slimbook_0.1_all.deb
+ 7610fcd27ad7dd752db6753f06bc8257 7065 unknown extra slimbook_0.1_amd64.buildinfo
 
 -----BEGIN PGP SIGNATURE-----
 
-iQFEBAEBCgAuFiEEEGfJFF0v5kGrVyvMlN/3qoNiWnYFAmL/iXoQHGRldkBzbGlt
-Ym9vay5lcwAKCRCU3/eqg2JadkqGB/97kzicxxArWWaUAlUPf+Ta7kQHcR4m9D/3
-N7MaG+zSDvkVv+2ieQkW+Vtwatbq8GMzBVdaszdeqFxEJTGO2jgEUhpTq4rpzeIv
-dzcAKcoTzl/H7wqyBJ7yaOZDRA6CiwC9aLUzXAYeT/sa40w3CKJc26NE9ldTLQL8
-TISf3Y6LY+VWQGQIlSIDVBkwIAaJEXrlxx5UVQjItpvuKLocO7cgR84wOKTM2o4g
-mVvvjdLwsgZKI2h8e1B54ysPUXZHRpDnwDtCMl/7FCpPGp8aysSbVqyGKRrc5fk7
-oa+qTW1LkGI6/y8vBbbJNwrfEOhEOeStqm7mxrD85jGR05pe6lo6
-=SE8a
+iQFEBAEBCgAuFiEEEGfJFF0v5kGrVyvMlN/3qoNiWnYFAmL/nNsQHGRldkBzbGlt
+Ym9vay5lcwAKCRCU3/eqg2JadvJ+CACzqSGqsQj8KwSBxhbNm5yh9ihGKIZDPqnU
+J7zJA+UbwoyhYEwCJJCaC2cfiQ1AwY5vo8TV7YDXTxN1IueZ9pruAnVozhEH+fAM
+4i9yhYjK+zjZC9WZH7BEo9ujgIevcRviOdZtVVfVYXeii2ss2FUpCR4U2n4Uo0CN
+YLLcu/6YgzQaEN0q88M54wULgpqmiY9yRCi6WMRqfNgs0EeXNQOCWdNaTBX57DzN
+FCqOUrEd4iexJii81FuQrQqsegUabDfXosRZ518p3qglrTnSn24+DIhTTKK10beu
+vPUJWsV+ZztnEU8fwZT8NC+TiL4H5C5S4nPjmIMhXRtPRG052ULu
+=UCxm
 -----END PGP SIGNATURE-----

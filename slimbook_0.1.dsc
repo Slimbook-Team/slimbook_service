@@ -13,20 +13,20 @@ Build-Depends: debhelper (>= 9)
 Package-List:
  slimbook deb unknown extra arch=all
 Checksums-Sha1:
- 18c2d994cd5f3a46283be046a5ea5fe9cb9f5e90 3258 slimbook_0.1.tar.gz
+ db15cd541da2a64bd4e0f7f1e74faa740b8f737f 3275 slimbook_0.1.tar.gz
 Checksums-Sha256:
- 0a075b284e8bedf819dc80af2482564a0907c2c5cfcfb71f1933ed1f9ba6bdc0 3258 slimbook_0.1.tar.gz
+ 10591319ae965854d9a681b1c17734891a1b1087adce3619aafd5f1a78500218 3275 slimbook_0.1.tar.gz
 Files:
- 6873576eb1cbd84a2e8632f2de8763e6 3258 slimbook_0.1.tar.gz
+ 9151bf349d9c87c985e36ef02dca55fd 3275 slimbook_0.1.tar.gz
 
 -----BEGIN PGP SIGNATURE-----
 
-iQFEBAEBCgAuFiEEEGfJFF0v5kGrVyvMlN/3qoNiWnYFAmL/iXoQHGRldkBzbGlt
-Ym9vay5lcwAKCRCU3/eqg2JadmSHB/45LeZav7T40vguxF8mub/YC4AAxRaZHsdR
-yF7TZWN8JSt006yZ4ni3OTENPwcK+a2ytV/aZW+ZFB/aDrjUtTzWaff+TfJKzNaE
-F2/EYlQzfi3UtEwh+u5grC3Gu6SRYr+ovsiwovGUx7t+dgEi4VNkHpALMcXQ7fuu
-qtpZ5cyNzQZOq18HCpXzXi4Yp9FlHXN7i9amws1cr6l76ffViQ0Dotz2ELsYgdHB
-I9vl8oCdsnBCdjddWk4KGgZAPE1CbkhdKQIRIavfnX+KUE1/PH6Y6NesUx6egAs/
-Lg+vP4pqP/Np/QoEb6Iksxp515XBj0Zt+TgFltdSth48AhD4uGNC
-=R3lJ
+iQFEBAEBCgAuFiEEEGfJFF0v5kGrVyvMlN/3qoNiWnYFAmL/nNcQHGRldkBzbGlt
+Ym9vay5lcwAKCRCU3/eqg2Jadq1ACACpfhTtEDJ5D0oT2zMGmCoxaR/6p9F16GDT
+JNPxxkdHv0iQHOVDhTDuiJMBEsX1x3xymerpis7DPNg08788pcn1x5iw4HehHA+P
+453e8NjuCtoSniQ528GyQwa5Um2tzY/1q0YmH0eXnzWsLS8WvnCYMt89X/CW+Lu4
+hx/PfxPi9BKcK3e5Q3J63eV2XaMtv0RDdr6vNxD+ESufu01MzhsG3Xxai4POATzI
+DA2dblhDVbKWUdJB8XajvdCIHORbpVdr/C13MI7kpREMdKkmrr2DAyOFPdrPBwh0
+USHX5p0Xxkv8wQzp6MeTHQT2qxt+i6jsbpudXC5bLi1xpn28DFvm
+=JAb1
 -----END PGP SIGNATURE-----
