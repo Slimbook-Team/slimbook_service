@@ -1,0 +1,12 @@
+Source: slimbook
+Section: unknown
+Priority: extra
+Maintainer: Slimbook <dev@slimbook.es>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 4.1.4
+Homepage: https://slimbook.es
+
+Package: slimbook
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}, python3-evdev, libnotify-bin, slimbook-qc71-dkms
+Description: Slimbook Service.

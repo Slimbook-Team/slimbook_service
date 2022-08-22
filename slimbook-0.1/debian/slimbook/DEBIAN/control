@@ -1,0 +1,10 @@
+Package: slimbook
+Version: 0.1
+Architecture: all
+Maintainer: Slimbook <dev@slimbook.es>
+Installed-Size: 26
+Depends: python3-evdev, libnotify-bin, slimbook-qc71-dkms
+Section: unknown
+Priority: extra
+Homepage: https://slimbook.es
+Description: Slimbook Service.

@@ -1,0 +1,4 @@
+0a35688998214541beeba649ff053fc9  lib/systemd/system/slimbook.service
+1be84a6c301f2bed95e6f1ecc402c143  usr/share/doc/slimbook/changelog.gz
+9cabb6e327848cc83370c4da43653be4  usr/share/doc/slimbook/copyright
+acdb5312fe5b2dd15ac8629ba46b0019  usr/share/slimbook/event-notify.py

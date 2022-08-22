@@ -1,6 +1,4 @@
 #!/usr/bin/python3
-from distutils.log import error
-from email.policy import default
 import subprocess
 import evdev
 import os
@@ -48,7 +46,8 @@ QC71_mod_loaded = True if os.path.isdir(qc71_dirname) else False
 
 
 def notify_send(msg):
-    command = "su {} -c \"notify-send 'Slimbook Notification' '{}'\"".format(
+    print(user)
+    command = "su {} -c \"notify-send -t 500 -u low 'Slimbook Notification' '{}'\"".format(
         user, msg)
     os.system(command)
 

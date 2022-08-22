@@ -1,0 +1,46 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Wed, 17 Aug 2022 16:55:29 +0200
+Source: slimbook
+Binary: slimbook
+Architecture: source all
+Version: 0.1
+Distribution: focal
+Urgency: medium
+Maintainer: Slimbook <dev@slimbook.es>
+Changed-By: Slimbook <dev@slimbook.es>
+Description:
+ slimbook   - Slimbook Service.
+Changes:
+ slimbook (0.1) focal; urgency=medium
+ .
+   * Initial release
+Checksums-Sha1:
+ 0ed4f87e4b1364628d3acacc43b73c2e7bec9928 1070 slimbook_0.1.dsc
+ 18c2d994cd5f3a46283be046a5ea5fe9cb9f5e90 3258 slimbook_0.1.tar.gz
+ 363f1d06b8b17ace4c3452bad914af253c41da66 4328 slimbook_0.1_all.deb
+ 4756e335822d178c88c29c19eee9898f5358b952 7065 slimbook_0.1_amd64.buildinfo
+Checksums-Sha256:
+ 405d36823ee1aefad257f4b2ce52993567dcdb878909d19bab4f728ee4d6da0d 1070 slimbook_0.1.dsc
+ 0a075b284e8bedf819dc80af2482564a0907c2c5cfcfb71f1933ed1f9ba6bdc0 3258 slimbook_0.1.tar.gz
+ 662679d4ecb3132de48fa9f12b204a3dd7f0fde02097c555a3b444c57f190551 4328 slimbook_0.1_all.deb
+ 8f0a401061c1a66438b1ec5bd616f5786f4b6a8cc02c65c5379e6bcfcf23b32c 7065 slimbook_0.1_amd64.buildinfo
+Files:
+ 41b642a0afb909d0f13eda752236cbfb 1070 unknown extra slimbook_0.1.dsc
+ 6873576eb1cbd84a2e8632f2de8763e6 3258 unknown extra slimbook_0.1.tar.gz
+ 44b3cb7d91d6f8b34f7e734d093e9aab 4328 unknown extra slimbook_0.1_all.deb
+ 8b6ce2f28a4979f895ad668d8694ad0a 7065 unknown extra slimbook_0.1_amd64.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQFEBAEBCgAuFiEEEGfJFF0v5kGrVyvMlN/3qoNiWnYFAmL/iXoQHGRldkBzbGlt
+Ym9vay5lcwAKCRCU3/eqg2JadkqGB/97kzicxxArWWaUAlUPf+Ta7kQHcR4m9D/3
+N7MaG+zSDvkVv+2ieQkW+Vtwatbq8GMzBVdaszdeqFxEJTGO2jgEUhpTq4rpzeIv
+dzcAKcoTzl/H7wqyBJ7yaOZDRA6CiwC9aLUzXAYeT/sa40w3CKJc26NE9ldTLQL8
+TISf3Y6LY+VWQGQIlSIDVBkwIAaJEXrlxx5UVQjItpvuKLocO7cgR84wOKTM2o4g
+mVvvjdLwsgZKI2h8e1B54ysPUXZHRpDnwDtCMl/7FCpPGp8aysSbVqyGKRrc5fk7
+oa+qTW1LkGI6/y8vBbbJNwrfEOhEOeStqm7mxrD85jGR05pe6lo6
+=SE8a
+-----END PGP SIGNATURE-----

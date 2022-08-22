@@ -1,0 +1,76 @@
+ dpkg-buildpackage -D -us -uc -ui
+dpkg-buildpackage: información: paquete fuente slimbook
+dpkg-buildpackage: información: versión de las fuentes 0.1
+dpkg-buildpackage: información: distribución de las fuentes focal
+dpkg-buildpackage: información: fuentes modificadas por Slimbook <dev@slimbook.es>
+ dpkg-source --before-build .
+dpkg-buildpackage: información: arquitectura del sistema amd64
+ fakeroot debian/rules clean
+dh clean --with systemd
+   dh_clean
+ dpkg-source -b .
+dpkg-source: aviso: no se ha definido un formato de fuentes en «debian/source/format», consulte dpkg-source(1)
+dpkg-source: información: usando el formato de fuente «1.0»
+dpkg-source: información: construyendo slimbook en slimbook_0.1.tar.gz
+dpkg-source: información: construyendo slimbook en slimbook_0.1.dsc
+ debian/rules build
+dh build --with systemd
+   dh_update_autotools_config
+ fakeroot debian/rules binary
+dh binary --with systemd
+   dh_testroot
+   dh_prep
+   dh_install
+   dh_installdocs
+   dh_installchangelogs
+   dh_systemd_enable
+   debian/rules override_dh_installinit
+make[1]: se entra en el directorio '/home/programacion/Escritorio/Slimbook_Dev_Apps/SlimbookService/Check/slimbook_service/git/slimbook_service/slimbook-0.1'
+dh_systemd_enable -pslimbook --name=slimbook slimbook.service
+dh_installinit -pslimbook --no-start --noscripts
+dh_systemd_start -pslimbook --no-restart-on-upgrade
+make[1]: se sale del directorio '/home/programacion/Escritorio/Slimbook_Dev_Apps/SlimbookService/Check/slimbook_service/git/slimbook_service/slimbook-0.1'
+   debian/rules override_dh_systemd_start
+make[1]: se entra en el directorio '/home/programacion/Escritorio/Slimbook_Dev_Apps/SlimbookService/Check/slimbook_service/git/slimbook_service/slimbook-0.1'
+echo "Not running dh_systemd_start"
+Not running dh_systemd_start
+make[1]: se sale del directorio '/home/programacion/Escritorio/Slimbook_Dev_Apps/SlimbookService/Check/slimbook_service/git/slimbook_service/slimbook-0.1'
+   dh_perl
+   dh_link
+   dh_strip_nondeterminism
+   dh_compress
+   dh_fixperms
+   dh_missing
+   dh_installdeb
+   dh_gencontrol
+dpkg-gencontrol: aviso: campo «Depends» del paquete slimbook: substitution variable ${python3:Depends} used, but is not defined
+   dh_md5sums
+   dh_builddeb
+dpkg-deb: construyendo el paquete `slimbook' en `../slimbook_0.1_all.deb'.
+ dpkg-genbuildinfo
+ dpkg-genchanges  >../slimbook_0.1_amd64.changes
+dpkg-genchanges: información: incluyendo el código fuente completo en la subida
+ dpkg-source --after-build .
+dpkg-buildpackage: información: subida completa; paquete nativo de Debian (se incluye la fuente completa)
+Now running lintian slimbook_0.1_amd64.changes ...
+E: slimbook: description-starts-with-package-name
+E: slimbook: extended-description-is-empty
+E: slimbook source: missing-build-dependency-for-dh-addon systemd => debhelper (>= 9.20160709~) | debhelper-compat | dh-sequence-systemd || dh-systemd
+E: slimbook source: python3-depends-but-no-python3-helper slimbook
+E: slimbook: section-is-dh_make-template
+W: slimbook source: missing-debian-source-format
+W: slimbook source: no-newline-at-end debian/rules
+W: slimbook source: package-uses-deprecated-debhelper-compat-version 9
+W: slimbook: priority-extra-is-replaced-by-priority-optional
+Finished running lintian.
+Now signing changes and any dsc files...
+ signfile dsc slimbook_0.1.dsc Slimbook <dev@slimbook.es>
+
+ fixup_buildinfo slimbook_0.1.dsc slimbook_0.1_amd64.buildinfo
+ signfile buildinfo slimbook_0.1_amd64.buildinfo Slimbook <dev@slimbook.es>
+
+ fixup_changes dsc slimbook_0.1.dsc slimbook_0.1_amd64.changes
+ fixup_changes buildinfo slimbook_0.1_amd64.buildinfo slimbook_0.1_amd64.changes
+ signfile changes slimbook_0.1_amd64.changes Slimbook <dev@slimbook.es>
+
+Successfully signed dsc, buildinfo, changes files

@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+
+PKGDIR=debian/tmp
+
+%:
+	dh $@ --with systemd
+
+override_dh_installinit:
+	dh_systemd_enable -pslimbook --name=slimbook slimbook.service
+	dh_installinit -pslimbook --no-start --noscripts
+	dh_systemd_start -pslimbook --no-restart-on-upgrade
+
+override_dh_systemd_start:
+	echo "Not running dh_systemd_start"
