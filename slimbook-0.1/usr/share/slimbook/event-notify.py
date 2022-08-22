@@ -4,12 +4,17 @@ import evdev
 import os
 import logging
 import getpass
+# import gi
+# gi.require_version('Notify', '0.7')
+# from gi.repository import Notify
+# import dbus
 
 logger = logging.getLogger("main")
 logging.basicConfig(format='%(levelname)s-%(message)s')
 logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.INFO)
 
+#$(cat /etc/passwd | grep -v /bin/false | grep -v nologin | grep /home | cut -d : -f 1)
 
 def get_user():
     user_name = None
@@ -46,11 +51,24 @@ QC71_mod_loaded = True if os.path.isdir(qc71_dirname) else False
 
 
 def notify_send(msg):
+    #1
     print(user)
-    command = "su {} -c \"notify-send -t 50 -u low 'Slimbook Notification' '{}'\"".format(
-        user, msg)
+    command = "su {} -c \"notify-send -t 500 -u low 'Slimbook Notification' '{}'\"".format(user, msg)
     os.system(command)
+    
+    #2
+    #import dbus
+    #item = "org.freedesktop.Notifications"
+    #notfy_intf = dbus.Interface(dbus.SessionBus().get_object(item, "/"+item.replace(".", "/")), item)
+    #notfy_intf.Notify("", 0, "", "Hello world!", "This is the notification body.",[], {"urgency": 1}, 3000)
+    #Notify.init("Hello world")
+    #Hello = Notify.Notification.new("Hello world", "This is an example notification.", "dialog-information")
+    #Hello.show()
 
+    #3
+    #obj = dbus.SessionBus().get_object("org.freedesktop.Notifications", "/org/freedesktop/Notifications")
+    #obj = dbus.Interface(obj, "org.freedesktop.Notifications")
+    #obj.Notify("", 0, "", "Hello world", "This is an example notification.", [], {"urgency": 1}, 10000)
 
 def detect_touchpad():
     touchpad_device = None
