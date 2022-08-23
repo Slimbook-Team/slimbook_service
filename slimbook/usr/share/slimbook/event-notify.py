@@ -1,56 +1,35 @@
 #!/usr/bin/python3
 from distutils.log import error
 from email.policy import default
+from datetime import datetime
 import subprocess
 import evdev
 import os
 import logging
-import getpass
+import zmq
 
 logger = logging.getLogger("main")
 logging.basicConfig(format='%(levelname)s-%(message)s')
 logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.INFO)
 
-
-def get_user():
-    user_name = None
-    try:
-        user_name = getpass.getuser()
-    except Exception as e:
-        logger.error(e)
-
-    if user_name == None or user_name == 'root':
-        if 'SUDO_USER' in os.environ and os.environ['SUDO_USER'] != 'root':
-            user_name = os.environ['SUDO_USER']
-        else:
-            logger.debug('last case')
-            user_name = None
-            user_names = subprocess.getoutput(
-                'last -wn10 | head -n 10 | cut -f 1 -d " "').split('\n')
-
-            for n in range(len(user_names)-1):
-                user_name = user_names[n]
-                logger.debug(user_name)
-                if user_name != 'reboot':
-                    logger.info("Username: {}".format(user_name))
-                    break
-    return user_name
+PORT = "8998"
+context = zmq.Context()
+socket = context.socket(zmq.PUB)
+socket.bind(f"tcp://*:{PORT}")
 
 
-user = get_user()
-uid = subprocess.getoutput("id -u {}".format(user))
-logger.debug(uid + " " + user)
-logger.debug(subprocess.getoutput("groups"))
-
-qc71_dirname = '/sys/devices/platform/qc71_laptop'
-QC71_mod_loaded = True if os.path.isdir(qc71_dirname) else False
+QC71_DIR = '/sys/devices/platform/qc71_laptop'
+QC71_mod_loaded = True if os.path.isdir(QC71_DIR) else False
 
 
 def notify_send(msg):
-    command = "su {} -c \"notify-send 'Slimbook Notification' '{}'\"".format(
-        user, msg)
-    os.system(command)
+    dt = datetime.now()
+    ts = datetime.timestamp(dt)
+    data = {"msg": msg, "timestamp": ts}
+    print(data)
+    socket.send_json(data)
+    #socket.send_string(f"10001 {msg}")
 
 
 def detect_touchpad():
@@ -62,7 +41,8 @@ def detect_touchpad():
                 file=file)
             logger.debug(data_file)
             for line in open(data_file).readlines():
-                if line.startswith('HID_NAME=') and line.find('UNIW0001:00 093A:') != -1:
+                if line.startswith('HID_NAME=') and \
+                        line.find('UNIW0001:00 093A:') != -1:
                     try:
                         logger.debug('Found keyboard at: ' +
                                      '/dev/{}'.format(file))
@@ -75,7 +55,8 @@ def detect_touchpad():
 def detect_keyboard():
     keyboard_device_path = None
     for file in os.listdir('/dev/input/by-path'):
-        if file.endswith('event-kbd') and file.find('i8042') != -1:
+        if file.endswith('event-kbd'):  # and file.find('i8042') != -1:
+            print(file)
             file_path = os.path.join('/dev/input/by-path', file)
             keyboard_device_path = os.path.realpath(
                 os.path.join(file_path, os.readlink(file_path)))
@@ -83,22 +64,30 @@ def detect_keyboard():
     return keyboard_device_path
 
 
-device = evdev.InputDevice(detect_keyboard())
+keyboard_device_path = detect_keyboard()
+print(keyboard_device_path)
+device = evdev.InputDevice(keyboard_device_path)
 DEV = detect_touchpad()
 EVENTS = {
     104: {
         "key": "F2",
-        "msg": {0: "Super Key Lock disabled", 1: "Super Key Lock enabled", 'default': "Super Key Lock state changed"},
+        "msg": {0: "Super Key Lock disabled",
+                1: "Super Key Lock enabled",
+                'default': "Super Key Lock state changed"},
         "type": "",
     },
     105: {
         "key": "F5",
-        "msg": {0: "Silent Mode disabled", 1: "Silent Mode enabled", 'default': "Silent Mode state changed"},
+        "msg": {0: "Silent Mode disabled",
+                1: "Silent Mode enabled",
+                'default': "Silent Mode state changed"},
         "type": "",
     },
     118: {
         "key": "Touchpad button",
-        "msg": {0: "Touchpad disabled", 1: "Touchpad enabled", 'default': "Touchpad state changed"},
+        "msg": {0: "Touchpad disabled",
+                1: "Touchpad enabled",
+                'default': "Touchpad state changed"},
         "type": "",
     },
 }
@@ -108,12 +97,13 @@ send_notification = None
 
 for event in device.read_loop():
     if event.type == evdev.ecodes.EV_MSC:
+        print(event)
         if event.value != last_event:
             state_int = None
             if event.value == 104:
                 send_notification = True
                 if QC71_mod_loaded:
-                    qc71_filename = '/sys/devices/platform/qc71_laptop/silent_mode'
+                    qc71_filename = f"{QC71_DIR}/silent_mode"
                     file = open(qc71_filename, mode='r')
                     content = file.read()
                     # line = file.readline()
@@ -129,7 +119,7 @@ for event in device.read_loop():
                 send_notification = True
 
                 if QC71_mod_loaded:
-                    qc71_filename = '/sys/devices/platform/qc71_laptop/silent_mode'
+                    qc71_filename = f"{QC71_DIR}/silent_mode"
                     file = open(qc71_filename, mode='r')
                     content = file.read()
                     # line = file.readline()
@@ -142,6 +132,10 @@ for event in device.read_loop():
                 else:
                     logger.info('qc71_laptop not loaded')
 
+            elif event.value == 458811:
+                print("aqui")
+                msg = "En un lugar"
+                notify_send(msg)
             elif event.value == 118:
                 from fcntl import ioctl
                 HIDIOCSFEATURE = 0xC0024806  # 2bytes
