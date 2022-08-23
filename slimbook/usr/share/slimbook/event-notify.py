@@ -4,6 +4,8 @@ import evdev
 import os
 import logging
 import zmq
+import psutil
+import subprocess
 
 logger = logging.getLogger("main")
 logging.basicConfig(format='%(levelname)s-%(message)s')
@@ -18,6 +20,21 @@ socket.bind(f"tcp://*:{PORT}")
 
 QC71_DIR = '/sys/devices/platform/qc71_laptop'
 QC71_mod_loaded = True if os.path.isdir(QC71_DIR) else False
+
+
+def checkIfProcessRunning(processName):
+    '''
+    Check if there is any running process that contains the given name processName.
+    '''
+    # Iterate over the all the running process
+    for proc in psutil.process_iter():
+        try:
+            # Check if process name contains the given name string.
+            if processName.lower() in proc.name().lower():
+                return proc.name()
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    return False
 
 
 def notify_send(msg):
@@ -52,7 +69,7 @@ def detect_touchpad():
 def detect_keyboard():
     keyboard_device_path = None
     for file in os.listdir('/dev/input/by-path'):
-        if file.endswith('event-kbd'):  # and file.find('i8042') != -1:
+        if file.endswith('event-kbd') and file.find('i8042') != -1:
             print(file)
             file_path = os.path.join('/dev/input/by-path', file)
             keyboard_device_path = os.path.realpath(
@@ -91,6 +108,16 @@ EVENTS = {
 
 last_event = 0
 send_notification = None
+
+# Check if any client process was running or not.
+res = checkIfProcessRunning('client.py')
+if res:
+    print(res)
+else:
+    print('Client process not running; launching')
+    subprocess.Popen(["/usr/bin/python3", "/usr/share/slimbook/client.py"],
+                     stdout=subprocess.PIPE,
+                     stderr=subprocess.PIPE)
 
 for event in device.read_loop():
     if event.type == evdev.ecodes.EV_MSC:
