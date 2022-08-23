@@ -1,8 +1,5 @@
 #!/usr/bin/python3
-from distutils.log import error
-from email.policy import default
 from datetime import datetime
-import subprocess
 import evdev
 import os
 import logging
