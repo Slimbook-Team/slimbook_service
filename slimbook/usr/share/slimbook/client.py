@@ -45,8 +45,6 @@ def message(title, message):
     # os.system(f"notify-send '{title}' '{message}' -t 1")
     obj.Notify("Slimbook Service", int(1845665481), "", title, message, [], {"urgency": 1}, 1000)
 
-
-
 while True:
     data = socket.recv_json()
     print(data)

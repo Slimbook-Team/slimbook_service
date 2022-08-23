@@ -69,7 +69,7 @@ def detect_touchpad():
 def detect_keyboard():
     keyboard_device_path = None
     for file in os.listdir('/dev/input/by-path'):
-        if file.endswith('event-kbd') and file.find('i8042') != -1:
+        if file.endswith('event-kbd'):  # and file.find('i8042') != -1:
             print(file)
             file_path = os.path.join('/dev/input/by-path', file)
             keyboard_device_path = os.path.realpath(
@@ -114,10 +114,7 @@ res = checkIfProcessRunning('client.py')
 if res:
     print(res)
 else:
-    print('Client process not running; launching')
-    subprocess.Popen(["/usr/bin/python3", "/usr/share/slimbook/client.py"],
-                     stdout=subprocess.PIPE,
-                     stderr=subprocess.PIPE)
+    print('Client process not running;')
 
 for event in device.read_loop():
     if event.type == evdev.ecodes.EV_MSC:
