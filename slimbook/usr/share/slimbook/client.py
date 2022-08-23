@@ -21,7 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import sys
+import os
 import zmq
 
 PORT = "8998"
@@ -37,6 +37,12 @@ socket.connect(f"tcp://localhost:{PORT}")
 topicfilter = "10001"
 socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
+
+def message(title, message):
+    os.system(f"notify-send '{title}' '{message}'")
+
+
 while True:
-    string = socket.recv_json()
-    print(string)
+    data = socket.recv_json()
+    print(data)
+    message("Ejemplo", data["msg"])
