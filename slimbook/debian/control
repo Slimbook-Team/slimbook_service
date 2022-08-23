@@ -1,0 +1,14 @@
+Source: slimbook
+Section: utils
+Priority: optional
+Maintainer: Slimbook <dev@slimbook.es>
+Build-Depends: debhelper (>= 10)
+Standards-Version: 4.1.4
+Homepage: https://slimbook.es
+
+Package: slimbook
+Architecture: all
+Depends: ${misc:Depends}, python3-evdev, libnotify-bin, python3-zmq, slimbook-qc71-dkms
+Description: Service desisned for Slimbook hardware features among other.
+ Includes notifications such as switch-preformance-mode in ProX models, 
+ or double-tap enable/disable touchpad with led indicator.
