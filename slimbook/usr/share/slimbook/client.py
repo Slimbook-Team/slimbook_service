@@ -21,7 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
+import os, dbus
 import zmq
 
 PORT = "8998"
@@ -38,11 +38,16 @@ topicfilter = "10001"
 socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
 
+obj = dbus.SessionBus().get_object("org.freedesktop.Notifications", "/org/freedesktop/Notifications")
+obj = dbus.Interface(obj, "org.freedesktop.Notifications")
+
 def message(title, message):
-    os.system(f"notify-send '{title}' '{message}'")
+    # os.system(f"notify-send '{title}' '{message}' -t 1")
+    obj.Notify("Slimbook Service", int(1845665418), "", title, message, [], {"urgency": 1}, 1000)
+
 
 
 while True:
     data = socket.recv_json()
     print(data)
-    message("Ejemplo", data["msg"])
+    message("Slimbook Service", data["msg"])
