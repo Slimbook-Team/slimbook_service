@@ -124,7 +124,7 @@ for event in device.read_loop():
             if event.value == 104:
                 send_notification = True
                 if QC71_mod_loaded:
-                    qc71_filename = f"{QC71_DIR}/silent_mode"
+                    qc71_filename = f"{QC71_DIR}/super_key_lock"
                     file = open(qc71_filename, mode='r')
                     content = file.read()
                     # line = file.readline()
@@ -132,7 +132,7 @@ for event in device.read_loop():
                     try:
                         state_int = int(content)
                     except:
-                        logger.error("Silent mode state read error")
+                        logger.error("Super key lock state read error")
                 else:
                     logger.info('qc71_laptop not loaded')
 
