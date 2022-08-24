@@ -23,6 +23,14 @@
 
 import os, dbus
 import zmq
+import gi 
+gi.require_version('Notify', '0.7')
+from gi.repository import Notify
+import logging
+import threading
+import time
+
+import slimbook_service_indicator
 
 PORT = "8998"
 
@@ -34,7 +42,6 @@ print("Collecting updates from weather server...")
 socket.connect(f"tcp://localhost:{PORT}")
 
 # Subscribe to zipcode, default is NYC, 10001
-topicfilter = "10001"
 socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
 
@@ -43,9 +50,31 @@ obj = dbus.Interface(obj, "org.freedesktop.Notifications")
 
 def message(title, message):
     # os.system(f"notify-send '{title}' '{message}' -t 1")
-    obj.Notify("Slimbook Service", int(1845665481), "", title, message, [], {"urgency": 1}, 1000)
+    obj.Notify("Slimbook Service", int(1845665481), "", title, message, [], {"urgency": 1}, 1000)  
 
-while True:
-    data = socket.recv_json()
-    print(data)
+
+def client():
+    logging.debug('Launching client...')
+    while True:
+        data = socket.recv_json()
+        print(data)
+        
     message("Slimbook Service", data["msg"])
+    logging.debug('Exiting')
+
+def indicator():
+    logging.debug('Starting indicator')
+    slimbook_service_indicator.main()
+    logging.debug('Exiting')
+
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='[%(levelname)s] (%(threadName)-10s) %(message)s',
+)
+
+client = threading.Thread(name='my_service', target=client)
+indicator = threading.Thread(name='indicator', target=indicator)
+
+indicator.start()
+client.start()
