@@ -27,6 +27,7 @@ PARAMS = {
             'version': '',
             'autostart': False,
             'theme': 'dark',
+            'show': True
             }
 
 APP = 'slimbook'

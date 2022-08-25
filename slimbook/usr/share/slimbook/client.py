@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Slimbook Service
-# Copyright (C) 2022 Slimbook 
+# Copyright (C) 2022 Slimbook
 # In case you modify or redistribute this code you must keep the copyright line above.
 
 # This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@ import logging
 import threading
 import gi
 import os
+import sys
 import shutil
 import common
 try:
@@ -55,7 +56,7 @@ PORT = "8998"
 context = zmq.Context()
 socket = context.socket(zmq.SUB)
 
-print("Collecting updates from weather server...")
+print("Collecting event notifications from slimbook service...")
 socket.connect(f"tcp://localhost:{PORT}")
 
 # Subscribe to zipcode, default is NYC, 10001
@@ -87,14 +88,17 @@ class SlimbookServiceIndicator:
                                                     appindicator.
                                                     IndicatorCategory.
                                                     HARDWARE)
-        self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
+
         self.running = True
-        self.client = threading.Thread(name='my_service', target=self.watch_client)
+        self.client = threading.Thread(
+            name='my_service', target=self.watch_client)
         self.client.daemon = True
         self.client.start()
 
         menu = self.get_menu()
         self.indicator.set_menu(menu)
+        self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
+            appindicator.IndicatorStatus.PASSIVE)
 
     def watch_client(self):
         logging.debug('Launching client...')
@@ -108,7 +112,7 @@ class SlimbookServiceIndicator:
         # os.system(f"notify-send '{title}' '{message}' -t 1")
         obj.Notify("Slimbook Service", int(1845665481), "",
                    title, message, [], {"urgency": 1}, 1000)
-    
+
     def read_preferences(self):
         configuration = Configuration()
         self.first_time = configuration.get('first-time')
@@ -116,6 +120,7 @@ class SlimbookServiceIndicator:
         self.theme = configuration.get('theme')
         self.active_icon = os.path.abspath(
             common.STATUS_ICON[configuration.get('theme')])
+        self.show = configuration.get('show')
 
     def get_help_menu(self):
         help_menu = Gtk.Menu()
@@ -219,6 +224,8 @@ Slimbook <https://launchpad.net/~slimbook>\n
         preferences_dialog.hide()
         preferences_dialog.destroy()
         self.indicator.set_icon(self.active_icon)
+        self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
+            appindicator.IndicatorStatus.PASSIVE)
         widget.set_sensitive(True)
 
     def on_quit_item(self, widget, data=None):
@@ -252,6 +259,7 @@ class PreferencesDialog(Gtk.Dialog):
                             modal=True,
                             destroy_with_parent=True
                             )
+        
         self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
                          Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT)
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
@@ -264,6 +272,13 @@ class PreferencesDialog(Gtk.Dialog):
         self.get_content_area().add(vbox0)
         table1 = Gtk.Table(n_columns=8, n_rows=2, homogeneous=False)
         vbox0.pack_start(table1, False, True, 1)
+
+        label0 = Gtk.Label(label=_('Show indicator') + ':')
+        label0.set_halign(Gtk.Align.CENTER)
+        table1.attach(label0, 0, 1, 6, 7, xpadding=15, ypadding=15)
+        self.switch0 = Gtk.Switch()
+        table1.attach(self.switch0, 1, 2, 6, 7, xpadding=15, ypadding=15,
+                      xoptions=Gtk.AttachOptions.SHRINK)
 
         label1 = Gtk.Label(label=_('Autostart') + ':')
         label1.set_halign(Gtk.Align.CENTER)
@@ -306,6 +321,7 @@ class PreferencesDialog(Gtk.Dialog):
             configuration.set_defaults()
             configuration.read()
 
+        self.switch0.set_active(configuration.get('show') == True)
         self.switch1.set_active(os.path.exists(common.FILE_AUTO_START))
         self.switch2.set_active(configuration.get('theme') == 'light')
 
@@ -324,6 +340,8 @@ class PreferencesDialog(Gtk.Dialog):
         configuration = Configuration()
         configuration.set('first-time', False)
         configuration.set('version', common.VERSION)
+        configuration.set('show', self.switch0.get_active())
+
         manage_autostart(self.switch1.get_active())
         if self.switch2.get_active():
             configuration.set('theme', 'light')
@@ -337,11 +355,17 @@ def main():
             dbus.bus.REQUEST_NAME_REPLY_PRIMARY_OWNER:
         print("application already running")
         exit(0)
-    SlimbookServiceIndicator()
-    Gtk.main()
+
+    if len(sys.argv) == 1:
+        SlimbookServiceIndicator()
+        Gtk.main()
+    else:
+        print(sys.argv[1])
+        if sys.argv[1] == '--preferences' or sys.argv[1] == '-p':
+            PreferencesDialog()
+        else:
+            print('Slimbook Service Indicator Help')
 
 
 if __name__ == "__main__":
     main()
-
-    
