@@ -90,6 +90,7 @@ class SlimbookServiceIndicator:
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
         self.running = True
         self.client = threading.Thread(name='my_service', target=self.watch_client)
+        self.client.daemon = True
         self.client.start()
 
         menu = self.get_menu()
