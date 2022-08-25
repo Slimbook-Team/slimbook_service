@@ -1,3 +1,22 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# Slimbook Service
+# Copyright (C) 2022 Slimbook 
+# In case you modify or redistribute this code you must keep the copyright line above.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import dbus
 import zmq
@@ -6,6 +25,7 @@ import threading
 import gi
 import os
 import shutil
+import common
 try:
     gi.require_version('Gtk', '3.0')
     gi.require_version('GLib', '2.0')
@@ -26,6 +46,8 @@ from gi.repository import Gtk
 from gi.repository import GLib
 from gi.repository import GdkPixbuf
 from gi.repository import Notify
+from common import Configuration
+from common import _
 
 PORT = "8998"
 
