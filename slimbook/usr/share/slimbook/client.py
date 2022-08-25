@@ -21,16 +21,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os, dbus
+import dbus
 import zmq
-import gi 
-gi.require_version('Notify', '0.7')
-from gi.repository import Notify
 import logging
 import threading
-import time
+import gi
+try:
+    gi.require_version('Gtk', '3.0')
+    gi.require_version('AppIndicator3', '0.1')
+except Exception as e:
+    print(e)
+    exit(1)
+from gi.repository import AppIndicator3 as appindicator
+from gi.repository import Gtk
+from gi.repository import GObject
 
-import slimbook_service_indicator
+#import slimbook_service_indicator
 
 PORT = "8998"
 
@@ -45,27 +51,9 @@ socket.connect(f"tcp://localhost:{PORT}")
 socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
 
-obj = dbus.SessionBus().get_object("org.freedesktop.Notifications", "/org/freedesktop/Notifications")
+obj = dbus.SessionBus().get_object("org.freedesktop.Notifications",
+                                   "/org/freedesktop/Notifications")
 obj = dbus.Interface(obj, "org.freedesktop.Notifications")
-
-def message(title, message):
-    # os.system(f"notify-send '{title}' '{message}' -t 1")
-    obj.Notify("Slimbook Service", int(1845665481), "", title, message, [], {"urgency": 1}, 1000)  
-
-
-def client():
-    logging.debug('Launching client...')
-    while True:
-        data = socket.recv_json()
-        print(data)
-        
-    message("Slimbook Service", data["msg"])
-    logging.debug('Exiting')
-
-def indicator():
-    logging.debug('Starting indicator')
-    slimbook_service_indicator.main()
-    logging.debug('Exiting')
 
 
 logging.basicConfig(
@@ -73,8 +61,41 @@ logging.basicConfig(
     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
 )
 
-client = threading.Thread(name='my_service', target=client)
-indicator = threading.Thread(name='indicator', target=indicator)
 
-indicator.start()
-client.start()
+class SlimbookServiceIndicator:
+    def __init__(self):
+        self.indicator = appindicator.Indicator.new('SlimbookServiceIndicator',
+                                                    '',
+                                                    appindicator.
+                                                    IndicatorCategory.
+                                                    HARDWARE)
+        self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
+        self.running = True
+        self.client = threading.Thread(name='my_service', target=self.watch_client)
+        self.client.start()
+
+    def watch_client(self):
+        logging.debug('Launching client...')
+        while self.running:
+            data = socket.recv_json()
+            print(data)
+            self.message("Slimbook Service", data["msg"])
+        logging.debug('Exiting')
+
+    def message(self, title, message):
+        # os.system(f"notify-send '{title}' '{message}' -t 1")
+        obj.Notify("Slimbook Service", int(1845665481), "",
+                   title, message, [], {"urgency": 1}, 1000)
+
+def main():
+    if dbus.SessionBus().request_name(
+        'es.slimbok.SlimbookServiceIndicator') !=\
+            dbus.bus.REQUEST_NAME_REPLY_PRIMARY_OWNER:
+        print("application already running")
+        exit(0)
+    SlimbookServiceIndicator()
+    Gtk.main()
+
+
+if __name__ == "__main__":
+    main()
