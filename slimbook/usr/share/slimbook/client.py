@@ -18,7 +18,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from asyncio.log import logger
 import dbus
+import dbus.service
 import zmq
 import logging
 import threading
@@ -47,6 +49,8 @@ from gi.repository import Gtk
 from gi.repository import GLib
 from gi.repository import GdkPixbuf
 from gi.repository import Notify
+from dbus.mainloop.glib import DBusGMainLoop
+from optparse import OptionParser
 from common import Configuration
 from common import _
 
@@ -68,6 +72,7 @@ obj = dbus.SessionBus().get_object("org.freedesktop.Notifications",
 obj = dbus.Interface(obj, "org.freedesktop.Notifications")
 
 BUS_NAME = 'es.slimbok.SlimbookServiceIndicator'
+BUS_PATH = '/es/slimbook/ServiceIndicator'
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -75,8 +80,13 @@ logging.basicConfig(
 )
 
 
-class SlimbookServiceIndicator:
+class SlimbookServiceIndicator(dbus.service.Object):
     def __init__(self):
+        bus_name = dbus.service.BusName(BUS_NAME,
+                                        bus=dbus.SessionBus())
+        dbus.service.Object.__init__(self,
+                                     bus_name,
+                                     BUS_PATH)
         self.active_icon = None
         self.about_dialog = None
         self.active = False
@@ -250,6 +260,18 @@ Slimbook <https://launchpad.net/~slimbook>\n
                 print("Service notification daemon does not exists.")
                 return
             raise Exception(ex)
+    
+    @dbus.service.method(dbus_interface='es.slimbok.SlimbookServiceIndicator')
+    def preferences(self):
+        """Make the indicator icon visible again, if needed."""
+        logger.info("Preferences start")
+        preferences_dialog = PreferencesDialog()
+        if preferences_dialog.run() == Gtk.ResponseType.ACCEPT:
+            preferences_dialog.close_ok()
+            self.read_preferences()
+        preferences_dialog.hide()
+        preferences_dialog.destroy()
+        self.indicator.set_icon(self.active_icon)
 
 
 class PreferencesDialog(Gtk.Dialog):
@@ -259,7 +281,7 @@ class PreferencesDialog(Gtk.Dialog):
                             modal=True,
                             destroy_with_parent=True
                             )
-        
+
         self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
                          Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT)
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
@@ -311,6 +333,7 @@ class PreferencesDialog(Gtk.Dialog):
         dialog.destroy()
 
     def close_ok(self):
+        logger.info('save_preferences')
         self.save_preferences()
 
     def load_preferences(self):
@@ -348,23 +371,68 @@ class PreferencesDialog(Gtk.Dialog):
         else:
             configuration.set('theme', 'dark')
         configuration.save()
+        
+
+def show_preferences():
+    """Get and call the preferences method of the running Service-indicator."""
+    logger.info("show_preferences")
+    bus = dbus.SessionBus()
+    service = bus.get_object(BUS_NAME,
+                             BUS_PATH)
+    logger.info(service)
+    preferences = service.get_dbus_method('preferences',
+                                     BUS_NAME)
+    preferences()
 
 
 def main():
-    if dbus.SessionBus().request_name(BUS_NAME) !=\
-            dbus.bus.REQUEST_NAME_REPLY_PRIMARY_OWNER:
-        print("application already running")
-        exit(0)
+    DBusGMainLoop(set_as_default=True)
+    bus = dbus.SessionBus()
+    request = bus.request_name(BUS_NAME,
+                               dbus.bus.NAME_FLAG_DO_NOT_QUEUE)
 
-    if len(sys.argv) == 1:
+    if request == dbus.bus.REQUEST_NAME_REPLY_EXISTS or len(sys.argv) > 1:
+        print('Another instance is running.')
+        usage_msg = _('usage: %prog [options]')
+        parser = OptionParser(usage=usage_msg, add_help_option=False)
+        parser.add_option('-h', '--help',
+                          action='store_true',
+                          dest='help',
+                          default=False,
+                          help=_('show this help and exit.'))
+        parser.add_option('-p', '--preferences',
+                          action='store_true',
+                          dest='preferences',
+                          default=False,
+                          help=_('change the preferences. If indicator is \not running launch it.'))
+
+        (options, args) = parser.parse_args()
+        if options.help:
+            parser.print_help()
+        elif options.preferences:
+            show_preferences()
+        else:
+            # make_visible()
+            pass
+        exit(0)
+    else:
+        print('Slimbook-Service-Indicator version: %s' % common.VERSION)
+        Notify.init('Slimbook-Service-Indicator')
+        object = bus.get_object(BUS_NAME, BUS_PATH)
+        dbus.Interface(object, BUS_NAME)
         SlimbookServiceIndicator()
         Gtk.main()
-    else:
-        print(sys.argv[1])
-        if sys.argv[1] == '--preferences' or sys.argv[1] == '-p':
-            PreferencesDialog()
-        else:
-            print('Slimbook Service Indicator Help')
+    exit(0)
+
+    # if len(sys.argv) == 1:
+    #     SlimbookServiceIndicator()
+    #     Gtk.main()
+    # else:
+    #     print(sys.argv[1])
+    #     if sys.argv[1] == '--preferences' or sys.argv[1] == '-p':
+    #         PreferencesDialog()
+    #     else:
+    #         print('Slimbook Service Indicator Help')
 
 
 if __name__ == "__main__":
