@@ -50,6 +50,7 @@ from gi.repository import GLib
 from gi.repository import GdkPixbuf
 from gi.repository import Notify
 from dbus.mainloop.glib import DBusGMainLoop
+from gi.repository import GLib
 from optparse import OptionParser
 from common import Configuration
 from common import _
@@ -260,7 +261,7 @@ Slimbook <https://launchpad.net/~slimbook>\n
                 print("Service notification daemon does not exists.")
                 return
             raise Exception(ex)
-    
+
     @dbus.service.method(dbus_interface='es.slimbok.SlimbookServiceIndicator')
     def preferences(self):
         """Make the indicator icon visible again, if needed."""
@@ -371,22 +372,22 @@ class PreferencesDialog(Gtk.Dialog):
         else:
             configuration.set('theme', 'dark')
         configuration.save()
-        
+
 
 def show_preferences():
     """Get and call the preferences method of the running Service-indicator."""
     logger.info("show_preferences")
     bus = dbus.SessionBus()
-    service = bus.get_object(BUS_NAME,
-                             BUS_PATH)
+    service = bus.get_object(BUS_NAME, BUS_PATH)
     logger.info(service)
     preferences = service.get_dbus_method('preferences',
-                                     BUS_NAME)
+                                          BUS_NAME)
     preferences()
 
 
 def main():
     DBusGMainLoop(set_as_default=True)
+    
     bus = dbus.SessionBus()
     request = bus.request_name(BUS_NAME,
                                dbus.bus.NAME_FLAG_DO_NOT_QUEUE)
@@ -416,6 +417,13 @@ def main():
             pass
         exit(0)
     else:
+        loop = GLib.MainLoop()
+
+        try:
+            loop.run()
+        except KeyboardInterrupt:
+            loop.quit()
+
         print('Slimbook-Service-Indicator version: %s' % common.VERSION)
         Notify.init('Slimbook-Service-Indicator')
         object = bus.get_object(BUS_NAME, BUS_PATH)
@@ -423,16 +431,6 @@ def main():
         SlimbookServiceIndicator()
         Gtk.main()
     exit(0)
-
-    # if len(sys.argv) == 1:
-    #     SlimbookServiceIndicator()
-    #     Gtk.main()
-    # else:
-    #     print(sys.argv[1])
-    #     if sys.argv[1] == '--preferences' or sys.argv[1] == '-p':
-    #         PreferencesDialog()
-    #     else:
-    #         print('Slimbook Service Indicator Help')
 
 
 if __name__ == "__main__":
