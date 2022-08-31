@@ -23,37 +23,19 @@ import evdev
 import os
 import logging
 import zmq
-import psutil
 
 logger = logging.getLogger("main")
 logging.basicConfig(format='%(levelname)s-%(message)s')
 logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.INFO)
 
-PORT = "8998"
+PORT = "8999"
 context = zmq.Context()
 socket = context.socket(zmq.PUB)
 socket.bind(f"tcp://*:{PORT}")
 
-
 QC71_DIR = '/sys/devices/platform/qc71_laptop'
 QC71_mod_loaded = True if os.path.isdir(QC71_DIR) else False
-
-
-def checkIfProcessRunning(processName):
-    '''
-    Check if there is any running process that contains the given name processName.
-    '''
-    # Iterate over the all the running process
-    for proc in psutil.process_iter():
-        try:
-            # Check if process name contains the given name string.
-            if processName.lower() in proc.name().lower():
-                return proc.name()
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
-    return False
-
 
 def notify_send(msg):
     dt = datetime.now()
@@ -126,13 +108,6 @@ EVENTS = {
 
 last_event = 0
 send_notification = None
-
-# Check if any client process was running or not.
-res = checkIfProcessRunning('client.py')
-if res:
-    print(res)
-else:
-    print('Client process not running;')
 
 for event in device.read_loop():
     if event.type == evdev.ecodes.EV_MSC:

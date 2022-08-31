@@ -25,7 +25,7 @@ import gettext
 PARAMS = {
             'first-time': True,
             'version': '',
-            'autostart': False,
+            'autostart': True,
             'theme': 'dark',
             'show': True
             }
@@ -47,7 +47,7 @@ def is_package():
     return os.path.abspath(os.path.dirname(__file__)).startswith('/usr')
 
 if is_package():
-    APPDIR = '/usr/share/'
+    APPDIR = '/usr/share/slimbook'
 else:
     APPDIR = os.path.abspath(os.path.join('..', os.path.dirname(os.path.realpath(__file__))))
 

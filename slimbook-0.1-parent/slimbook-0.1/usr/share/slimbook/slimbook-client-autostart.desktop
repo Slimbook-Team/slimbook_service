@@ -1,7 +1,0 @@
-[Desktop Entry]
-Type=Application
-Exec=/usr/bin/python3 /usr/share/slimbook/client.py
-Hidden=false
-NoDisplay=false
-Name[es_ES]=Slimbook Client Autostart
-Name=Slimbook Client Autostart

@@ -18,7 +18,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from asyncio.log import logger
 import dbus
 import dbus.service
 import zmq
@@ -29,6 +28,7 @@ import os
 import sys
 import shutil
 import common
+import webbrowser
 try:
     gi.require_version('Gtk', '3.0')
     gi.require_version('GLib', '2.0')
@@ -55,25 +55,8 @@ from optparse import OptionParser
 from common import Configuration
 from common import _
 
-PORT = "8998"
-
-# Socket to talk to server
-context = zmq.Context()
-socket = context.socket(zmq.SUB)
-
-print("Collecting event notifications from slimbook service...")
-socket.connect(f"tcp://localhost:{PORT}")
-
-# Subscribe to zipcode, default is NYC, 10001
-socket.setsockopt_string(zmq.SUBSCRIBE, "")
-
-
-obj = dbus.SessionBus().get_object("org.freedesktop.Notifications",
-                                   "/org/freedesktop/Notifications")
-obj = dbus.Interface(obj, "org.freedesktop.Notifications")
-
 BUS_NAME = 'es.slimbok.SlimbookServiceIndicator'
-BUS_PATH = '/es/slimbook/ServiceIndicator'
+BUS_PATH = '/es/slimbok/SlimbookServiceIndicator'
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -83,11 +66,23 @@ logging.basicConfig(
 
 class SlimbookServiceIndicator(dbus.service.Object):
     def __init__(self):
-        bus_name = dbus.service.BusName(BUS_NAME,
-                                        bus=dbus.SessionBus())
-        dbus.service.Object.__init__(self,
-                                     bus_name,
-                                     BUS_PATH)
+        bus = dbus.SessionBus()
+        if bus.request_name(BUS_NAME, dbus.bus.NAME_FLAG_DO_NOT_QUEUE) == dbus.bus.REQUEST_NAME_REPLY_EXISTS:
+            logging.debug("D-Bus Service is already running.\nThe MainLoop will close...")
+
+            GLib.MainLoop().quit()
+            raise Exception("D-Bus Service is already running.")
+
+        bus_name = dbus.service.BusName(BUS_NAME, bus)
+        # print(bus_name)
+        dbus.service.Object.__init__(self, bus_name, BUS_PATH)
+
+        self.set_indicator()
+        Notify.init('Slimbook')
+
+    def set_indicator(self):
+
+        logging.debug("Setting indicator...")
         self.active_icon = None
         self.about_dialog = None
         self.active = False
@@ -112,17 +107,34 @@ class SlimbookServiceIndicator(dbus.service.Object):
             appindicator.IndicatorStatus.PASSIVE)
 
     def watch_client(self):
+        PORT = "8999"
+
+        # Socket to talk to server
+        context = zmq.Context()
+        socket = context.socket(zmq.SUB)
+
+        logging.debug("Collecting event notifications from slimbook service...")
+        socket.connect(f"tcp://localhost:{PORT}")
+
+        # Subscribe to zipcode, default is NYC, 10001
+        socket.setsockopt_string(zmq.SUBSCRIBE, "")
+
         logging.debug('Launching client...')
         while self.running:
             data = socket.recv_json()
-            print(data)
+            logging.debug(data)
             self.message("Slimbook Service", data["msg"])
         logging.debug('Exiting')
 
     def message(self, title, message):
         # os.system(f"notify-send '{title}' '{message}' -t 1")
-        obj.Notify("Slimbook Service", int(1845665481), "",
-                   title, message, [], {"urgency": 1}, 1000)
+        # obj.Notify("Slimbook Service", int(1845665481), "",
+        #            title, message, [], {"urgency": 1}, 1000)
+        
+        info = Notify.Notification.new(title, message, 'dialog-information')
+        info.set_timeout(Notify.EXPIRES_DEFAULT)
+        info.set_urgency(Notify.Urgency.LOW)
+        info.show()
 
     def read_preferences(self):
         configuration = Configuration()
@@ -133,32 +145,7 @@ class SlimbookServiceIndicator(dbus.service.Object):
             common.STATUS_ICON[configuration.get('theme')])
         self.show = configuration.get('show')
 
-    def get_help_menu(self):
-        help_menu = Gtk.Menu()
-        #
-        bug_item = Gtk.MenuItem(label=_(
-            'Report a bug...'))
-        bug_item.connect(
-            'activate', lambda x: webbrowser.open(
-                'https://github.com/slimbook/slimbook_service/issues/new'))
-        bug_item.show()
-        help_menu.append(bug_item)
-        #
-        separator = Gtk.SeparatorMenuItem()
-        separator.show()
-        help_menu.append(separator)
-        #
-
-        about_item = Gtk.MenuItem.new_with_label(_('About'))
-        about_item.connect('activate', self.on_about_item)
-        about_item.show()
-        separator = Gtk.SeparatorMenuItem()
-        separator.show()
-        help_menu.append(separator)
-        help_menu.append(about_item)
-        #
-        help_menu.show()
-        return help_menu
+    
 
     def get_menu(self):
         """Create and populate the menu."""
@@ -180,6 +167,14 @@ class SlimbookServiceIndicator(dbus.service.Object):
         separator.show()
         menu.append(separator)
         menu.append(about_item)
+        
+        bug_item = Gtk.MenuItem(label=_(
+            'Report a bug...'))
+        bug_item.connect(
+            'activate', lambda x: webbrowser.open(
+                'https://github.com/slimbook/slimbook_service/issues/new'))
+        bug_item.show()
+        menu.append(bug_item)
         #
         separator2 = Gtk.SeparatorMenuItem()
         separator2.show()
@@ -214,15 +209,19 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 ''')
         about_dialog.set_website('http://www.slimbook.es')
         about_dialog.set_website_label('Visit Website')
+        about_dialog.set_website('http://www.slimbook.es')
+        about_dialog.set_website_label('Visit Website2')
+        link = Gtk.LinkButton(uri=('https://github.com/slimbook/slimbook_service/issues/new'), label=(_('Report issue')))
+        link.set_name('link')
+        link.set_halign(Gtk.Align.CENTER)
         about_dialog.set_authors([
-            'Slimbook <https://launchpad.net/~slimbook>'])
+            'Slimbook <dev@slimbook.es>'])
         about_dialog.set_documenters([
-            'Slimbook <https://launchpad.net/~slimbook>'])
-        about_dialog.set_translator_credits('''
-Slimbook <https://launchpad.net/~slimbook>\n
-''')
-        about_dialog.set_icon(GdkPixbuf.Pixbuf.new_from_file(common.ICON))
-        about_dialog.set_logo(GdkPixbuf.Pixbuf.new_from_file(common.ICON))
+            'Slimbook <dev@slimbook.es>'])
+        about_dialog.set_translator_credits('Slimbook <dev@slimbook.es>')
+        size = 125
+        about_dialog.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(common.ICON, size, size, True))
+        about_dialog.set_logo(GdkPixbuf.Pixbuf.new_from_file_at_scale(common.ICON, size, size, True))
         about_dialog.set_program_name(common.APPNAME)
         return about_dialog
 
@@ -240,7 +239,7 @@ Slimbook <https://launchpad.net/~slimbook>\n
         widget.set_sensitive(True)
 
     def on_quit_item(self, widget, data=None):
-        print('Exit')
+        logging.debug('Exit')
         exit(0)
 
     def on_about_item(self, widget, data=None):
@@ -252,20 +251,11 @@ Slimbook <https://launchpad.net/~slimbook>\n
             self.about_dialog.destroy()
             self.about_dialog = None
 
-    def send_notification(self):
-        try:
-            self.notification.show()
-        except GLib.Error as ex:
-            if 'ServiceUnknown' in str(ex):
-                # connection to notification-daemon failed
-                print("Service notification daemon does not exists.")
-                return
-            raise Exception(ex)
+    # Interface and Method
 
-    @dbus.service.method(dbus_interface='es.slimbok.SlimbookServiceIndicator')
-    def preferences(self):
-        """Make the indicator icon visible again, if needed."""
-        logger.info("Preferences start")
+    @dbus.service.method(BUS_NAME)
+    def show_preferences(self):
+
         preferences_dialog = PreferencesDialog()
         if preferences_dialog.run() == Gtk.ResponseType.ACCEPT:
             preferences_dialog.close_ok()
@@ -273,6 +263,8 @@ Slimbook <https://launchpad.net/~slimbook>\n
         preferences_dialog.hide()
         preferences_dialog.destroy()
         self.indicator.set_icon(self.active_icon)
+        self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
+            appindicator.IndicatorStatus.PASSIVE)
 
 
 class PreferencesDialog(Gtk.Dialog):
@@ -334,7 +326,6 @@ class PreferencesDialog(Gtk.Dialog):
         dialog.destroy()
 
     def close_ok(self):
-        logger.info('save_preferences')
         self.save_preferences()
 
     def load_preferences(self):
@@ -374,63 +365,52 @@ class PreferencesDialog(Gtk.Dialog):
         configuration.save()
 
 
-def show_preferences():
-    """Get and call the preferences method of the running Service-indicator."""
-    logger.info("show_preferences")
-    bus = dbus.SessionBus()
-    service = bus.get_object(BUS_NAME, BUS_PATH)
-    logger.info(service)
-    preferences = service.get_dbus_method('preferences',
-                                          BUS_NAME)
-    preferences()
+def preferences():
+    try:
+        init_indicator()
+        
+    except:
+        bus = dbus.SessionBus()
+        session = bus.get_object(BUS_NAME, BUS_PATH)
+        show_preferences = session.get_dbus_method('show_preferences', BUS_NAME)
+        # Call the methods with their specific parameters
+        show_preferences()
+
+
+def init_indicator():
+    DBusGMainLoop(set_as_default=True)
+    dbus_service = SlimbookServiceIndicator()
+    try:
+        GLib.MainLoop().run()
+    except KeyboardInterrupt:
+        logging.debug("\nThe MainLoop will close...")
+        GLib.MainLoop().quit()
 
 
 def main():
-    DBusGMainLoop(set_as_default=True)
-    
-    bus = dbus.SessionBus()
-    request = bus.request_name(BUS_NAME,
-                               dbus.bus.NAME_FLAG_DO_NOT_QUEUE)
-
-    if request == dbus.bus.REQUEST_NAME_REPLY_EXISTS or len(sys.argv) > 1:
-        print('Another instance is running.')
-        usage_msg = _('usage: %prog [options]')
+    if len(sys.argv) > 1:
+        usage_msg = ('usage: %prog [options]')
         parser = OptionParser(usage=usage_msg, add_help_option=False)
         parser.add_option('-h', '--help',
                           action='store_true',
                           dest='help',
                           default=False,
-                          help=_('show this help and exit.'))
+                          help=('show this help and exit.'))
         parser.add_option('-p', '--preferences',
                           action='store_true',
                           dest='preferences',
                           default=False,
-                          help=_('change the preferences. If indicator is \not running launch it.'))
-
+                          help=('show preferences.'))
         (options, args) = parser.parse_args()
         if options.help:
             parser.print_help()
         elif options.preferences:
-            show_preferences()
-        else:
-            # make_visible()
-            pass
+            preferences()
+
         exit(0)
     else:
-        loop = GLib.MainLoop()
-
-        try:
-            loop.run()
-        except KeyboardInterrupt:
-            loop.quit()
-
-        print('Slimbook-Service-Indicator version: %s' % common.VERSION)
-        Notify.init('Slimbook-Service-Indicator')
-        object = bus.get_object(BUS_NAME, BUS_PATH)
-        dbus.Interface(object, BUS_NAME)
-        SlimbookServiceIndicator()
-        Gtk.main()
-    exit(0)
+        logging.debug("Try Indicator init")
+        init_indicator()
 
 
 if __name__ == "__main__":

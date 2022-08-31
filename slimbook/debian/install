@@ -1,2 +1,4 @@
 /usr/share/slimbook/* /usr/share/slimbook/
-/usr/share/slimbook/slimbook-indicator.desktop
+/usr/share/slimbook/slimbook-indicator.desktop /usr/share/applications/
+/usr/share/slimbook/icons/* /usr/share/pixmaps/
+/bin/* /usr/bin/
