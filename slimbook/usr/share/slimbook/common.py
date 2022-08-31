@@ -59,11 +59,11 @@ FILE_AUTO_START_ORIG = os.path.join(APPDIR,
                                     'slimbook-client-autostart.desktop')
 
 ICONDIR = os.path.join(APPDIR, 'icons')
-ICON = os.path.join(ICONDIR, 'slimbook_be1ofus_light.png')
+ICON = os.path.join(ICONDIR, 'slimbook_be1ofus_light.svg')
 
 STATUS_ICON = {}
-STATUS_ICON['light'] = (os.path.join(ICONDIR, 'slimbook_be1ofus_light.png'))
-STATUS_ICON['dark'] = (os.path.join(ICONDIR, 'slimbook_be1ofus_dark.png'))
+STATUS_ICON['light'] = (os.path.join(ICONDIR, 'slimbook_be1ofus_light.svg'))
+STATUS_ICON['dark'] = (os.path.join(ICONDIR, 'slimbook_be1ofus_dark.svg'))
 
 try:
     current_locale, encoding = locale.getdefaultlocale()
