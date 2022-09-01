@@ -120,5 +120,5 @@ class Configuration(object):
             os.makedirs(CONFIG_APP_DIR)
             os.makefile(mode='r', buffering=None, encoding=None, errors=None, newline=None)
         f = codecs.open(CONFIG_FILE, 'w', 'utf-8')
-        f.write(json.dumps(self.params))
+        f.write(json.dumps(self.params, separators=(",\n", ": ")))
         f.close()

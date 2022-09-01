@@ -68,7 +68,8 @@ class SlimbookServiceIndicator(dbus.service.Object):
     def __init__(self):
         bus = dbus.SessionBus()
         if bus.request_name(BUS_NAME, dbus.bus.NAME_FLAG_DO_NOT_QUEUE) == dbus.bus.REQUEST_NAME_REPLY_EXISTS:
-            logging.debug("D-Bus Service is already running.\nThe MainLoop will close...")
+            logging.debug(
+                "D-Bus Service is already running.\nThe MainLoop will close...")
 
             GLib.MainLoop().quit()
             raise Exception("D-Bus Service is already running.")
@@ -113,7 +114,8 @@ class SlimbookServiceIndicator(dbus.service.Object):
         context = zmq.Context()
         socket = context.socket(zmq.SUB)
 
-        logging.debug("Collecting event notifications from slimbook service...")
+        logging.debug(
+            "Collecting event notifications from slimbook service...")
         socket.connect(f"tcp://localhost:{PORT}")
 
         # Subscribe to zipcode, default is NYC, 10001
@@ -127,10 +129,6 @@ class SlimbookServiceIndicator(dbus.service.Object):
         logging.debug('Exiting')
 
     def message(self, title, message):
-        # os.system(f"notify-send '{title}' '{message}' -t 1")
-        # obj.Notify("Slimbook Service", int(1845665481), "",
-        #            title, message, [], {"urgency": 1}, 1000)
-        
         info = Notify.Notification.new(title, message, 'dialog-information')
         info.set_timeout(Notify.EXPIRES_DEFAULT)
         info.set_urgency(Notify.Urgency.LOW)
@@ -144,8 +142,6 @@ class SlimbookServiceIndicator(dbus.service.Object):
         self.active_icon = os.path.abspath(
             common.STATUS_ICON[configuration.get('theme')])
         self.show = configuration.get('show')
-
-    
 
     def get_menu(self):
         """Create and populate the menu."""
@@ -167,7 +163,7 @@ class SlimbookServiceIndicator(dbus.service.Object):
         separator.show()
         menu.append(separator)
         menu.append(about_item)
-        
+
         bug_item = Gtk.MenuItem(label=_(
             'Report a bug...'))
         bug_item.connect(
@@ -211,7 +207,8 @@ this program. If not, see <http://www.gnu.org/licenses/>.
         about_dialog.set_website_label('Visit Website')
         about_dialog.set_website('http://www.slimbook.es')
         about_dialog.set_website_label('Visit Website2')
-        link = Gtk.LinkButton(uri=('https://github.com/slimbook/slimbook_service/issues/new'), label=(_('Report issue')))
+        link = Gtk.LinkButton(uri=(
+            'https://github.com/slimbook/slimbook_service/issues/new'), label=(_('Report issue')))
         link.set_name('link')
         link.set_halign(Gtk.Align.CENTER)
         about_dialog.set_authors([
@@ -220,8 +217,10 @@ this program. If not, see <http://www.gnu.org/licenses/>.
             'Slimbook <dev@slimbook.es>'])
         about_dialog.set_translator_credits('Slimbook <dev@slimbook.es>')
         size = 125
-        about_dialog.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(common.ICON, size, size, True))
-        about_dialog.set_logo(GdkPixbuf.Pixbuf.new_from_file_at_scale(common.ICON, size, size, True))
+        about_dialog.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(
+            common.ICON, size, size, True))
+        about_dialog.set_logo(GdkPixbuf.Pixbuf.new_from_file_at_scale(
+            common.ICON, size, size, True))
         about_dialog.set_program_name(common.APPNAME)
         return about_dialog
 
@@ -280,7 +279,8 @@ class PreferencesDialog(Gtk.Dialog):
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         # self.set_size_request(400, 230)
         self.connect('close', self.close_application)
-        self.set_icon_from_file(common.ICON)
+        self.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(
+            common.ICON, 36, 36, True))
 
         vbox0 = Gtk.VBox(spacing=5)
         vbox0.set_border_width(20)
@@ -314,16 +314,6 @@ class PreferencesDialog(Gtk.Dialog):
 
     def close_application(self, widget, event):
         self.hide()
-
-    def messagedialog(self, title, message):
-        dialog = Gtk.MessageDialog(None,
-                                   Gtk.DialogFlags.MODAL,
-                                   Gtk.MessageType.INFO,
-                                   buttons=Gtk.ButtonsType.OK)
-        dialog.set_markup("<b>%s</b>" % title)
-        dialog.format_secondary_markup(message)
-        dialog.run()
-        dialog.destroy()
 
     def close_ok(self):
         self.save_preferences()
@@ -368,11 +358,12 @@ class PreferencesDialog(Gtk.Dialog):
 def preferences():
     try:
         init_indicator()
-        
+
     except:
         bus = dbus.SessionBus()
         session = bus.get_object(BUS_NAME, BUS_PATH)
-        show_preferences = session.get_dbus_method('show_preferences', BUS_NAME)
+        show_preferences = session.get_dbus_method(
+            'show_preferences', BUS_NAME)
         # Call the methods with their specific parameters
         show_preferences()
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Slimbook Service
-# Copyright (C) 2022 Slimbook 
+# Copyright (C) 2022 Slimbook
 # In case you modify or redistribute this code you must keep the copyright line above.
 
 # This program is free software: you can redistribute it and/or modify
@@ -36,6 +36,7 @@ socket.bind(f"tcp://*:{PORT}")
 
 QC71_DIR = '/sys/devices/platform/qc71_laptop'
 QC71_mod_loaded = True if os.path.isdir(QC71_DIR) else False
+
 
 def notify_send(msg):
     dt = datetime.now()
