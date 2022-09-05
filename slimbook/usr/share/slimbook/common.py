@@ -26,7 +26,7 @@ PARAMS = {
             'first-time': True,
             'version': '',
             'autostart': True,
-            'theme': 'dark',
+            'theme': 'light',
             'show': True
             }
 
@@ -51,7 +51,7 @@ if is_package():
 else:
     APPDIR = os.path.abspath(os.path.join('..', os.path.dirname(os.path.realpath(__file__))))
 
-# print('Config = '+CONFIG_FILE)
+print('Config = '+CONFIG_FILE)
 
 LANGDIR = os.path.join(APPDIR, 'locale-langpack')
 ICONDIR = os.path.join(APPDIR, 'icons')
@@ -118,7 +118,7 @@ class Configuration(object):
     def save(self):
         if not os.path.exists(CONFIG_APP_DIR):
             os.makedirs(CONFIG_APP_DIR)
-            os.makefile(mode='r', buffering=None, encoding=None, errors=None, newline=None)
+
         f = codecs.open(CONFIG_FILE, 'w', 'utf-8')
         f.write(json.dumps(self.params, separators=(",\n", ": ")))
         f.close()

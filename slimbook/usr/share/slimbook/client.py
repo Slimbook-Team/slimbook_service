@@ -89,6 +89,7 @@ class SlimbookServiceIndicator(dbus.service.Object):
         self.active = False
         self.notification = Notify.Notification.new('', '', None)
         self.read_preferences()
+        manage_autostart(self.autostart)
 
         self.indicator = appindicator.Indicator.new('SlimbookServiceIndicator',
                                                     self.active_icon,
@@ -131,12 +132,13 @@ class SlimbookServiceIndicator(dbus.service.Object):
     def message(self, title, message):
         info = Notify.Notification.new(title, message, 'dialog-information')
         info.set_timeout(Notify.EXPIRES_DEFAULT)
-        info.set_urgency(Notify.Urgency.LOW)
+        info.set_urgency(Notify.Urgency.NORMAL)
         info.show()
 
     def read_preferences(self):
         configuration = Configuration()
         self.first_time = configuration.get('first-time')
+        self.autostart = configuration.get('autostart')
         self.version = configuration.get('version')
         self.theme = configuration.get('theme')
         self.active_icon = os.path.abspath(
@@ -205,8 +207,6 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 ''')
         about_dialog.set_website('http://www.slimbook.es')
         about_dialog.set_website_label('Visit Website')
-        about_dialog.set_website('http://www.slimbook.es')
-        about_dialog.set_website_label('Visit Website2')
         link = Gtk.LinkButton(uri=(
             'https://github.com/slimbook/slimbook_service/issues/new'), label=(_('Report issue')))
         link.set_name('link')
@@ -280,7 +280,7 @@ class PreferencesDialog(Gtk.Dialog):
         # self.set_size_request(400, 230)
         self.connect('close', self.close_application)
         self.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(
-            common.ICON, 36, 36, True))
+            common.ICON, 64, 64, True))
 
         vbox0 = Gtk.VBox(spacing=5)
         vbox0.set_border_width(20)
@@ -331,16 +331,6 @@ class PreferencesDialog(Gtk.Dialog):
         self.switch2.set_active(configuration.get('theme') == 'light')
 
     def save_preferences(self):
-        def manage_autostart(create):
-            if not os.path.exists(common.AUTOSTART_DIR):
-                os.makedirs(common.AUTOSTART_DIR)
-            if create:
-                if not os.path.exists(common.FILE_AUTO_START):
-                    shutil.copyfile(common.FILE_AUTO_START_ORIG,
-                                    common.FILE_AUTO_START)
-            else:
-                if os.path.exists(common.FILE_AUTO_START):
-                    os.remove(common.FILE_AUTO_START)
 
         configuration = Configuration()
         configuration.set('first-time', False)
@@ -353,6 +343,18 @@ class PreferencesDialog(Gtk.Dialog):
         else:
             configuration.set('theme', 'dark')
         configuration.save()
+
+
+def manage_autostart(create):
+    if not os.path.exists(common.AUTOSTART_DIR):
+        os.makedirs(common.AUTOSTART_DIR)
+    if create:
+        if not os.path.exists(common.FILE_AUTO_START):
+            shutil.copyfile(common.FILE_AUTO_START_ORIG,
+                            common.FILE_AUTO_START)
+    else:
+        if os.path.exists(common.FILE_AUTO_START):
+            os.remove(common.FILE_AUTO_START)
 
 
 def preferences():
