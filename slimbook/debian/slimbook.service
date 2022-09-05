@@ -7,5 +7,6 @@ Type=simple
 ExecStart=/usr/bin/python3 /usr/share/slimbook/event-notify.py
 Restart=always
 
+
 [Install]
 WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Exec=/usr/bin/python3 /usr/share/slimbook/client.py --preferences
+Icon=/usr/share/pixmaps/slimbook_be1ofus_light.svg
+Type=Application
+Terminal=false
+Hidden=false
+NoDisplay=false
+StartupNotify=true
+Encoding=UTF-8
+Name[es_ES]=Slimbook Client Autostart
+Name=Slimbook Client Autostart
