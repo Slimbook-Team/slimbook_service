@@ -27,7 +27,6 @@ import threading
 
 logger = logging.getLogger("main")
 logging.basicConfig(format='%(levelname)s-%(message)s')
-logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.INFO)
 
 PORT = "8999"
@@ -71,7 +70,7 @@ def detect_touchpad():
 def detect_keyboard():
     keyboard_device_path = None
     for file in os.listdir('/dev/input/by-path'):
-        if file.endswith('event-kbd'):  # and file.find('i8042') != -1:
+        if file.endswith('event-kbd') and file.find('i8042') != -1:
             print(file)
             file_path = os.path.join('/dev/input/by-path', file)
             keyboard_device_path = os.path.realpath(
@@ -116,7 +115,9 @@ EVENTS = {
     },
     188: {
         "key": "Performace Button Titan",
-        "msg": {'default': "Performance Mode changed"},
+        "msg": {0: "Performance Mode changed: Silent",
+                1: "Performance Mode changed: Turbo",
+                'default': "Performance Mode changed"},
         "type": "",
     },
 }
@@ -130,7 +131,7 @@ def read_keyboard():
     device = evdev.InputDevice(keyboard_device_path)
     for event in device.read_loop():
         if event.type == evdev.ecodes.EV_MSC:
-            print(event)
+            # print(event)
             if event.value != last_event:
                 state_int = None
                 if event.value == 104:
@@ -226,25 +227,33 @@ def read_qc71():
     device = evdev.InputDevice(detect_qc71())
     for event in device.read_loop():
         if event.type == evdev.ecodes.EV_MSC:
-            print(event)
-            # if event.value != last_event:
             state_int = None
             if event.value == 188:
                 send_notification = True
-                # Qc71 Feature
-                # if QC71_mod_loaded:
-                #     print('Qc71 loaded')
-                #     # qc71_filename = f"{QC71_DIR}/performance_mode"
-                #     # file = open(qc71_filename, mode='r')
-                #     # content = file.read()
-                #     # # line = file.readline()
-                #     # file.close()
-                #     # try:
-                #     #     state_int = int(content)
-                #     # except:
-                #     #     logger.error("Super key lock state read error")
-                # else:
-                #     logger.info('qc71_laptop not loaded')
+                if QC71_mod_loaded and os.path.isfile(f"{QC71_DIR}/silent_mode") and os.path.isfile(f"{QC71_DIR}/turbo_mode"):
+                    print('Qc71 loaded')
+                    qc71_filename = f"{QC71_DIR}/silent_mode"
+                    file = open(qc71_filename, mode='r')
+                    content = file.read()
+                    file.close()
+                    if int(content) != 1:
+                        qc71_filename = f"{QC71_DIR}/turbo_mode"
+                        file = open(qc71_filename, mode='r')
+                        content = file.read()
+                        file.close()
+                        if int(content) != 1:
+                            print("Turbo: "+content)
+                            content = None  # No Turbo, else Turbo=Content=1
+                    else:
+                        print("Silent: "+content)
+                        content = 0  # Silent
+
+                    try:
+                        state_int = int(content)
+                    except:
+                        logger.error("File state read error")
+                else:
+                    logger.info('qc71_laptop not loaded')
 
             last_event = event.value
             if EVENTS.get(event.value):
