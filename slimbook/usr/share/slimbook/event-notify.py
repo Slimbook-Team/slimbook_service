@@ -19,6 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from datetime import datetime
+from time import sleep
 import evdev
 import os
 import logging
@@ -223,8 +224,20 @@ def read_keyboard():
 def read_qc71():
     last_event = 0
     send_notification = None
+    attempts = 5
+    device = None
 
-    device = evdev.InputDevice(detect_qc71())
+    try:
+        device = evdev.InputDevice(detect_qc71())
+    except:
+        while not device and attempts > 0:
+            try:
+                device = evdev.InputDevice(detect_qc71())
+            except:
+                attempts = attempts - 1
+                sleep(1)
+    logger.info(attempts)
+
     for event in device.read_loop():
         if event.type == evdev.ecodes.EV_MSC:
             state_int = None
