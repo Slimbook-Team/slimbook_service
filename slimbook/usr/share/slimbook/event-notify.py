@@ -117,7 +117,8 @@ EVENTS = {
     188: {
         "key": "Performace Button Titan",
         "msg": {0: "Performance Mode changed: Silent",
-                1: "Performance Mode changed: Turbo",
+                1: "Performance Mode changed: Normal",
+                2: "Performance Mode changed: Turbo",
                 'default': "Performance Mode changed"},
         "type": "",
     },
@@ -221,65 +222,65 @@ def read_keyboard():
                         logger.debug(send_notification)
 
 
-def read_qc71():
-    last_event = 0
-    send_notification = None
-    attempts = 5
-    device = None
+def read_titan_performance_mode():
+    import time
+    DNAME = f"{QC71_DIR}"
+    FNAME = f"{QC71_DIR}/silent_mode"
+    FNAME2 = f"{QC71_DIR}/turbo_mode"
 
-    try:
-        device = evdev.InputDevice(detect_qc71())
-    except:
-        while not device and attempts > 0:
-            try:
-                device = evdev.InputDevice(detect_qc71())
-            except:
-                attempts = attempts - 1
-                sleep(1)
-    logger.info(attempts)
+    state_int = None
 
-    for event in device.read_loop():
-        if event.type == evdev.ecodes.EV_MSC:
-            state_int = None
-            if event.value == 188:
-                send_notification = True
-                if QC71_mod_loaded and os.path.isfile(f"{QC71_DIR}/silent_mode") and os.path.isfile(f"{QC71_DIR}/turbo_mode"):
-                    print('Qc71 loaded')
-                    qc71_filename = f"{QC71_DIR}/silent_mode"
-                    file = open(qc71_filename, mode='r')
-                    content = file.read()
-                    file.close()
-                    if int(content) != 1:
-                        qc71_filename = f"{QC71_DIR}/turbo_mode"
-                        file = open(qc71_filename, mode='r')
-                        content = file.read()
-                        file.close()
-                        if int(content) != 1:
-                            print("Turbo: "+content)
-                            content = None  # No Turbo, else Turbo=Content=1
-                    else:
-                        print("Silent: "+content)
-                        content = 0  # Silent
+    def get_content(file_path):
+        if os.path.isfile(file_path):
+            # open text file in read mode
+            text_file = open(file_path, "r")
 
-                    try:
-                        state_int = int(content)
-                    except:
-                        logger.error("File state read error")
-                else:
-                    logger.info('qc71_laptop not loaded')
+            # read whole file to a string
+            data = text_file.read()
 
-            last_event = event.value
-            if EVENTS.get(event.value):
-                msg = (
-                    ((EVENTS.get(event.value)).get("msg")).get(state_int)
-                    if state_int != None
-                    else EVENTS.get(event.value).get("msg").get('default')
-                )
-                if send_notification:
-                    logger.info("Should notify " + str(msg))
-                    notify_send(msg)
-                else:
-                    logger.debug(send_notification)
+            # close file
+            text_file.close()
+            return data
+
+    def notify_performance():
+        send_notification = True
+        if EVENTS.get(188):
+            msg = (
+                ((EVENTS.get(188)).get("msg")).get(state_int)
+                if state_int != None
+                else EVENTS.get(188).get("msg").get('default')
+            )
+            if send_notification:
+                logger.info("Should notify " + str(msg))
+                notify_send(msg)
+            else:
+                logger.debug(send_notification)
+
+    MODES = {
+        0: 'silent',
+        1: 'normal',
+        2: 'turbo',
+    }
+
+    while True:
+        silent = get_content(FNAME)
+        turbo = get_content(FNAME2)
+
+        if silent == turbo:
+            time.sleep(0.5)
+            if silent == turbo:
+                mode = 1
+        else:
+            if int(silent) == 1:
+                mode = 0
+            else:
+                mode = 2
+
+        if not state_int == mode:
+            state_int = mode
+            # print(MODES.get(state_int))
+            notify_performance()
+        time.sleep(0.5)
 
 
 read_kbd_thread = threading.Thread(
@@ -287,7 +288,8 @@ read_kbd_thread = threading.Thread(
 # read_kbd_thread.daemon = True
 read_kbd_thread.start()
 
-read_qc71_thread = threading.Thread(
-    name='my_service', target=read_qc71)
-# read_qc71_thread.daemon = True
-read_qc71_thread.start()
+if QC71_mod_loaded:
+    read_titan_performance_mode_thread = threading.Thread(
+        name='my_service', target=read_titan_performance_mode)
+    # read_qc71_thread.daemon = True
+    read_titan_performance_mode_thread.start()
