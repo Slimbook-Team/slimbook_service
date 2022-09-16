@@ -1,6 +1,7 @@
 slimbook (0.3) focal; urgency=medium
 
   * Fix autostart 
+  * Set indicator title
 
  -- Slimbook <dev@slimbook.es>  Wed, 17 Aug 2022 16:55:29 +0200
 
