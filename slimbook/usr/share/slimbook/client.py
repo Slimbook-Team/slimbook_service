@@ -58,6 +58,12 @@ from common import _
 BUS_NAME = 'es.slimbok.SlimbookServiceIndicator'
 BUS_PATH = '/es/slimbok/SlimbookServiceIndicator'
 
+Notify.init("Slimbok Client Notifications")
+notification = Notify.Notification.new('', '' )
+notification.set_app_name("Slimbok Client Notifications")
+notification.set_timeout(Notify.EXPIRES_DEFAULT)
+notification.set_urgency(Notify.Urgency.CRITICAL)
+
 logging.basicConfig(
     level=logging.DEBUG,
     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
@@ -130,10 +136,8 @@ class SlimbookServiceIndicator(dbus.service.Object):
         logging.debug('Exiting')
 
     def message(self, title, message):
-        info = Notify.Notification.new(title, message, 'dialog-information')
-        info.set_timeout(Notify.EXPIRES_DEFAULT)
-        info.set_urgency(Notify.Urgency.NORMAL)
-        info.show()
+        notification.update(title, message, 'dialog-information')
+        notification.show()
 
     def read_preferences(self):
         configuration = Configuration()
@@ -238,6 +242,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
         widget.set_sensitive(True)
 
     def on_quit_item(self, widget, data=None):
+        Notify.uninit()
         logging.debug('Exit')
         exit(0)
 
