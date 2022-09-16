@@ -93,6 +93,7 @@ class SlimbookServiceIndicator(dbus.service.Object):
         self.active_icon = None
         self.about_dialog = None
         self.active = False
+        
         self.notification = Notify.Notification.new('', '', None)
         self.read_preferences()
         manage_autostart(self.autostart)
@@ -102,6 +103,8 @@ class SlimbookServiceIndicator(dbus.service.Object):
                                                     appindicator.
                                                     IndicatorCategory.
                                                     HARDWARE)
+        
+        self.indicator.set_title('Slimbook Client Notifications')
 
         self.running = True
         self.client = threading.Thread(
