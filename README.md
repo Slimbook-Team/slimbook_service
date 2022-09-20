@@ -18,12 +18,19 @@ Service is autoenabled on install, yo can find it as slimbook.service
 
 To see notifications, you need to launch the Slimbook Client Notifications indicator. (read below)
 
+# Install
+```shell
+   sudo apt-add-repository ppa:slimbook/slimbook
+   sudo apt install slimbook_service
+```
+
 ## Usage/Examples
 Run:
 
 ```
 slimbookindicator
 ```
+
 ### 🏠 [Homepage](https://github.com/slimbook/slimbookrgbkeyboard)
 
 ## Author
