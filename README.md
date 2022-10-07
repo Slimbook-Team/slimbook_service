@@ -4,7 +4,7 @@
   <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank">
     <img alt="License: GPL--3+" src="https://img.shields.io/badge/License-GPL--3+-yellow.svg" />
   </a>
-  <a href="https://twitter.com/SlimbookEs" target="_blank">
+  <a href="https://twitter.com/Slimbook" target="_blank">
     <img alt="Twitter: SlimbookEs" src="https://img.shields.io/twitter/follow/SlimbookEs.svg?style=social" />
   </a>
 </p>
