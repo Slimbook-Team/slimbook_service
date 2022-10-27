@@ -4,8 +4,8 @@
   <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank">
     <img alt="License: GPL--3+" src="https://img.shields.io/badge/License-GPL--3+-yellow.svg" />
   </a>
-  <a href="https://twitter.com/SlimbookEs" target="_blank">
-    <img alt="Twitter: SlimbookEs" src="https://img.shields.io/twitter/follow/SlimbookEs.svg?style=social" />
+  <a href="https://twitter.com/Slimbook" target="_blank">
+    <img alt="Twitter: SlimbookEs" src="https://img.shields.io/twitter/follow/Slimbook.svg?style=social" />
   </a>
 </p>
 
@@ -18,12 +18,19 @@ Service is autoenabled on install, yo can find it as slimbook.service
 
 To see notifications, you need to launch the Slimbook Client Notifications indicator. (read below)
 
+# Install
+```shell
+   sudo apt-add-repository ppa:slimbook/slimbook
+   sudo apt install slimbook_service
+```
+
 ## Usage/Examples
 Run:
 
 ```
 slimbookindicator
 ```
+
 ### 🏠 [Homepage](https://github.com/slimbook/slimbookrgbkeyboard)
 
 ## Author
