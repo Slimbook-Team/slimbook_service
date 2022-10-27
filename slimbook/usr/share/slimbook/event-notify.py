@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import subprocess
 from datetime import datetime
 import evdev
 import os
@@ -99,6 +100,13 @@ EVENTS = {
                 'default': "Super Key Lock state changed"},
         "type": "",
     },
+    165: { # f2 ON FEDORA EXECUTIVE 16"
+        "key": "F2",
+        "msg": {0: "Super Key Lock disabled",
+                1: "Super Key Lock enabled",
+                'default': "Super Key Lock state changed"},
+        "type": "",
+    },
     105: {
         "key": "F5",
         "msg": {0: "Silent Mode disabled",
@@ -135,6 +143,7 @@ def read_keyboard():
             # print(event)
             if event.value != last_event:
                 state_int = None
+                # print(event)
                 if event.value == 104:
                     send_notification = True
                     if QC71_mod_loaded:
@@ -220,6 +229,64 @@ def read_keyboard():
                     else:
                         logger.debug(send_notification)
 
+def read_qc71():
+
+    last_event = 0
+    send_notification = None
+    keyboard_device_path = detect_qc71()
+    device = evdev.InputDevice(keyboard_device_path)
+    for event in device.read_loop():
+        if event.type == evdev.ecodes.EV_MSC:
+            # print(event)
+            # if event.value != last_event:
+            state_int = None
+            if event.value == 165:
+                send_notification = True
+                if QC71_mod_loaded:
+                    qc71_filename = f"{QC71_DIR}/super_key_lock"
+                    file = open(qc71_filename, mode='r')
+                    content = file.read()
+                    # line = file.readline()
+                    file.close()
+                    try:
+                        state_int = int(content)
+                    except:
+                        logger.error("Super key lock state read error")
+                else:
+                    logger.info('qc71_laptop not loaded')
+
+            elif event.value == 188:
+                send_notification = True
+
+                if QC71_mod_loaded:
+                    qc71_filename = f"{QC71_DIR}/silent_mode"
+                    file = open(qc71_filename, mode='r')
+                    content = file.read()
+                    # line = file.readline()
+                    file.close()
+                    try:
+                        state_int = int(content)
+                    except:
+                        logger.error("Silent mode state read error")
+
+                else:
+                    logger.info('qc71_laptop not loaded')
+            
+            last_event = event.value
+            if EVENTS.get(event.value):
+                msg = (
+                    ((EVENTS.get(event.value)).get("msg")).get(state_int)
+                    if state_int != None
+                    else EVENTS.get(event.value).get("msg").get('default')
+                )
+                if send_notification:
+                    logger.info("Should notify " + str(msg))
+                    notify_send(msg)
+                else:
+                    logger.debug(send_notification)
+
+            
+
 
 def read_titan_performance_mode():
     import time
@@ -288,7 +355,16 @@ read_kbd_thread = threading.Thread(
 read_kbd_thread.start()
 
 if QC71_mod_loaded:
-    read_titan_performance_mode_thread = threading.Thread(
-        name='my_service', target=read_titan_performance_mode)
-    # read_qc71_thread.daemon = True
-    read_titan_performance_mode_thread.start()
+    if "titan" in subprocess.getstatusoutput("sudo dmidecode --string baseboard-product-name")[1]:
+        print("Slimbook Titan detection")
+        read_titan_performance_mode_thread = threading.Thread(
+            name='my_service', target=read_titan_performance_mode)
+        # read_qc71_thread.daemon = True
+        read_titan_performance_mode_thread.start()
+
+    else:
+        print("Slimbook normal detection")
+        read_qc71_thread = threading.Thread(
+            name='my_service', target=read_qc71)
+        # read_qc71_thread.daemon = True
+        read_qc71_thread.start()
