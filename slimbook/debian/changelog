@@ -1,3 +1,11 @@
+slimbook (0.3.2) focal; urgency=medium
+
+  [ slimbook ]
+  * Add some time before restarting service
+  * Read qc71 events
+
+ -- Slimbook <dev@slimbook.es>  Fri, 28 Oct 2022 09:58:15 +0200
+
 slimbook (0.3.1) focal; urgency=medium
 
   * Fix autostart 

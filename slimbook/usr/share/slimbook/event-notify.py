@@ -100,7 +100,7 @@ EVENTS = {
                 'default': "Super Key Lock state changed"},
         "type": "",
     },
-    165: { # f2 ON FEDORA EXECUTIVE 16"
+    165: { # f2 ON QC71 module
         "key": "F2",
         "msg": {0: "Super Key Lock disabled",
                 1: "Super Key Lock enabled",
@@ -355,16 +355,17 @@ read_kbd_thread = threading.Thread(
 read_kbd_thread.start()
 
 if QC71_mod_loaded:
-    if "titan" in subprocess.getstatusoutput("sudo dmidecode --string baseboard-product-name")[1]:
+    if "TITAN" in subprocess.getstatusoutput("sudo dmidecode --string baseboard-product-name")[1]:
         print("Slimbook Titan detection")
         read_titan_performance_mode_thread = threading.Thread(
             name='my_service', target=read_titan_performance_mode)
         # read_qc71_thread.daemon = True
         read_titan_performance_mode_thread.start()
 
-    else:
-        print("Slimbook normal detection")
-        read_qc71_thread = threading.Thread(
-            name='my_service', target=read_qc71)
-        # read_qc71_thread.daemon = True
-        read_qc71_thread.start()
+    print("Slimbook normal detection")
+    read_qc71_thread = threading.Thread(
+        name='my_service', target=read_qc71)
+    # read_qc71_thread.daemon = True
+    read_qc71_thread.start()
+else:
+    print("Qc71 not loaded.")
