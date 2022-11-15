@@ -25,6 +25,7 @@ import os
 import logging
 import zmq
 import threading
+import time
 
 logger = logging.getLogger("main")
 logging.basicConfig(format='%(levelname)s-%(message)s')
@@ -38,6 +39,11 @@ socket.bind(f"tcp://*:{PORT}")
 QC71_DIR = '/sys/devices/platform/qc71_laptop'
 QC71_mod_loaded = True if os.path.isdir(QC71_DIR) else False
 
+QC71_MOD_DIR = f"{QC71_DIR}"
+SILENT_FILE = f"{QC71_DIR}/silent_mode"
+TURBO_FILE = f"{QC71_DIR}/turbo_mode"
+
+is_titan = True if "TITAN" in subprocess.getstatusoutput("sudo dmidecode --string baseboard-product-name")[1] else False
 
 def notify_send(msg):
     dt = datetime.now()
@@ -45,7 +51,6 @@ def notify_send(msg):
     data = {"msg": msg, "timestamp": ts}
     print(data)
     socket.send_json(data)
-    #socket.send_string(f"10001 {msg}")
 
 
 def detect_touchpad():
@@ -92,6 +97,18 @@ def detect_qc71():
     return qc71_device_path
 
 
+def get_content(file_path):
+    if os.path.isfile(file_path):
+        # open text file in read mode
+        text_file = open(file_path, "r")
+
+        # read whole file to a string
+        data = text_file.read()
+
+        # close file
+        text_file.close()
+        return data
+
 EVENTS = {
     104: {
         "key": "F2",
@@ -100,7 +117,7 @@ EVENTS = {
                 'default': "Super Key Lock state changed"},
         "type": "",
     },
-    165: { # f2 ON QC71 module
+    165: {  # f2 ON QC71 module
         "key": "F2",
         "msg": {0: "Super Key Lock disabled",
                 1: "Super Key Lock enabled",
@@ -130,6 +147,12 @@ EVENTS = {
         "type": "",
     },
 }
+
+MODES = {
+        0: 'silent',
+        1: 'normal',
+        2: 'turbo',
+    }
 
 
 def read_keyboard():
@@ -229,8 +252,9 @@ def read_keyboard():
                     else:
                         logger.debug(send_notification)
 
-def read_qc71():
 
+
+def read_qc71():
     last_event = 0
     send_notification = None
     keyboard_device_path = detect_qc71()
@@ -256,22 +280,17 @@ def read_qc71():
                     logger.info('qc71_laptop not loaded')
 
             elif event.value == 188:
-                send_notification = True
-
-                if QC71_mod_loaded:
-                    qc71_filename = f"{QC71_DIR}/silent_mode"
-                    file = open(qc71_filename, mode='r')
-                    content = file.read()
-                    # line = file.readline()
-                    file.close()
+                if QC71_mod_loaded and not is_titan:
+                    send_notification = True
+                    silent = get_content(SILENT_FILE)
                     try:
-                        state_int = int(content)
+                        state_int = int(silent)
                     except:
                         logger.error("Silent mode state read error")
 
                 else:
-                    logger.info('qc71_laptop not loaded')
-            
+                    send_notification = False
+
             last_event = event.value
             if EVENTS.get(event.value):
                 msg = (
@@ -285,87 +304,62 @@ def read_qc71():
                 else:
                     logger.debug(send_notification)
 
-            
-
-
 def read_titan_performance_mode():
-    import time
-    DNAME = f"{QC71_DIR}"
-    FNAME = f"{QC71_DIR}/silent_mode"
-    FNAME2 = f"{QC71_DIR}/turbo_mode"
-
     state_int = None
-
-    def get_content(file_path):
-        if os.path.isfile(file_path):
-            # open text file in read mode
-            text_file = open(file_path, "r")
-
-            # read whole file to a string
-            data = text_file.read()
-
-            # close file
-            text_file.close()
-            return data
-
+    send_notification = False
+    
     def notify_performance():
-        send_notification = True
-        if EVENTS.get(188):
+        event_value = 188
+        if EVENTS.get(event_value) and send_notification:
             msg = (
-                ((EVENTS.get(188)).get("msg")).get(state_int)
+                ((EVENTS.get(event_value)).get("msg")).get(state_int)
                 if state_int != None
-                else EVENTS.get(188).get("msg").get('default')
+                else EVENTS.get(event_value).get("msg").get('default')
             )
-            if send_notification:
-                logger.info("Should notify " + str(msg))
-                notify_send(msg)
-            else:
-                logger.debug(send_notification)
-
-    MODES = {
-        0: 'silent',
-        1: 'normal',
-        2: 'turbo',
-    }
+            logger.info("TITAN - Should notify " + str(msg))
+            notify_send(msg)
+        else:
+            logger.debug(send_notification)
 
     while True:
-        silent = get_content(FNAME)
-        turbo = get_content(FNAME2)
+        silent = get_content(SILENT_FILE)
+        turbo = get_content(TURBO_FILE)
 
-        if silent == turbo:
+        if int(silent) == 1:
+            mode = 0
+        elif int(turbo) == 1:
+            mode = 2
+        elif silent == turbo:
             time.sleep(0.5)
-            if silent == turbo:
+            if silent == turbo: # NORMAL
                 mode = 1
-        else:
-            if int(silent) == 1:
-                mode = 0
-            else:
-                mode = 2
-
-        if not state_int == mode:
-            state_int = mode
-            # print(MODES.get(state_int))
+        
+        logger.info(str(mode)+"   " +str(state_int))
+            
+        if not state_int == mode: # MODE CHANGED
+            send_notification = True if state_int != None else False
+            state_int = mode 
             notify_performance()
+            
         time.sleep(0.5)
 
 
 read_kbd_thread = threading.Thread(
     name='my_service', target=read_keyboard)
-# read_kbd_thread.daemon = True
 read_kbd_thread.start()
 
 if QC71_mod_loaded:
-    if "TITAN" in subprocess.getstatusoutput("sudo dmidecode --string baseboard-product-name")[1]:
+    if is_titan:
         print("Slimbook Titan detection")
         read_titan_performance_mode_thread = threading.Thread(
-            name='my_service', target=read_titan_performance_mode)
-        # read_qc71_thread.daemon = True
+            name='my_service', target=read_titan_performance_mode
+        )
         read_titan_performance_mode_thread.start()
 
     print("Slimbook normal detection")
     read_qc71_thread = threading.Thread(
-        name='my_service', target=read_qc71)
-    # read_qc71_thread.daemon = True
+        name='my_service', target=read_qc71
+    )
     read_qc71_thread.start()
 else:
     print("Qc71 not loaded.")

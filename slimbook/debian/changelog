@@ -1,3 +1,10 @@
+slimbook (0.3.3) focal; urgency=medium
+
+  * Fix Read qc71 events without modifiying Titan modes 
+
+ -- Slimbook <dev@slimbook.es>  Fri, 14 Nov 2022 09:58:15 +0200
+
+
 slimbook (0.3.2) focal; urgency=medium
 
   [ slimbook ]
