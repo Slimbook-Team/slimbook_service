@@ -21,7 +21,7 @@ To see notifications, you need to launch the Slimbook Client Notifications indic
 # Install
 ```shell
    sudo apt-add-repository ppa:slimbook/slimbook
-   sudo apt install slimbook_service
+   sudo apt install slimbook
 ```
 
 ## Usage/Examples
