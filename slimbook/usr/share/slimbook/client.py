@@ -45,7 +45,7 @@ except Exception as e:
     print(e)
     exit(1)
 
-from gi.repository import Gtk
+from gi.repository import Gtk,Gdk
 from gi.repository import GLib
 from gi.repository import GdkPixbuf
 from gi.repository import Notify
@@ -159,12 +159,18 @@ class SlimbookServiceIndicator(dbus.service.Object):
         separator1 = Gtk.SeparatorMenuItem()
         separator1.show()
         menu.append(separator1)
-        #
+
         menu_preferences = Gtk.MenuItem.new_with_label(_('Preferences'))
         menu_preferences.connect('activate', self.on_preferences_item)
         menu_preferences.show()
         menu.append(menu_preferences)
 
+        
+        menu_sysinfo = Gtk.MenuItem.new_with_label(_('System information'))
+        menu_sysinfo.connect('activate', self.on_sysinfo_item)
+        menu_sysinfo.show()
+        menu.append(menu_sysinfo)
+        
         about_item = Gtk.MenuItem.new_with_label(_('About'))
         about_item.connect('activate', self.on_about_item)
         about_item.show()
@@ -239,11 +245,24 @@ this program. If not, see <http://www.gnu.org/licenses/>.
             self.read_preferences()
         preferences_dialog.hide()
         preferences_dialog.destroy()
-        self.indicator.set_icon(self.active_icon)
+        # deprecated
+        #self.indicator.set_icon(self.active_icon)
+        # what is the point of this?
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
             appindicator.IndicatorStatus.PASSIVE)
         widget.set_sensitive(True)
 
+    def on_sysinfo_item(self, widget, data=None):
+        logging.info("system info")
+        widget.set_sensitive(False)
+        info = common.get_system_info()
+        print(info)
+        
+        sysinfo_dialog = SystemInfoDialog(info)
+        sysinfo_dialog.run()
+        sysinfo_dialog.destroy()
+        widget.set_sensitive(True)
+        
     def on_quit_item(self, widget, data=None):
         Notify.uninit()
         logging.debug('Exit')
@@ -352,6 +371,86 @@ class PreferencesDialog(Gtk.Dialog):
             configuration.set('theme', 'dark')
         configuration.save()
 
+
+class SystemInfoDialog(Gtk.Dialog):
+
+    def __init__(self,info):
+        Gtk.Dialog.__init__(self, 'Slimbook ' + _('System information'),
+                            None,
+                            modal=True,
+                            destroy_with_parent=True,
+                            use_header_bar=True
+                            )
+                            
+        CSS = '''
+            list {
+                border-width: 1px;
+                border-style: inset;
+                border-color: lightgrey;
+            }
+            
+            row {
+                border-width: 1px;
+                border-style: outset;
+                border-color: lightgrey;
+                min-height: 32px;
+                min-width: 400px;
+            }
+            '''
+        
+        self.info = info
+        
+        provider = Gtk.CssProvider()
+        provider.load_from_data(CSS.encode("utf-8"))
+        style_context = self.get_style_context()
+        style_context.add_provider_for_screen(
+                self.get_screen(),
+                provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        
+        btn_copy = Gtk.Button(label=_("Copy"))
+        btn_copy.connect("clicked",self.btn_copy_clicked)
+        self.get_header_bar().pack_end(btn_copy)
+        
+        vbox = Gtk.VBox(spacing = 12)
+        listbox = Gtk.ListBox()
+        
+        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        
+        self.get_content_area().add(vbox)
+        vbox.pack_start(listbox,False,False,1)
+        vbox.set_border_width(16)
+        
+        for k in info:
+            key = k[0]
+            value = k[1]
+            label_key = Gtk.Label()
+            label_key.set_markup("<b>{0}</b>".format(key))
+            label_value = Gtk.Label(label=value)
+            
+            hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+            
+            hbox.pack_start(label_key, False, False, 1)
+            hbox.pack_end(label_value, False, False, 1)
+            
+            row = Gtk.ListBoxRow()
+            row.add(hbox)
+            
+            listbox.add(row)
+        
+        self.show_all()
+        
+    def btn_copy_clicked(self,button):
+        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        
+        txt=""
+        for k in self.info:
+            key = k[0]
+            value = k[1]
+            txt=txt+"{0}:\t{1}\n".format(key,value)
+        
+        clipboard.set_text(txt,-1)
+        button.set_sensitive(False)
 
 def manage_autostart(create):
     if not os.path.exists(common.AUTOSTART_DIR):
