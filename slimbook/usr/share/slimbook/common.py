@@ -218,62 +218,93 @@ def _get_gpu():
 def get_system_info():
     info = []
     
-    data = _read_file("/proc/version")
-    info.append([INFO_KERNEL,data[0].strip().split()[2]])
+    try:
+        data = _read_file("/proc/version")
+        info.append([INFO_KERNEL,data[0].strip().split()[2]])
+    except:
+        pass
     
-    if (os.path.exists("/usr/lib/os-release")):
-        f = open("/usr/lib/os-release","rt")
-        lines = f.readlines()
-        f.close()
-
-        name = None
-        version = None
-        
-        for line in lines:
-            tmp = line.strip().split('=')
-            
-            if (len(tmp) > 1):
-                if (tmp[0] == "NAME"):
-                    name = tmp[1].strip("\"")
-                if (tmp[0] == "VERSION"):
-                    version = tmp[1].strip("\"")
-        if (name and version):
-            info.append([INFO_OS,name + " " + version])
-            
-    info.append([INFO_DESKTOP, os.environ["XDG_CURRENT_DESKTOP"].replace(":",", ")])
-    info.append([INFO_SESSION, os.environ["XDG_SESSION_TYPE"]])
-    
-    data = _read_file("/sys/class/dmi/id/product_name")
-    info.append([INFO_PRODUCT,data[0].strip()])
-    
-    data = _read_file("/sys/class/dmi/id/bios_version")
-    info.append([INFO_BIOS,data[0].strip()])
-    
-    data = _read_file("/sys/class/dmi/id/ec_firmware_release")
-    info.append([INFO_EC,data[0].strip()])
-    
-    if (os.path.exists("/sys/firmware/efi")):
-        info.append([INFO_BOOT,"UEFI"])
-        sb = False
-        SB_VAR = "/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c"
-        if (os.path.exists(SB_VAR)):
-            f = open(SB_VAR,"rb")
-            var = list(f.read())
-            if (var[4] == 1):
-                sb = True
+    try:
+        if (os.path.exists("/usr/lib/os-release")):
+            f = open("/usr/lib/os-release","rt")
+            lines = f.readlines()
             f.close()
-       
-        if sb:
-            info.append([INFO_SB,_("Yes")])
+
+            name = None
+            version = None
+
+            for line in lines:
+                tmp = line.strip().split('=')
+
+                if (len(tmp) > 1):
+                    if (tmp[0] == "NAME"):
+                        name = tmp[1].strip("\"")
+                    if (tmp[0] == "VERSION"):
+                        version = tmp[1].strip("\"")
+            if (name and version):
+                info.append([INFO_OS,name + " " + version])
+    except:
+        pass
+
+    try:
+        info.append([INFO_DESKTOP, os.environ["XDG_CURRENT_DESKTOP"].replace(":",", ")])
+    except:
+        pass
+
+    try:
+        info.append([INFO_SESSION, os.environ["XDG_SESSION_TYPE"]])
+    except:
+        pass
+    
+    try:
+        data = _read_file("/sys/class/dmi/id/product_name")
+        info.append([INFO_PRODUCT,data[0].strip()])
+    except:
+        pass
+    
+    try:
+        data = _read_file("/sys/class/dmi/id/bios_version")
+        info.append([INFO_BIOS,data[0].strip()])
+    except:
+        pass
+    
+    try:
+        data = _read_file("/sys/class/dmi/id/ec_firmware_release")
+        info.append([INFO_EC,data[0].strip()])
+    except:
+        pass
+    
+    try:
+        if (os.path.exists("/sys/firmware/efi")):
+            info.append([INFO_BOOT,"UEFI"])
+            sb = False
+            SB_VAR = "/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c"
+            if (os.path.exists(SB_VAR)):
+                f = open(SB_VAR,"rb")
+                var = list(f.read())
+                if (var[4] == 1):
+                    sb = True
+                f.close()
+
+            if sb:
+                info.append([INFO_SB,_("Yes")])
+            else:
+                info.append([INFO_SB,_("No")])
         else:
-            info.append([INFO_SB,_("No")])
-    else:
-        info.append([INFO_BOOT,"Legacy"])
+            info.append([INFO_BOOT,"Legacy"])
+    except:
+        pass
+
+    try:
+        for cpu in _get_cpu():
+            info.append([INFO_CPU, cpu])
+    except:
+        pass
     
-    for cpu in _get_cpu():
-        info.append([INFO_CPU, cpu])
-    
-    for gpu in _get_gpu():
-        info.append([INFO_GPU,gpu])
+    try:
+        for gpu in _get_gpu():
+            info.append([INFO_GPU,gpu])
+    except:
+        pass
     
     return info

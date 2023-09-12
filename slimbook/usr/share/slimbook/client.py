@@ -65,7 +65,7 @@ notification.set_timeout(Notify.EXPIRES_DEFAULT)
 notification.set_urgency(Notify.Urgency.CRITICAL)
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
 )
 
@@ -253,10 +253,9 @@ this program. If not, see <http://www.gnu.org/licenses/>.
         widget.set_sensitive(True)
 
     def on_sysinfo_item(self, widget, data=None):
-        logging.info("system info")
+        logging.debug("system info")
         widget.set_sensitive(False)
         info = common.get_system_info()
-        print(info)
         
         sysinfo_dialog = SystemInfoDialog(info)
         sysinfo_dialog.run()
@@ -408,7 +407,8 @@ class SystemInfoDialog(Gtk.Dialog):
                 provider,
                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         
-        btn_copy = Gtk.Button(label=_("Copy"))
+        #btn_copy = Gtk.Button(label=_("Copy"))
+        btn_copy = Gtk.Button.new_from_icon_name("edit-copy",Gtk.IconSize.BUTTON)
         btn_copy.connect("clicked",self.btn_copy_clicked)
         self.get_header_bar().pack_end(btn_copy)
         
