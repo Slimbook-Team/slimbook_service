@@ -24,8 +24,8 @@ from fcntl import ioctl
 
 HID_MAX_DESCRIPTOR_SIZE = 4096
 
-HIDIOCSFEATURE = 0xC0024806  # 2bytes
-HIDIOCGFEATURE = 0xC0024807  # 2bytes
+HIDIOCSFEATURE = 0xC0004806
+HIDIOCGFEATURE = 0xC0004807
 HIDIOCGRDESCSIZE = 0x80044801
 HIDIOCGRDESC = 0x90044802
 HIDIOCGRAWINFO = 0x80084803
@@ -144,6 +144,16 @@ def get_device_info(fd):
     data = struct.unpack("Ihh",status)
     
     return DeviceInfo(data[0], data[1], data[2])
+
+def set_feature(fd,id,data):
+    cmd = HIDIOCSFEATURE | (len(data)<<24)
+    data = bytes([id]) + data
+    return ioctl(fd,cmd,data)
+
+def get_feature(fd,id,size):
+    cmd = HIDIOCGFEATURE | (size<<24)
+    data = bytes([id]) + bytes([0]*size)
+    return ioctl(fd,cmd,data)
 
 def get_report_descriptor(fd):
     data = struct.pack("I",0)
