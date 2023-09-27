@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import iohid
+
 import subprocess
 from datetime import datetime
 import evdev
@@ -43,6 +45,10 @@ QC71_MOD_DIR = f"{QC71_DIR}"
 SILENT_FILE = f"{QC71_DIR}/silent_mode"
 TURBO_FILE = f"{QC71_DIR}/turbo_mode"
 
+BUTTON_SWITCH_USAGE_ID = (iohid.HID_USAGE_PAGE_DIGITIZER << 16) | iohid.HID_USAGE_DIGITIZER_BUTTON_SWITCH
+SURFACE_SWITCH_USAGE_ID = (iohid.HID_USAGE_PAGE_DIGITIZER << 16) | iohid.HID_USAGE_DIGITIZER_SURFACE_SWITCH
+
+
 is_titan = True if "TITAN" in subprocess.getstatusoutput("sudo dmidecode --string baseboard-product-name")[1] else False
 
 def notify_send(msg):
@@ -54,23 +60,43 @@ def notify_send(msg):
 
 
 def detect_touchpad():
-    touchpad_device = None
-    for file in os.listdir('/dev'):
-        if file.startswith('hidraw'):
-            logger.debug(file)
-            data_file = '/sys/class/hidraw/{file}/device/uevent'.format(
-                file=file)
-            logger.debug(data_file)
-            for line in open(data_file).readlines():
-                if line.startswith('HID_NAME=') and \
-                        line.find('UNIW0001:00 093A:') != -1:
-                    try:
-                        logger.debug('Found keyboard at: ' +
-                                     '/dev/{}'.format(file))
-                        touchpad_device = open('/dev/{}'.format(file), 'r')
-                    except Exception as e:
-                        logger.error(e)
-    return touchpad_device
+    touchpad_fd = None
+    touchpad_report = -1
+    
+    for device in iohid.list_devices():
+        fd = open(device,"rb")
+        info = iohid.get_device_info(fd)
+        
+        if (info.bus == iohid.HID_BUS_I2C and info.vendor == 0x93A):
+            report = iohid.get_report_descriptor(fd)
+            reports = iohid.parse_report_descriptor(report)
+            found = False
+            for r in reports:
+                if r.report_type == iohid.HID_MAIN_FEATURE:
+                    button_switch = False
+                    surface_switch = False
+                    
+                    for usage in r.usages:
+                        
+                        if usage == BUTTON_SWITCH_USAGE_ID:
+                            button_switch = True
+                        if usage == SURFACE_SWITCH_USAGE_ID:
+                            surface_switch = True
+                    
+                    if button_switch and surface_switch:
+                        touchpad_report = r.id
+                        touchpad_fd = fd
+                        found = True
+                        logger.info("Found a valid touchpad report ID{0}".format(r.id))
+            if not found:
+                fd.close()
+        else:
+            fd.close()
+        
+        if found:
+            break
+    
+    return (touchpad_fd,touchpad_report)
 
 
 def detect_keyboard():
@@ -156,7 +182,7 @@ MODES = {
 
 
 def read_keyboard():
-    DEV = detect_touchpad()
+    touchpad_fd, touchpad_report = detect_touchpad()
     last_event = 0
     send_notification = None
     keyboard_device_path = detect_keyboard()
@@ -210,18 +236,18 @@ def read_keyboard():
                     HIDIOCGFEATURE = 0xC0024807  # 2bytes
                     STATES = {
                         0: {
-                            "bytes": bytes([0x07, 0x00]),
+                            "bytes": bytes([touchpad_report, 0x00]),
                             "action": 1,
                             "msg": "Disabled",
                         },
                         1: {
-                            "bytes": bytes([0x07, 0x03]),
+                            "bytes": bytes([touchpad_report, 0x03]),
                             "action": 0,
                             "msg": "Enabled",
                         },
                     }
                     try:
-                        status = ioctl(DEV, HIDIOCGFEATURE, bytes([0x07, 0]))
+                        status = ioctl(touchpad_fd, HIDIOCGFEATURE, bytes([touchpad_report, 0]))
                         current_status = str(status)
                         # Setting state_int value != NONE we choose the notification according to the device state.
                         state_int = 1 if current_status.find(
@@ -232,7 +258,7 @@ def read_keyboard():
                         logger.error(e)
 
                     try:
-                        ioctl(DEV, HIDIOCSFEATURE, STATES.get(
+                        ioctl(touchpad_fd, HIDIOCSFEATURE, STATES.get(
                             int(state_int)).get("bytes"))
                     except Exception as e:
                         logger.error(e)
