@@ -146,14 +146,14 @@ def get_device_info(fd):
     return DeviceInfo(data[0], data[1], data[2])
 
 def set_feature(fd,id,data):
-    cmd = HIDIOCSFEATURE | (len(data)<<24)
+    cmd = HIDIOCSFEATURE | ((1 + len(data))<<16)
     data = bytes([id]) + data
     return ioctl(fd,cmd,data)
 
 def get_feature(fd,id,size):
-    cmd = HIDIOCGFEATURE | (size<<24)
+    cmd = HIDIOCGFEATURE | ((1 + size)<<16)
     data = bytes([id]) + bytes([0]*size)
-    return ioctl(fd,cmd,data)
+    return ioctl(fd,cmd,data)[1:]
 
 def get_report_descriptor(fd):
     data = struct.pack("I",0)

@@ -49,13 +49,15 @@ BUTTON_SWITCH_USAGE_ID = (iohid.HID_USAGE_PAGE_DIGITIZER << 16) | iohid.HID_USAG
 SURFACE_SWITCH_USAGE_ID = (iohid.HID_USAGE_PAGE_DIGITIZER << 16) | iohid.HID_USAGE_DIGITIZER_SURFACE_SWITCH
 
 
-is_titan = True if "TITAN" in subprocess.getstatusoutput("sudo dmidecode --string baseboard-product-name")[1] else False
+#is_titan = True if "TITAN" in subprocess.getstatusoutput("sudo dmidecode --string baseboard-product-name")[1] else False
+is_titan = False
+slimbook_model = None
 
 def notify_send(msg):
     dt = datetime.now()
     ts = datetime.timestamp(dt)
     data = {"msg": msg, "timestamp": ts}
-    print(data)
+    logger.debug("notify:"+str(data))
     socket.send_json(data)
 
 
@@ -87,7 +89,7 @@ def detect_touchpad():
                         touchpad_report = r.id
                         touchpad_fd = fd
                         found = True
-                        logger.info("Found a valid touchpad report ID{0}".format(r.id))
+                        logger.info("Found touchpad: {0} report ID {1}".format(device,r.id))
             if not found:
                 fd.close()
         else:
@@ -103,11 +105,10 @@ def detect_keyboard():
     keyboard_device_path = None
     for file in os.listdir('/dev/input/by-path'):
         if file.endswith('event-kbd') and file.find('i8042') != -1:
-            print(file)
             file_path = os.path.join('/dev/input/by-path', file)
             keyboard_device_path = os.path.realpath(
                 os.path.join(file_path, os.readlink(file_path)))
-            logger.debug('Found keyboard at: ' + keyboard_device_path)
+            logger.info('Found keyboard: ' + keyboard_device_path)
     return keyboard_device_path
 
 
@@ -115,11 +116,10 @@ def detect_qc71():
     qc71_device_path = None
     for file in os.listdir('/dev/input/by-path'):
         if file.endswith('qc71_laptop-event'):
-            print(file)
             file_path = os.path.join('/dev/input/by-path', file)
             qc71_device_path = os.path.realpath(
                 os.path.join(file_path, os.readlink(file_path)))
-            logger.debug('Found Qc71 at: ' + qc71_device_path)
+            logger.info('Found qc71 input: ' + qc71_device_path)
     return qc71_device_path
 
 
@@ -187,96 +187,100 @@ def read_keyboard():
     send_notification = None
     keyboard_device_path = detect_keyboard()
     device = evdev.InputDevice(keyboard_device_path)
+    last_event = None
+    
     for event in device.read_loop():
         if event.type == evdev.ecodes.EV_MSC:
-            # print(event)
-            if event.value != last_event:
-                state_int = None
-                # print(event)
-                if event.value == 104:
-                    send_notification = True
-                    if QC71_mod_loaded:
-                        qc71_filename = f"{QC71_DIR}/super_key_lock"
-                        file = open(qc71_filename, mode='r')
-                        content = file.read()
-                        # line = file.readline()
-                        file.close()
-                        try:
-                            state_int = int(content)
-                        except:
-                            logger.error("Super key lock state read error")
-                    else:
-                        logger.info('qc71_laptop not loaded')
+            
+            # event filter, it has some room for improvement but it works good enought
+            if (last_event and event.value == last_event.value):
+                delta = event.timestamp() - last_event.timestamp()
+                
+                if (delta < 0.5):
+                    logger.debug("Event filtered (<0.5s)")
+                    continue
+                    
+            state_int = None
+            
+            # super key lock
+            if event.value == 104:
+                send_notification = True
+                if QC71_mod_loaded:
+                    qc71_filename = f"{QC71_DIR}/super_key_lock"
+                    file = open(qc71_filename, mode='r')
+                    content = file.read()
+                    # line = file.readline()
+                    file.close()
+                    try:
+                        state_int = int(content)
+                        last_event = event
+                    except:
+                        logger.error("Super key lock state read error")
+                else:
+                    logger.info('qc71_laptop not loaded')
 
-                elif event.value == 105:
-                    send_notification = True
+            # silent mode/performance
+            elif event.value == 105:
+                send_notification = True
 
-                    if QC71_mod_loaded:
-                        qc71_filename = f"{QC71_DIR}/silent_mode"
-                        file = open(qc71_filename, mode='r')
-                        content = file.read()
-                        # line = file.readline()
-                        file.close()
-                        try:
-                            state_int = int(content)
-                        except:
-                            logger.error("Silent mode state read error")
+                if QC71_mod_loaded:
+                    qc71_filename = f"{QC71_DIR}/silent_mode"
+                    file = open(qc71_filename, mode='r')
+                    content = file.read()
+                    # line = file.readline()
+                    file.close()
+                    try:
+                        logger.debug("perfomance changed:"+str(content))
+                        state_int = int(content)
+                        last_event = event
+                    except:
+                        logger.error("Silent mode state read error")
 
-                    else:
-                        logger.info('qc71_laptop not loaded')
+                else:
+                    logger.info('qc71_laptop not loaded')
 
-                elif event.value == 458811:
-                    print("aqui")
-                    msg = "En un lugar"
+            # what is this?
+            elif event.value == 458811:
+                pass
+
+            # touchpad switch
+            elif event.value == 118:
+                STATES = {
+                    0: {
+                        "bytes": bytes([0x00]),
+                        "action": 1,
+                        "msg": "Disabled",
+                    },
+                    1: {
+                        "bytes": bytes([0x03]),
+                        "action": 0,
+                        "msg": "Enabled",
+                    },
+                }
+                try:
+                    # expecting a 1 byte size response
+                    status = iohid.get_feature(touchpad_fd, touchpad_report,1)
+                    current_status = int(status[0])
+                    state_int = 1 if current_status == 0 else 0
+                    logger.debug("touchpad status changed:{0}".format(current_status))
+                    iohid.set_feature(touchpad_fd,touchpad_report,STATES.get(int(state_int)).get("bytes"))
+                    last_event = event
+                except Exception as e:
+                    logger.error(e)
+
+                send_notification = True
+
+            if EVENTS.get(event.value):
+                msg = (
+                    ((EVENTS.get(event.value)).get("msg")).get(state_int)
+                    if state_int != None
+                    else EVENTS.get(event.value).get("msg").get('default')
+                )
+                if send_notification:
+                    logger.debug("Should notify " + str(msg))
                     notify_send(msg)
-
-                elif event.value == 118:
-                    from fcntl import ioctl
-                    HIDIOCSFEATURE = 0xC0024806  # 2bytes
-                    HIDIOCGFEATURE = 0xC0024807  # 2bytes
-                    STATES = {
-                        0: {
-                            "bytes": bytes([touchpad_report, 0x00]),
-                            "action": 1,
-                            "msg": "Disabled",
-                        },
-                        1: {
-                            "bytes": bytes([touchpad_report, 0x03]),
-                            "action": 0,
-                            "msg": "Enabled",
-                        },
-                    }
-                    try:
-                        status = ioctl(touchpad_fd, HIDIOCGFEATURE, bytes([touchpad_report, 0]))
-                        current_status = str(status)
-                        # Setting state_int value != NONE we choose the notification according to the device state.
-                        state_int = 1 if current_status.find(
-                            "x00") != -1 else 0
-                        logger.debug(str(state_int) + " " +
-                                     str(current_status))
-                    except Exception as e:
-                        logger.error(e)
-
-                    try:
-                        ioctl(touchpad_fd, HIDIOCSFEATURE, STATES.get(
-                            int(state_int)).get("bytes"))
-                    except Exception as e:
-                        logger.error(e)
-
-                    send_notification = True
-
-                last_event = event.value
-                if EVENTS.get(event.value):
-                    msg = (
-                        ((EVENTS.get(event.value)).get("msg")).get(state_int)
-                        if state_int != None
-                        else EVENTS.get(event.value).get("msg").get('default')
-                    )
-                    if send_notification:
-                        logger.info("Should notify " + str(msg))
-                        notify_send(msg)
-                    else:
-                        logger.debug(send_notification)
+                else:
+                    logger.debug(send_notification)
 
 
 
@@ -325,7 +329,7 @@ def read_qc71():
                     else EVENTS.get(event.value).get("msg").get('default')
                 )
                 if send_notification:
-                    logger.info("Should notify " + str(msg))
+                    logger.debug("Should notify " + str(msg))
                     notify_send(msg)
                 else:
                     logger.debug(send_notification)
@@ -360,7 +364,7 @@ def read_titan_performance_mode():
             if silent == turbo: # NORMAL
                 mode = 1
         
-        logger.info(str(mode)+"   " +str(state_int))
+        #logger.info(str(mode)+"   " +str(state_int))
             
         if not state_int == mode: # MODE CHANGED
             send_notification = True if state_int != None else False
@@ -370,22 +374,33 @@ def read_titan_performance_mode():
         time.sleep(0.5)
 
 
-read_kbd_thread = threading.Thread(
-    name='my_service', target=read_keyboard)
-read_kbd_thread.start()
+def main():
 
-if QC71_mod_loaded:
-    if is_titan:
-        print("Slimbook Titan detection")
-        read_titan_performance_mode_thread = threading.Thread(
-            name='my_service', target=read_titan_performance_mode
+    logger.info("Slimbook service")
+    
+    slimbook_model = get_content("/sys/class/dmi/id/product_name").strip()
+    logger.info("Model: {0}".format(slimbook_model))
+    
+    is_titan = (slimbook_model == "TITAN")
+
+    read_kbd_thread = threading.Thread(
+        name='my_service', target=read_keyboard)
+    read_kbd_thread.start()
+
+    if QC71_mod_loaded:
+        if is_titan:
+            read_titan_performance_mode_thread = threading.Thread(
+                name='my_service', target=read_titan_performance_mode
+            )
+            read_titan_performance_mode_thread.start()
+
+        
+        read_qc71_thread = threading.Thread(
+            name='my_service', target=read_qc71
         )
-        read_titan_performance_mode_thread.start()
-
-    print("Slimbook normal detection")
-    read_qc71_thread = threading.Thread(
-        name='my_service', target=read_qc71
-    )
-    read_qc71_thread.start()
-else:
-    print("Qc71 not loaded.")
+        read_qc71_thread.start()
+    else:
+        logger.warning("qc71_laptop kernel module is not loaded")
+        
+if __name__=="__main__":
+    main()
