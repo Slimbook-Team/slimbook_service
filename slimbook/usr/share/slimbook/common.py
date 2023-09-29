@@ -73,6 +73,17 @@ try:
 except Exception as e:
     _ = str
 
+INFO_KERNEL = _("Kernel")
+INFO_OS = _("OS")
+INFO_DESKTOP = _("Desktop")
+INFO_SESSION = _("Session")
+INFO_PRODUCT = _("Product")
+INFO_BIOS = _("Bios Version")
+INFO_EC = _("EC Version")
+INFO_BOOT = _("Boot Mode")
+INFO_SB = _("Secure Boot")
+INFO_CPU = _("CPU")
+INFO_GPU = _("GPU")
 # print(os.path.dirname(os.path.abspath(__file__)))
 
 class Configuration(object):
@@ -122,3 +133,178 @@ class Configuration(object):
         f = codecs.open(CONFIG_FILE, 'w', 'utf-8')
         f.write(json.dumps(self.params, separators=(",\n", ": ")))
         f.close()
+
+def _read_file(file):
+    f = open(file,"r")
+    data = f.readlines()
+    f.close()
+    
+    return data
+
+def _get_pciid(vendor,device):
+    ret=[vendor,device]
+    
+    f=open("/usr/share/misc/pci.ids","r")
+    lines=f.readlines()
+    f.close()
+    
+    vm = False
+    
+    for line in lines:
+        if not line[0]=="\t":
+            if vm:
+                break
+            
+            if vendor == line[:4]:
+                ret[0]=line[6:].strip()
+                vm = True
+        else:
+            if vm:
+                if device == line[1:5]:
+                    ret[1]=line[6:].strip()
+    
+    return ret
+    
+def _get_cpu():
+    ret = []
+
+    f = open("/proc/cpuinfo","r")
+    lines = f.readlines()
+    f.close()
+    
+    model = ""
+    cpus = {}
+    
+    for line in lines:
+        tmp = line.split(":")
+        if (len(tmp) < 2):
+            continue
+        
+        key = tmp[0].strip()
+        value = tmp[1].strip()
+        
+        if (key == "model name"):
+            model = value
+    
+        if (key == "physical id"):
+            if not value in cpus:
+                cpus[value] = (model,1)
+            else:
+                c,count = cpus[value]
+                cpus[value] = (c,count + 1)
+    
+    for k in cpus:
+        ret.append(cpus[k][0] + " x " + str(cpus[k][1]))
+     
+    return ret
+
+def _get_gpu():
+    gpus = []
+    
+    for n in range(8):
+        gpu_path = "/sys/class/drm/card{0}".format(n)
+        if os.path.exists(gpu_path):
+            vendor = _read_file(gpu_path+"/device/vendor")[0].strip()
+            device = _read_file(gpu_path+"/device/device")[0].strip()
+            vendor = vendor[2:]
+            device = device[2:]
+            
+            vendor,device = _get_pciid(vendor,device)
+            
+            gpus.append("{0} {1}".format(vendor,device))
+    
+    return gpus
+    
+def get_system_info():
+    info = []
+    
+    try:
+        data = _read_file("/proc/version")
+        info.append([INFO_KERNEL,data[0].strip().split()[2]])
+    except:
+        pass
+    
+    try:
+        if (os.path.exists("/usr/lib/os-release")):
+            f = open("/usr/lib/os-release","rt")
+            lines = f.readlines()
+            f.close()
+
+            name = None
+            version = None
+
+            for line in lines:
+                tmp = line.strip().split('=')
+
+                if (len(tmp) > 1):
+                    if (tmp[0] == "NAME"):
+                        name = tmp[1].strip("\"")
+                    if (tmp[0] == "VERSION"):
+                        version = tmp[1].strip("\"")
+            if (name and version):
+                info.append([INFO_OS,name + " " + version])
+    except:
+        pass
+
+    try:
+        info.append([INFO_DESKTOP, os.environ["XDG_CURRENT_DESKTOP"].replace(":",", ")])
+    except:
+        pass
+
+    try:
+        info.append([INFO_SESSION, os.environ["XDG_SESSION_TYPE"]])
+    except:
+        pass
+    
+    try:
+        data = _read_file("/sys/class/dmi/id/product_name")
+        info.append([INFO_PRODUCT,data[0].strip()])
+    except:
+        pass
+    
+    try:
+        data = _read_file("/sys/class/dmi/id/bios_version")
+        info.append([INFO_BIOS,data[0].strip()])
+    except:
+        pass
+    
+    try:
+        data = _read_file("/sys/class/dmi/id/ec_firmware_release")
+        info.append([INFO_EC,data[0].strip()])
+    except:
+        pass
+    
+    try:
+        if (os.path.exists("/sys/firmware/efi")):
+            info.append([INFO_BOOT,"UEFI"])
+            sb = False
+            SB_VAR = "/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c"
+            if (os.path.exists(SB_VAR)):
+                f = open(SB_VAR,"rb")
+                var = list(f.read())
+                if (var[4] == 1):
+                    sb = True
+                f.close()
+
+            if sb:
+                info.append([INFO_SB,_("Yes")])
+            else:
+                info.append([INFO_SB,_("No")])
+        else:
+            info.append([INFO_BOOT,"Legacy"])
+    except:
+        pass
+
+    try:
+        for cpu in _get_cpu():
+            info.append([INFO_CPU, cpu])
+    except:
+        pass
+    
+    try:
+        for gpu in _get_gpu():
+            info.append([INFO_GPU,gpu])
+    except:
+        pass
+    
+    return info
