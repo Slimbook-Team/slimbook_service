@@ -1,9 +1,20 @@
+slimbook (0.4.0~alpha1) jammy; urgency=medium
+
+  * Added an info dialog
+  * Fixed event filtering being too agressive
+  * Better and cleaner log output
+  * Refactored hidraw code into its own class with less hardwired code
+  * Added a small hid report parser
+  * Fixed touchpad switch detection having switch feature report on different ID
+  * Reading product model from sysfs instead of parsing dmidecode
+
+ -- Slimbook <dev@slimbook.es>  Fri, 29 Sep 2023 09:31:35 +0200
+
 slimbook (0.3.3) focal; urgency=medium
 
   * Fix Read qc71 events without modifiying Titan modes 
 
  -- Slimbook <dev@slimbook.es>  Fri, 14 Nov 2022 09:58:15 +0200
-
 
 slimbook (0.3.2) focal; urgency=medium
 
