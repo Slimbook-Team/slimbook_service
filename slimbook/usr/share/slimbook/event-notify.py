@@ -381,7 +381,7 @@ def main():
     slimbook_model = get_content("/sys/class/dmi/id/product_name").strip()
     logger.info("Model: {0}".format(slimbook_model))
     
-    is_titan = (slimbook_model == "TITAN")
+    is_titan = (slimbook_model == "TITAN") or (slimbook_model == "HERO-RPL-RTX")
 
     read_kbd_thread = threading.Thread(
         name='my_service', target=read_keyboard)
