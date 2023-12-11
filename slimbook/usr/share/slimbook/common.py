@@ -18,7 +18,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import slimbook.info
+import slimbook.smbios
+
 import os, codecs, json
+import subprocess
 import locale
 import gettext
 
@@ -73,6 +77,10 @@ try:
 except Exception as e:
     _ = str
 
+INFO_UPTIME = _("Uptime")
+INFO_MEM = _("Memory Free/Total")
+INFO_MEM_DEVICE = _("Memory device")
+INFO_DISK_DEVICE = _("Disk Free/Total")
 INFO_KERNEL = _("Kernel")
 INFO_OS = _("OS")
 INFO_DESKTOP = _("Desktop")
@@ -217,6 +225,51 @@ def _get_gpu():
     
 def get_system_info():
     info = []
+    
+    uptime = slimbook.info.uptime()
+    h = int(uptime / 3600)
+    m = int((uptime / 60) % 60)
+    s = uptime % 60
+    
+    txt = "{0}h {1}m {2}s".format(h,m,s)
+    info.append([INFO_UPTIME,txt])
+    
+    tr = slimbook.info.total_memory()
+    ar = slimbook.info.available_memory()
+    mb = 1024 * 1024
+    
+    txt = "{0} MB / {1} MB".format(int(ar/mb),int(tr/mb))
+    info.append([INFO_MEM,txt])
+    
+    serial=""
+    memory_devices = []
+    disk_devices = []
+    
+    tmp = subprocess.getstatusoutput("slimbookctl info")[1]
+    tmp = tmp.split('\n')
+    
+    for line in tmp:
+        pair = line.split(':')
+        if (len(pair) == 2):
+            key = pair[0]
+            value = pair[1]
+            
+            if (key == "serial"):
+                serial = value
+            
+            if (key == "memory device"):
+                memory_devices.append(value)
+            
+            if (key == "disk free/total"):
+                disk_devices.append(value)
+   
+    for m in memory_devices:
+        info.append([INFO_MEM_DEVICE,m])
+    
+    for d in disk_devices:
+        info.append([INFO_DISK_DEVICE,d])
+    
+    info.append(["serial",serial])
     
     try:
         data = _read_file("/proc/version")
