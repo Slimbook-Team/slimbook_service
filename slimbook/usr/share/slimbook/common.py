@@ -226,6 +226,8 @@ def _get_gpu():
 def get_system_info():
     info = []
     
+    sb_platform = slimbook.info.get_platform()
+    
     uptime = slimbook.info.uptime()
     h = int(uptime / 3600)
     m = int((uptime / 60) % 60)
@@ -234,16 +236,21 @@ def get_system_info():
     txt = "{0}h {1}m {2}s".format(h,m,s)
     info.append([INFO_UPTIME,txt])
     
-    tr = slimbook.info.total_memory()
-    ar = slimbook.info.available_memory()
-    mb = 1024 * 1024
-    
-    txt = "{0} MB / {1} MB".format(int(ar/mb),int(tr/mb))
-    info.append([INFO_MEM,txt])
+    try:
+        data = _read_file("/proc/version")
+        info.append([INFO_KERNEL,data[0].strip().split()[2]])
+    except:
+        pass
     
     serial=""
     memory_devices = []
     disk_devices = []
+    memory = ""
+    
+    is_module = "no"
+    fn_lock = ""
+    super_lock = ""
+    silent_mode = ""
     
     tmp = subprocess.getstatusoutput("slimbookctl info")[1]
     tmp = tmp.split('\n')
@@ -262,20 +269,53 @@ def get_system_info():
             
             if (key == "disk free/total"):
                 disk_devices.append(value)
+            
+            if (key == "memory free/total"):
+                memory = value
+            
+            if (key == "module loaded"):
+                is_module = value
+             
+            if (key == "fn lock"):
+                fn_lock = value
+             
+            if (key == "super key lock"):
+                super_lock = value
+             
+            if (key == "silent mode"):
+                silent_mode = value
    
-    for m in memory_devices:
-        info.append([INFO_MEM_DEVICE,m])
+    info.append([INFO_MEM,memory])
+    
+    
     
     for d in disk_devices:
         info.append([INFO_DISK_DEVICE,d])
     
-    info.append(["serial",serial])
-    
     try:
-        data = _read_file("/proc/version")
-        info.append([INFO_KERNEL,data[0].strip().split()[2]])
+        if (os.path.exists("/sys/firmware/efi")):
+            info.append([INFO_BOOT,"UEFI"])
+            sb = False
+            SB_VAR = "/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c"
+            if (os.path.exists(SB_VAR)):
+                f = open(SB_VAR,"rb")
+                var = list(f.read())
+                if (var[4] == 1):
+                    sb = True
+                f.close()
+
+            if sb:
+                info.append([INFO_SB,_("Yes")])
+            else:
+                info.append([INFO_SB,_("No")])
+        else:
+            info.append([INFO_BOOT,"Legacy"])
     except:
         pass
+        
+    
+    
+    
     
     try:
         if (os.path.exists("/usr/lib/os-release")):
@@ -309,6 +349,8 @@ def get_system_info():
     except:
         pass
     
+    
+    
     try:
         data = _read_file("/sys/class/dmi/id/product_name")
         info.append([INFO_PRODUCT,data[0].strip()])
@@ -327,26 +369,7 @@ def get_system_info():
     except:
         pass
     
-    try:
-        if (os.path.exists("/sys/firmware/efi")):
-            info.append([INFO_BOOT,"UEFI"])
-            sb = False
-            SB_VAR = "/sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c"
-            if (os.path.exists(SB_VAR)):
-                f = open(SB_VAR,"rb")
-                var = list(f.read())
-                if (var[4] == 1):
-                    sb = True
-                f.close()
-
-            if sb:
-                info.append([INFO_SB,_("Yes")])
-            else:
-                info.append([INFO_SB,_("No")])
-        else:
-            info.append([INFO_BOOT,"Legacy"])
-    except:
-        pass
+    info.append(["serial",serial])
 
     try:
         for cpu in _get_cpu():
@@ -359,5 +382,17 @@ def get_system_info():
             info.append([INFO_GPU,gpu])
     except:
         pass
+        
+    for m in memory_devices:
+        info.append([INFO_MEM_DEVICE,m])
+    
+        
+    if (sb_platform != 0 ):
+        info.append(["module loaded:",is_module])
+        
+        if (sb_platform == slimbook.info.SLB_PLATFORM_QC71):
+            info.append(["Fn lock",fn_lock])
+            info.append(["Super rlock",super_lock])
+            info.append(["Silent mode",silent_mode])
     
     return info
