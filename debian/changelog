@@ -1,3 +1,10 @@
+slimbook (0.5.0) jammy; urgency=medium
+
+  * Updated system info with more pproperties
+  * Added libslimbook as new dependency
+
+ -- Slimbook <dev@slimbook.es>  Fri, 15 Dec 2023 18:08:55 +0100
+
 slimbook (0.4.1) jammy; urgency=medium
 
   * Added HERO missing string
