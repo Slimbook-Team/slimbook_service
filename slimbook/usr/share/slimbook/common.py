@@ -86,12 +86,21 @@ INFO_OS = _("OS")
 INFO_DESKTOP = _("Desktop")
 INFO_SESSION = _("Session")
 INFO_PRODUCT = _("Product")
+INFO_SERIAL = _("Serial")
 INFO_BIOS = _("Bios Version")
 INFO_EC = _("EC Version")
 INFO_BOOT = _("Boot Mode")
 INFO_SB = _("Secure Boot")
 INFO_CPU = _("CPU")
 INFO_GPU = _("GPU")
+INFO_MODULE = _("Module loaded")
+INFO_FN_LOCK = ("Fn Lock")
+INFO_SUPER_LOCK = ("Super Lock")
+INFO_SILENT_MODE = ("Silent Mode")
+
+INFO_YES = _("Yes")
+INFO_NO = _("No")
+
 # print(os.path.dirname(os.path.abspath(__file__)))
 
 class Configuration(object):
@@ -247,13 +256,18 @@ def get_system_info():
     disk_devices = []
     memory = ""
     
-    is_module = "no"
+    is_module = INFO_NO
     fn_lock = ""
     super_lock = ""
     silent_mode = ""
     
-    tmp = subprocess.getstatusoutput("slimbookctl info")[1]
-    tmp = tmp.split('\n')
+    tmp = []
+    
+    try:
+        tmp = subprocess.getstatusoutput("slimbookctl info")[1]
+        tmp = tmp.split('\n')
+    except:
+        pass
     
     for line in tmp:
         pair = line.split(':')
@@ -268,26 +282,26 @@ def get_system_info():
                 memory_devices.append(value)
             
             if (key == "disk free/total"):
-                disk_devices.append(value)
+                idx = value.find(" ")
+                
+                disk_devices.append(value[:idx] + "    " + value[idx:])
             
             if (key == "memory free/total"):
                 memory = value
             
             if (key == "module loaded"):
-                is_module = value
+                is_module = value.capitalize()
              
             if (key == "fn lock"):
-                fn_lock = value
+                fn_lock = value.capitalize()
              
             if (key == "super key lock"):
-                super_lock = value
+                super_lock = value.capitalize()
              
             if (key == "silent mode"):
-                silent_mode = value
+                silent_mode = value.capitalize()
    
     info.append([INFO_MEM,memory])
-    
-    
     
     for d in disk_devices:
         info.append([INFO_DISK_DEVICE,d])
@@ -305,17 +319,13 @@ def get_system_info():
                 f.close()
 
             if sb:
-                info.append([INFO_SB,_("Yes")])
+                info.append([INFO_SB,INFO_YES])
             else:
-                info.append([INFO_SB,_("No")])
+                info.append([INFO_SB,INFO_NO])
         else:
             info.append([INFO_BOOT,"Legacy"])
     except:
         pass
-        
-    
-    
-    
     
     try:
         if (os.path.exists("/usr/lib/os-release")):
@@ -349,8 +359,6 @@ def get_system_info():
     except:
         pass
     
-    
-    
     try:
         data = _read_file("/sys/class/dmi/id/product_name")
         info.append([INFO_PRODUCT,data[0].strip()])
@@ -369,7 +377,7 @@ def get_system_info():
     except:
         pass
     
-    info.append(["serial",serial])
+    info.append([INFO_SERIAL,serial])
 
     try:
         for cpu in _get_cpu():
@@ -388,11 +396,11 @@ def get_system_info():
     
         
     if (sb_platform != 0 ):
-        info.append(["module loaded:",is_module])
+        info.append([INFO_MODULE,is_module])
         
         if (sb_platform == slimbook.info.SLB_PLATFORM_QC71):
-            info.append(["Fn lock",fn_lock])
-            info.append(["Super rlock",super_lock])
-            info.append(["Silent mode",silent_mode])
+            info.append([INFO_FN_LOCK,fn_lock])
+            info.append([INFO_SUPER_LOCK,super_lock])
+            info.append([INFO_SILENT_MODE,silent_mode])
     
     return info
