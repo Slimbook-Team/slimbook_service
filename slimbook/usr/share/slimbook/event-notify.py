@@ -68,11 +68,12 @@ def detect_touchpad():
     for device in iohid.list_devices():
         fd = open(device,"rb")
         info = iohid.get_device_info(fd)
+        found = False
         
         if (info.bus == iohid.HID_BUS_I2C and info.vendor == 0x93A):
             report = iohid.get_report_descriptor(fd)
             reports = iohid.parse_report_descriptor(report)
-            found = False
+            
             for r in reports:
                 if r.report_type == iohid.HID_MAIN_FEATURE:
                     button_switch = False
