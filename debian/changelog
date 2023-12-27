@@ -1,3 +1,9 @@
+slimbook (0.5.1) jammy; urgency=medium
+
+  * Fixed service crashing with antoher hid device plugged in
+
+ -- Slimbook <dev@slimbook.es>  Wed, 27 Dec 2023 09:33:55 +0100
+
 slimbook (0.5.0) jammy; urgency=medium
 
   * Updated system info with more pproperties
