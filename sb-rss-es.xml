@@ -1,0 +1,40 @@
+ <?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+
+<channel>
+
+  <title>Slimbook RSS Feed</title>
+  <link>https://www.slimbook.es</link>
+  <description>Slimbook RSS feed</description>
+  
+  <item>
+    <title>Nuevo Slimbook Service</title>
+    <link>https://slimbook.com/blog/tutoriales-2/post/slimbook-service-364</link>
+    <description>Liberado Slimbook Service 1.6</description>
+    <category>foo</category>
+    <category>all</category>
+  </item>
+  
+  <item>
+    <title>Mejoras en el foro</title>
+    <link>https://slimbook.com/forum/foro-de-la-comunidad-1/question/aviso-slimbook-mejoras-en-el-foro-questions-1176</link>
+    <description>Hemos mejorado el foro</description>
+    <category>model:0x203</category>
+    <category>model:0x202</category>
+  </item>
+  
+  <item>
+    <title>Actualizacion de firmware</title>
+    <description>Actualizacion del firmware EC para ProX</description>
+    <category>model:0x203</category>
+    <category>firmware</category>
+  </item>
+  
+  <item>
+    <title>Felices Fiestas</title>
+    <description>Slimbook os desea feliz navidad</description>
+    <category>all</category>
+  </item>
+</channel>
+
+</rss> 
