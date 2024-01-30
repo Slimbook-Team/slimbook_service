@@ -29,6 +29,9 @@ import sys
 import shutil
 import common
 import webbrowser
+import feedparser
+import hashlib
+
 try:
     gi.require_version('Gtk', '3.0')
     gi.require_version('GLib', '2.0')
@@ -64,11 +67,103 @@ notification.set_app_name("Slimbok Client Notifications")
 notification.set_timeout(Notify.EXPIRES_DEFAULT)
 notification.set_urgency(Notify.Urgency.CRITICAL)
 
+
 logging.basicConfig(
     level=logging.INFO,
     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
 )
 
+class Feed:
+
+    def __init__(self, entry):
+        try:
+
+            m = hashlib.md5()
+            m.update(str(entry).encode())
+            
+            self.id = m.hexdigest()
+            self.title = entry.title
+            self.body = entry.description
+            self.link = entry.get("link")
+            #print("link:",entry.get("link"))
+            self.tags = []
+            self.icon = "dialog-information"
+            
+            if (entry.get("tags")):
+                for tag in entry.tags:
+                    term = tag.get("term")
+                    
+                    if (term):
+                        self.tags.append(term)
+                    
+                        if (term == "firmware"):
+                            self.icon = "application-x-firmware"
+            
+        except Exception as e:
+            print(e)
+
+def load_cache_feeds():
+    feeds = []
+    
+    try:
+        cache_file = os.path.expanduser("~/.cache/slimbook-service/feeds.dat")
+        f = open(cache_file,"r")
+        for line in f.readlines():
+            value = line.strip()
+            feeds.append(value)
+        f.close()
+    except:
+        pass
+    
+    return feeds
+    
+def store_cache_feeds(feeds):
+    try:
+        cache_path = os.path.expanduser("~/.cache/slimbook-service/")
+        os.makedirs(cache_path,exist_ok = True)
+    
+        f = open(cache_path+"feeds.dat","w")
+        for feed in feeds:
+            f.write(feed.id+"\n")
+        
+        f.close()
+    except Exception as e:
+        print(e)
+    
+def check_news():
+    
+    news = []
+    
+    cached = load_cache_feeds()
+    
+    try:
+        feed = feedparser.parse(os.path.expanduser("~/sb-rss.xml"))
+    
+        for entry in feed["entries"]:
+            nw = Feed(entry)
+            
+            for cid in cached:
+                if cid == nw.id:
+                    print("id cached:",nw.id)
+                    break
+                    
+            news.append(nw)
+            
+            body = nw.body
+            
+            if (nw.link):
+                body = body + " " + nw.link
+            
+            nt = Notify.Notification.new(nw.title, body, nw.icon)
+            nt.show()
+        
+        store_cache_feeds(news)
+        
+            
+    except Exception as e:
+        print(e)
+        
+    return news
 
 class SlimbookServiceIndicator(dbus.service.Object):
     def __init__(self):
@@ -171,6 +266,11 @@ class SlimbookServiceIndicator(dbus.service.Object):
         menu_sysinfo.show()
         menu.append(menu_sysinfo)
         
+        menu_news = Gtk.MenuItem.new_with_label(_('News'))
+        menu_news.connect('activate', self.on_news_item)
+        menu_news.show()
+        menu.append(menu_news)
+        
         about_item = Gtk.MenuItem.new_with_label(_('About'))
         about_item.connect('activate', self.on_about_item)
         about_item.show()
@@ -261,7 +361,17 @@ this program. If not, see <http://www.gnu.org/licenses/>.
         sysinfo_dialog.run()
         sysinfo_dialog.destroy()
         widget.set_sensitive(True)
+    
+    def on_news_item(self, widget, data = None):
+        logging.debug("news")
+        widget.set_sensitive(False)
         
+        news_dialog = NewsDialog()
+        news_dialog.run()
+        news_dialog.destroy()
+        
+        widget.set_sensitive(True)
+    
     def on_quit_item(self, widget, data=None):
         Notify.uninit()
         logging.debug('Exit')
@@ -451,6 +561,104 @@ class SystemInfoDialog(Gtk.Dialog):
         
         clipboard.set_text(txt,-1)
         button.set_sensitive(False)
+
+class NewsDialog(Gtk.Dialog):
+
+    def __init__(self):
+        Gtk.Dialog.__init__(self, 'Slimbook ' + _('News'),
+                            None,
+                            modal=True,
+                            destroy_with_parent=True,
+                            use_header_bar=True
+                            )
+                            
+        CSS = '''
+            list {
+                border-width: 1px;
+                border-style: inset;
+                border-color: lightgrey;
+            }
+            
+            row {
+                border-width: 1px;
+                border-style: outset;
+                border-color: lightgrey;
+                min-height: 32px;
+                min-width: 400px;
+            }
+            '''
+            
+        provider = Gtk.CssProvider()
+        provider.load_from_data(CSS.encode("utf-8"))
+        style_context = self.get_style_context()
+        style_context.add_provider_for_screen(
+                self.get_screen(),
+                provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        
+        
+        vbox = Gtk.VBox(spacing = 12)
+        listbox = Gtk.ListBox()
+        
+        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        
+        self.get_content_area().add(vbox)
+        vbox.pack_start(listbox,False,False,1)
+        vbox.set_border_width(16)
+        
+        feeds = check_news()
+        
+        for feed in feeds:
+            
+            grid = Gtk.Grid.new()
+            grid.set_row_spacing(4)
+            grid.set_column_spacing(8)
+            
+            
+            lbl_title = Gtk.Label()
+            lbl_title.set_markup("<b>{0}</b>".format(feed.title))
+            #lbl_title.set_justify(Gtk.Justification.LEFT)
+            lbl_title.set_halign(Gtk.Align.START)
+            
+            lbl_body = Gtk.Label(label = feed.body)
+            #lbl_body.set_justify(Gtk.Justification.LEFT)
+            lbl_body.set_halign(Gtk.Align.START)
+            #fhbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
+            
+            #fvbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+            #fvbox.set_baseline_position(Gtk.BaselinePosition.TOP)
+            #fvbox.set_homogeneous(False)
+            
+            #box.pack_end(lbl_link, False, False, 1)
+            if (feed.link):
+                btn_link = Gtk.LinkButton(uri = feed.link, label = feed.link)
+                btn_link.set_halign(Gtk.Align.START)
+                #fvbox.pack_end(btn_link, False, False, 1) 
+                grid.attach(btn_link,1,2,1,1)
+            
+            #fvbox.pack_start(lbl_title, False, False, 0)
+            #fvbox.pack_start(lbl_body, False, False, 0)
+            
+            theme = Gtk.IconTheme()
+            pix = theme.load_icon(icon_name = feed.icon, size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
+            
+            img = Gtk.Image.new_from_pixbuf(pix)
+            
+            grid.attach(img,0,0,1,4)
+            
+            grid.attach(lbl_title,1,0,1,1)
+            grid.attach(lbl_body,1,1,1,1)
+            
+            #fhbox.pack_start(img, False, False, 0)
+            #fhbox.pack_start(fvbox, False, False, 0)
+            
+            row = Gtk.ListBoxRow()
+            #row.add(fhbox)
+            row.add(grid)
+            
+            listbox.add(row)
+        
+        self.show_all()
 
 def manage_autostart(create):
     if not os.path.exists(common.AUTOSTART_DIR):
