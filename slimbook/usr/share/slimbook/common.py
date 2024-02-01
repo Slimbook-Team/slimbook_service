@@ -25,6 +25,7 @@ import os, codecs, json
 import subprocess
 import locale
 import gettext
+import requests
 
 PARAMS = {
             'first-time': True,
@@ -35,7 +36,7 @@ PARAMS = {
             }
 
 APP = 'slimbook'
-VERSION = '0.1'
+VERSION = '0.5'
 APPCONF = APP + '.conf'
 APPDATA = APP + '.data'
 APPNAME = 'Slimbook Service'
@@ -46,6 +47,9 @@ DATA_FILE = os.path.join(CONFIG_APP_DIR, APPDATA)
 AUTOSTART_DIR = os.path.join(CONFIG_DIR, 'autostart')
 FILE_AUTO_START = os.path.join(AUTOSTART_DIR,
                                'slimbook-client-autostart.desktop')
+                               
+SLB_FEED_URL = "https://github.com/Slimbook-Team/slimbook_service/raw/news/sb-rss-es.xml"
+SLB_CACHE_PATH = os.path.expanduser("~/.cache/slimbook-service/")
 
 def is_package():
     return os.path.abspath(os.path.dirname(__file__)).startswith('/usr')
@@ -404,3 +408,13 @@ def get_system_info():
             info.append([INFO_SILENT_MODE,silent_mode])
     
     return info
+
+def download_feed():
+    os.makedirs(SLB_CACHE_PATH,exist_ok = True)
+    
+    r = requests.get(SLB_FEED_URL, allow_redirects = True)
+    
+    path = SLB_CACHE_PATH + "/sb-rss-es.xml"
+    f = open(path,"wb")
+    f.write(r.content)
+    f.close()

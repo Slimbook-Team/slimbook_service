@@ -31,9 +31,12 @@ import common
 import webbrowser
 import feedparser
 import hashlib
+import time
+import signal
 
 try:
     gi.require_version('Gtk', '3.0')
+    gi.require_version('Gio', '2.0')
     gi.require_version('GLib', '2.0')
     gi.require_version('GdkPixbuf', '2.0')
     gi.require_version('Notify', '0.7')
@@ -48,7 +51,8 @@ except Exception as e:
     print(e)
     exit(1)
 
-from gi.repository import Gtk,Gdk
+from gi.repository import GObject
+from gi.repository import Gtk,Gdk,Gio
 from gi.repository import GLib
 from gi.repository import GdkPixbuf
 from gi.repository import Notify
@@ -58,8 +62,8 @@ from optparse import OptionParser
 from common import Configuration
 from common import _
 
-BUS_NAME = 'es.slimbok.SlimbookServiceIndicator'
-BUS_PATH = '/es/slimbok/SlimbookServiceIndicator'
+BUS_NAME = 'es.slimbook.ServiceIndicator'
+BUS_PATH = '/es/slimbook/ServiceIndicator'
 
 Notify.init("Slimbok Client Notifications")
 notification = Notify.Notification.new('', '' )
@@ -67,6 +71,7 @@ notification.set_app_name("Slimbok Client Notifications")
 notification.set_timeout(Notify.EXPIRES_DEFAULT)
 notification.set_urgency(Notify.Urgency.CRITICAL)
 
+dbus_service = None
 
 logging.basicConfig(
     level=logging.INFO,
@@ -137,7 +142,7 @@ def check_news():
     cached = load_cache_feeds()
     
     try:
-        feed = feedparser.parse(os.path.expanduser("~/sb-rss.xml"))
+        feed = feedparser.parse(os.path.expanduser("~/.cache/slimbook-service/sb-rss-es.xml"))
     
         for entry in feed["entries"]:
             nw = Feed(entry)
@@ -165,23 +170,48 @@ def check_news():
         
     return news
 
-class SlimbookServiceIndicator(dbus.service.Object):
+class ServiceIndicator(Gio.Application):
     def __init__(self):
-        bus = dbus.SessionBus()
-        if bus.request_name(BUS_NAME, dbus.bus.NAME_FLAG_DO_NOT_QUEUE) == dbus.bus.REQUEST_NAME_REPLY_EXISTS:
-            logging.debug(
-                "D-Bus Service is already running.\nThe MainLoop will close...")
-
-            GLib.MainLoop().quit()
-            raise Exception("D-Bus Service is already running.")
-
-        bus_name = dbus.service.BusName(BUS_NAME, bus)
-        # print(bus_name)
-        dbus.service.Object.__init__(self, bus_name, BUS_PATH)
-
+        super().__init__(application_id="slimbook.service",flags=Gio.ApplicationFlags.IS_SERVICE)
+        xml = f"""
+            <node>
+              <interface name='es.slimbook.ServiceIndicator'>
+                  <method name='ShowPreferences'/>
+              </interface>
+            </node>
+            """
+        self.node = Gio.DBusNodeInfo.new_for_xml(xml)
+         
+        self.bus = Gio.bus_own_name(
+            Gio.BusType.SESSION,
+            BUS_NAME,
+            Gio.BusNameOwnerFlags.ALLOW_REPLACEMENT,
+            None,
+            self.on_name_acquired,
+            None)
+        
+        GObject.signal_new('preferences-close', PreferencesDialog, GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_BOOLEAN,))
+        
         self.set_indicator()
         Notify.init('Slimbook')
-
+    
+    def on_name_acquired(self, connection, name):
+    
+        connection.register_object(
+            BUS_PATH,
+            self.node.interfaces[0],
+            self.on_message,
+            None,
+            None)
+     
+    def on_message(self,connection, sender, path, interface, method, params, invo):
+        if (method == "ShowPreferences"):
+            self.show_preferences()
+            invo.return_value(None)
+        
+    def on_feed_updated(self, *args):
+        logging.info("feed has been updated")
+    
     def set_indicator(self):
 
         logging.debug("Setting indicator...")
@@ -193,7 +223,7 @@ class SlimbookServiceIndicator(dbus.service.Object):
         self.read_preferences()
         manage_autostart(self.autostart)
 
-        self.indicator = appindicator.Indicator.new('SlimbookServiceIndicator',
+        self.indicator = appindicator.Indicator.new('com.slimbook.service',
                                                     self.active_icon,
                                                     appindicator.
                                                     IndicatorCategory.
@@ -202,13 +232,13 @@ class SlimbookServiceIndicator(dbus.service.Object):
         self.indicator.set_title('Slimbook Client Notifications')
 
         self.running = True
-        self.client = threading.Thread(
-            name='my_service', target=self.watch_client)
-        self.client.daemon = True
-        self.client.start()
+        
+        #self.client = threading.Thread(name='my_service',target=self.watch_client)
+        # self.client.daemon = True
+        # self.client.start()
 
-        menu = self.get_menu()
-        self.indicator.set_menu(menu)
+        self.menu = self.get_menu()
+        self.indicator.set_menu(self.menu)
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
             appindicator.IndicatorStatus.PASSIVE)
 
@@ -255,11 +285,10 @@ class SlimbookServiceIndicator(dbus.service.Object):
         separator1.show()
         menu.append(separator1)
 
-        menu_preferences = Gtk.MenuItem.new_with_label(_('Preferences'))
-        menu_preferences.connect('activate', self.on_preferences_item)
-        menu_preferences.show()
-        menu.append(menu_preferences)
-
+        self.menu_preferences = Gtk.MenuItem.new_with_label(_('Preferences'))
+        self.menu_preferences.connect('activate', self.on_preferences_item)
+        self.menu_preferences.show()
+        menu.append(self.menu_preferences)
         
         menu_sysinfo = Gtk.MenuItem.new_with_label(_('System information'))
         menu_sysinfo.connect('activate', self.on_sysinfo_item)
@@ -297,6 +326,11 @@ class SlimbookServiceIndicator(dbus.service.Object):
         menu.append(menu_exit)
         #
         menu.show()
+        
+        #GObject.signal_new('feed-updated', menu, GObject.SignalFlags.RUN_LAST, GObject.TYPE_PYOBJECT, (GObject.TYPE_PYOBJECT,))
+
+        #menu.connect('feed-updated', self.on_feed_updated)
+
         return(menu)
 
     def get_about_dialog(self):
@@ -305,7 +339,7 @@ class SlimbookServiceIndicator(dbus.service.Object):
         about_dialog.set_name(common.APPNAME)
         about_dialog.set_version(common.VERSION)
         about_dialog.set_copyright(
-            'Copyrignt (c) 2022\nSlimbook')
+            'Copyrignt (c) 2024\nSlimbook')
         about_dialog.set_comments(_('Slimbook Service'))
         about_dialog.set_license('''
 This program is free software: you can redistribute it and/or modify it under
@@ -338,20 +372,8 @@ this program. If not, see <http://www.gnu.org/licenses/>.
         return about_dialog
 
     def on_preferences_item(self, widget, data=None):
-        widget.set_sensitive(False)
-        preferences_dialog = PreferencesDialog()
-        if preferences_dialog.run() == Gtk.ResponseType.ACCEPT:
-            preferences_dialog.close_ok()
-            self.read_preferences()
-        preferences_dialog.hide()
-        preferences_dialog.destroy()
-        # deprecated
-        #self.indicator.set_icon(self.active_icon)
-        # what is the point of this?
-        self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
-            appindicator.IndicatorStatus.PASSIVE)
-        widget.set_sensitive(True)
-
+        self.show_preferences()
+        
     def on_sysinfo_item(self, widget, data=None):
         logging.debug("system info")
         widget.set_sensitive(False)
@@ -388,39 +410,44 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
     # Interface and Method
 
-    @dbus.service.method(BUS_NAME)
-    def show_preferences(self):
-
-        preferences_dialog = PreferencesDialog()
-        if preferences_dialog.run() == Gtk.ResponseType.ACCEPT:
-            preferences_dialog.close_ok()
-            self.read_preferences()
-        preferences_dialog.hide()
-        preferences_dialog.destroy()
-        self.indicator.set_icon(self.active_icon)
+    
+    def on_preferences_close(self, *args):
+        self.menu_preferences.set_sensitive(True)
+        print(args)
+        #self.indicator.set_icon(self.active_icon)
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
             appindicator.IndicatorStatus.PASSIVE)
 
-
-class PreferencesDialog(Gtk.Dialog):
+    def show_preferences(self):
+        self.menu_preferences.set_sensitive(False)
+        preferences_dialog = PreferencesDialog()
+        preferences_dialog.connect("preferences-close",self.on_preferences_close)
+        
+class PreferencesDialog(Gtk.Window):
     def __init__(self):
-        Gtk.Dialog.__init__(self, 'Slimbook ' + _('Preferences'),
-                            None,
-                            modal=True,
-                            destroy_with_parent=True
-                            )
-
-        self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
-                         Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT)
+        Gtk.Window.__init__(self)
+        self.set_modal(True)
+        
+        self.connect('delete-event',self.on_delete_event)
+        
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         # self.set_size_request(400, 230)
-        self.connect('close', self.close_application)
+        #self.connect('close', self.close_application)
         self.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(
             common.ICON, 64, 64, True))
 
+        header = Gtk.HeaderBar()
+        header.set_title('Slimbook ' + _('Preferences'))
+        header.set_show_close_button(True)
+        
+        self.btn_save = Gtk.Button.new_with_label(_("Save"))
+        self.btn_save.set_sensitive(False) 
+        header.pack_end(self.btn_save)
+        self.set_titlebar(header)
+
         vbox0 = Gtk.VBox(spacing=5)
         vbox0.set_border_width(20)
-        self.get_content_area().add(vbox0)
+        self.add(vbox0)
         table1 = Gtk.Table(n_columns=8, n_rows=2, homogeneous=False)
         vbox0.pack_start(table1, False, True, 1)
 
@@ -443,14 +470,24 @@ class PreferencesDialog(Gtk.Dialog):
         self.switch2 = Gtk.Switch()
         table1.attach(self.switch2, 1, 2, 8, 9, xpadding=15, ypadding=15,
                       xoptions=Gtk.AttachOptions.SHRINK)
-        #
+        
         self.load_preferences()
-        #
+        
+        self.changes = False
+        self.switch0.connect('state-set',self.on_switch_state_set)
+        self.switch1.connect('state-set',self.on_switch_state_set)
+        self.switch2.connect('state-set',self.on_switch_state_set)
+        
         self.show_all()
 
-    def close_application(self, widget, event):
-        self.hide()
-
+    def on_switch_state_set(self, switch, state):
+        self.btn_save.set_sensitive(True)
+        self.changes = True
+    
+    def on_delete_event(self, window, event):
+        self.emit('preferences-close', self.changes)
+        return False
+    
     def close_ok(self):
         self.save_preferences()
 
@@ -673,6 +710,23 @@ def manage_autostart(create):
 
 
 def preferences():
+
+    connection = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+    value = connection.call_sync(
+        BUS_NAME,
+        BUS_PATH,
+        BUS_NAME,
+        "ShowPreferences",
+        None,
+        None,
+        Gio.DBusCallFlags.NONE,
+        10000,
+        None)
+        
+    
+    
+    
+    """"
     try:
         init_indicator()
 
@@ -683,17 +737,26 @@ def preferences():
             'show_preferences', BUS_NAME)
         # Call the methods with their specific parameters
         show_preferences()
-
+    """
 
 def init_indicator():
-    DBusGMainLoop(set_as_default=True)
-    dbus_service = SlimbookServiceIndicator()
+    
     try:
+        service = ServiceIndicator()
         GLib.MainLoop().run()
-    except KeyboardInterrupt:
-        logging.debug("\nThe MainLoop will close...")
+    except KeyboardInterrupt as ke:
         GLib.MainLoop().quit()
+        logging.info("out of main loop")
+        exit(0)
 
+
+def feed_thread():
+    logging.info("Downloading rss feed...")
+    #download_feed()
+    time.sleep(3)
+    logging.info("Feed downloaded")
+    print(dbus_service)
+    dbus_service.menu.emit('feed-updated',"foo")
 
 def main():
     if len(sys.argv) > 1:
