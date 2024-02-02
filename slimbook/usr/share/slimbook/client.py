@@ -192,8 +192,23 @@ class ServiceIndicator(Gio.Application):
         
         GObject.signal_new('preferences-close', PreferencesDialog, GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_BOOLEAN,))
         
+        GObject.signal_new('feed-update-start', ServiceIndicator, GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_BOOLEAN,))
+        
+        GObject.signal_new('feed-update-complete', ServiceIndicator, GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_BOOLEAN,))
+        
+        
+        #set up zmq
+        context = zmq.Context()
+        self.socket = context.socket(zmq.SUB)
+        self.socket.connect(f"tcp://localhost:8999")
+        self.socket.setsockopt_string(zmq.SUBSCRIBE, "")
+        
+        GLib.idle_add(self.zmq_loop)
+        
         self.set_indicator()
         Notify.init('Slimbook')
+        
+        self.feed_updating = False
     
     def on_name_acquired(self, connection, name):
     
@@ -208,9 +223,33 @@ class ServiceIndicator(Gio.Application):
         if (method == "ShowPreferences"):
             self.show_preferences()
             invo.return_value(None)
+    
+    def zmq_loop(self):
+    
+        while self.socket.poll(timeout = 10):
+            data = self.socket.recv_json()
+            print(data)
         
-    def on_feed_updated(self, *args):
+        return True
+    
+    def update_feed(self):
+        print("updating feed...")
+        
+        if self.feed_updating == False:
+            self.emit('feed-update-start', False)
+            self.feed_updating = True
+            thread = threading.Thread(target = self.update_feed_worker)
+            thread.daemon = True
+            thread.start()
+    
+    def update_feed_worker(self):
+        time.sleep(4)
+        GLib.idle_add(self.on_feed_update)
+    
+    def on_feed_update(self):
         logging.info("feed has been updated")
+        self.feed_updating = False
+        self.emit("feed-update-complete", False)
     
     def set_indicator(self):
 
@@ -233,35 +272,10 @@ class ServiceIndicator(Gio.Application):
 
         self.running = True
         
-        #self.client = threading.Thread(name='my_service',target=self.watch_client)
-        # self.client.daemon = True
-        # self.client.start()
-
         self.menu = self.get_menu()
         self.indicator.set_menu(self.menu)
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
             appindicator.IndicatorStatus.PASSIVE)
-
-    def watch_client(self):
-        PORT = "8999"
-
-        # Socket to talk to server
-        context = zmq.Context()
-        socket = context.socket(zmq.SUB)
-
-        logging.debug(
-            "Collecting event notifications from slimbook service...")
-        socket.connect(f"tcp://localhost:{PORT}")
-
-        # Subscribe to zipcode, default is NYC, 10001
-        socket.setsockopt_string(zmq.SUBSCRIBE, "")
-
-        logging.debug('Launching client...')
-        while self.running:
-            data = socket.recv_json()
-            logging.debug(data)
-            self.message("Slimbook Service", data["msg"])
-        logging.debug('Exiting')
 
     def message(self, title, message):
         notification.update(title, message, 'dialog-information')
@@ -295,10 +309,10 @@ class ServiceIndicator(Gio.Application):
         menu_sysinfo.show()
         menu.append(menu_sysinfo)
         
-        menu_news = Gtk.MenuItem.new_with_label(_('News'))
-        menu_news.connect('activate', self.on_news_item)
-        menu_news.show()
-        menu.append(menu_news)
+        self.menu_news = Gtk.MenuItem.new_with_label(_('News'))
+        self.menu_news.connect('activate', self.on_news_item)
+        self.menu_news.show()
+        menu.append(self.menu_news)
         
         about_item = Gtk.MenuItem.new_with_label(_('About'))
         about_item.connect('activate', self.on_about_item)
@@ -387,12 +401,8 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     def on_news_item(self, widget, data = None):
         logging.debug("news")
         widget.set_sensitive(False)
-        
-        news_dialog = NewsDialog()
-        news_dialog.run()
-        news_dialog.destroy()
-        
-        widget.set_sensitive(True)
+        news_dialog = NewsDialog(self)
+        news_dialog.connect('delete-event', self.on_news_delete_event)
     
     def on_quit_item(self, widget, data=None):
         Notify.uninit()
@@ -410,6 +420,8 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
     # Interface and Method
 
+    def on_news_delete_event(self, window, event):
+        self.menu_news.set_sensitive(True)
     
     def on_preferences_close(self, *args):
         self.menu_preferences.set_sensitive(True)
@@ -599,16 +611,13 @@ class SystemInfoDialog(Gtk.Dialog):
         clipboard.set_text(txt,-1)
         button.set_sensitive(False)
 
-class NewsDialog(Gtk.Dialog):
+class NewsDialog(Gtk.Window):
 
-    def __init__(self):
-        Gtk.Dialog.__init__(self, 'Slimbook ' + _('News'),
-                            None,
-                            modal=True,
-                            destroy_with_parent=True,
-                            use_header_bar=True
-                            )
-                            
+    def __init__(self, parent):
+        Gtk.Window.__init__(self)
+        self.set_modal(True)
+        self.parent = parent
+        
         CSS = '''
             list {
                 border-width: 1px;
@@ -633,16 +642,33 @@ class NewsDialog(Gtk.Dialog):
                 provider,
                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         
+        parent.connect("feed-update-start", self.on_feed_update_start)
+        parent.connect("feed-update-complete", self.on_feed_update_complete)
+        
+        header = Gtk.HeaderBar()
+        header.set_title('Slimbook ' + _('News'))
+        header.set_show_close_button(True)
+
+        self.btn_refresh = Gtk.Button.new_with_label(_("Refresh"))
+        self.btn_refresh.connect("clicked", self.on_btn_refresh_clicked)
+        header.pack_end(self.btn_refresh)
+
+        self.set_titlebar(header)
         
         vbox = Gtk.VBox(spacing = 12)
-        listbox = Gtk.ListBox()
+        self.listbox = Gtk.ListBox()
         
-        listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        self.listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         
-        self.get_content_area().add(vbox)
-        vbox.pack_start(listbox,False,False,1)
+        self.add(vbox)
+        vbox.pack_start(self.listbox,False,False,1)
         vbox.set_border_width(16)
         
+        self.populate()
+        
+        self.show_all()
+    
+    def populate(self):
         feeds = check_news()
         
         for feed in feeds:
@@ -651,31 +677,17 @@ class NewsDialog(Gtk.Dialog):
             grid.set_row_spacing(4)
             grid.set_column_spacing(8)
             
-            
             lbl_title = Gtk.Label()
             lbl_title.set_markup("<b>{0}</b>".format(feed.title))
-            #lbl_title.set_justify(Gtk.Justification.LEFT)
             lbl_title.set_halign(Gtk.Align.START)
             
             lbl_body = Gtk.Label(label = feed.body)
-            #lbl_body.set_justify(Gtk.Justification.LEFT)
             lbl_body.set_halign(Gtk.Align.START)
-            #fhbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
-            
-            #fvbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-            #fvbox.set_baseline_position(Gtk.BaselinePosition.TOP)
-            #fvbox.set_homogeneous(False)
-            
-            #box.pack_end(lbl_link, False, False, 1)
             if (feed.link):
                 btn_link = Gtk.LinkButton(uri = feed.link, label = feed.link)
                 btn_link.set_halign(Gtk.Align.START)
-                #fvbox.pack_end(btn_link, False, False, 1) 
                 grid.attach(btn_link,1,2,1,1)
-            
-            #fvbox.pack_start(lbl_title, False, False, 0)
-            #fvbox.pack_start(lbl_body, False, False, 0)
-            
+             
             theme = Gtk.IconTheme()
             pix = theme.load_icon(icon_name = feed.icon, size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
             
@@ -686,16 +698,27 @@ class NewsDialog(Gtk.Dialog):
             grid.attach(lbl_title,1,0,1,1)
             grid.attach(lbl_body,1,1,1,1)
             
-            #fhbox.pack_start(img, False, False, 0)
-            #fhbox.pack_start(fvbox, False, False, 0)
-            
             row = Gtk.ListBoxRow()
-            #row.add(fhbox)
             row.add(grid)
             
-            listbox.add(row)
+            self.listbox.add(row)
+            
+        self.listbox.show_all()
         
-        self.show_all()
+    
+    def on_btn_refresh_clicked(self, widget):
+        self.parent.update_feed()
+
+    def on_feed_update_start(self, *args):
+        self.btn_refresh.set_sensitive(False)
+        children = self.listbox.get_children()
+        
+        for child in children:
+            self.listbox.remove(child)
+        
+    def on_feed_update_complete(self, *args):
+        self.btn_refresh.set_sensitive(True)
+        self.populate()
 
 def manage_autostart(create):
     if not os.path.exists(common.AUTOSTART_DIR):
