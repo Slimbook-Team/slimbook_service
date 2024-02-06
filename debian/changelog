@@ -1,3 +1,9 @@
+slimbook (0.5.2) jammy; urgency=medium
+
+  * This release is a dummy one for Ubuntu.
+
+ -- Slimbook <dev@slimbook.es>  Tue, 06 Feb 2024 16:58:40 +0100
+
 slimbook (0.5.1) jammy; urgency=medium
 
   * Fixed service crashing with antoher hid device plugged in
