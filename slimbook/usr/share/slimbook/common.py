@@ -51,6 +51,8 @@ FILE_AUTO_START = os.path.join(AUTOSTART_DIR,
 SLB_FEED_URL = "https://github.com/Slimbook-Team/slimbook_service/raw/news/sb-rss-es.xml"
 SLB_CACHE_PATH = os.path.expanduser("~/.cache/slimbook-service/")
 
+SLB_IPC_PATH = "/var/run/slimbook-service.socket"
+
 def is_package():
     return os.path.abspath(os.path.dirname(__file__)).startswith('/usr')
 

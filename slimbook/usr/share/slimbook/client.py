@@ -200,8 +200,10 @@ class ServiceIndicator(Gio.Application):
         #set up zmq
         context = zmq.Context()
         self.socket = context.socket(zmq.SUB)
-        self.socket.connect(f"tcp://localhost:8999")
+        self.socket.connect("ipc://{0}".format(common.SLB_IPC_PATH))
         self.socket.setsockopt_string(zmq.SUBSCRIBE, "")
+        self.poller = zmq.Poller()
+        self.poller.register(self.socket, zmq.POLLIN)
         
         GLib.idle_add(self.zmq_loop)
         
@@ -226,9 +228,9 @@ class ServiceIndicator(Gio.Application):
     
     def zmq_loop(self):
     
-        while self.socket.poll(timeout = 10):
+        while self.poller.poll(timeout = 50):
             data = self.socket.recv_json()
-            print(data)
+            self.message("slimbook",data["msg"])
         
         return True
     

@@ -19,6 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import iohid
+import common
 
 import subprocess
 from datetime import datetime
@@ -33,10 +34,10 @@ logger = logging.getLogger("main")
 logging.basicConfig(format='%(levelname)s-%(message)s')
 logger.setLevel(logging.INFO)
 
-PORT = "8999"
 context = zmq.Context()
 socket = context.socket(zmq.PUB)
-socket.bind(f"tcp://*:{PORT}")
+socket.bind("ipc://{0}".format(common.SLB_IPC_PATH))
+os.chmod(common.SLB_IPC_PATH, 0o777)
 
 QC71_DIR = '/sys/devices/platform/qc71_laptop'
 QC71_mod_loaded = True if os.path.isdir(QC71_DIR) else False
