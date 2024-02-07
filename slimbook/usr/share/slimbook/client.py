@@ -94,6 +94,8 @@ class Feed:
             self.tags = []
             self.icon = "dialog-information"
             
+            self.cached = False
+            
             if (entry.get("tags")):
                 for tag in entry.tags:
                     term = tag.get("term")
@@ -150,6 +152,7 @@ def check_news():
             for cid in cached:
                 if cid == nw.id:
                     print("id cached:",nw.id)
+                    nw.cached = True
                     break
                     
             news.append(nw)
@@ -159,8 +162,9 @@ def check_news():
             if (nw.link):
                 body = body + " " + nw.link
             
-            nt = Notify.Notification.new(nw.title, body, nw.icon)
-            nt.show()
+            if (nw.cached == False):
+                nt = Notify.Notification.new(nw.title, body, nw.icon)
+                nt.show()
         
         store_cache_feeds(news)
         
