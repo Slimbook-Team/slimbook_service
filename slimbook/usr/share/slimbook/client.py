@@ -18,8 +18,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import dbus
-import dbus.service
+from common import Configuration
+from common import _
+
+import slimbook.info
+
+#import dbus
+#import dbus.service
 import zmq
 import logging
 import threading
@@ -33,6 +38,7 @@ import feedparser
 import hashlib
 import time
 import signal
+import fnmatch
 
 try:
     gi.require_version('Gtk', '3.0')
@@ -56,11 +62,10 @@ from gi.repository import Gtk,Gdk,Gio
 from gi.repository import GLib
 from gi.repository import GdkPixbuf
 from gi.repository import Notify
-from dbus.mainloop.glib import DBusGMainLoop
+#from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
 from optparse import OptionParser
-from common import Configuration
-from common import _
+
 
 BUS_NAME = 'es.slimbook.ServiceIndicator'
 BUS_PATH = '/es/slimbook/ServiceIndicator'
@@ -143,12 +148,29 @@ def check_news():
     
     cached = load_cache_feeds()
     
+    product = slimbook.info.product_name().lower()
+    print(product)
+    
     try:
         feed = feedparser.parse(os.path.expanduser("~/.cache/slimbook-service/sb-rss-es.xml"))
     
         for entry in feed["entries"]:
             nw = Feed(entry)
             
+            ignore = False
+            for tag in nw.tags:
+                if (tag.startswith("model:")):
+                    target=tag.split(":")[1]
+                    print(target)
+                    if (not fnmatch.fnmatch(product,target)):
+                        logging.info("feed ignored by filter:{0}!={1}".format(product,target))
+                        ignore = True
+                    else:
+                        ignore = False
+            
+            if (ignore):
+                continue
+                
             for cid in cached:
                 if cid == nw.id:
                     print("id cached:",nw.id)
@@ -200,7 +222,6 @@ class ServiceIndicator(Gio.Application):
         
         GObject.signal_new('feed-update-complete', ServiceIndicator, GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_BOOLEAN,))
         
-        
         #set up zmq
         context = zmq.Context()
         self.socket = context.socket(zmq.SUB)
@@ -215,6 +236,7 @@ class ServiceIndicator(Gio.Application):
         Notify.init('Slimbook')
         
         self.feed_updating = False
+        self.update_feed()
     
     def on_name_acquired(self, connection, name):
     
@@ -249,7 +271,7 @@ class ServiceIndicator(Gio.Application):
             thread.start()
     
     def update_feed_worker(self):
-        time.sleep(4)
+        #common.download_feed()
         GLib.idle_add(self.on_feed_update)
     
     def on_feed_update(self):
@@ -335,21 +357,17 @@ class ServiceIndicator(Gio.Application):
                 'https://github.com/slimbook/slimbook_service/issues/new'))
         bug_item.show()
         menu.append(bug_item)
-        #
+        
         separator2 = Gtk.SeparatorMenuItem()
         separator2.show()
         menu.append(separator2)
-        #
+        
         menu_exit = Gtk.MenuItem.new_with_label(_('Exit'))
         menu_exit.connect('activate', self.on_quit_item)
         menu_exit.show()
         menu.append(menu_exit)
-        #
-        menu.show()
         
-        #GObject.signal_new('feed-updated', menu, GObject.SignalFlags.RUN_LAST, GObject.TYPE_PYOBJECT, (GObject.TYPE_PYOBJECT,))
-
-        #menu.connect('feed-updated', self.on_feed_updated)
+        menu.show()
 
         return(menu)
 
@@ -449,8 +467,6 @@ class PreferencesDialog(Gtk.Window):
         self.connect('delete-event',self.on_delete_event)
         
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
-        # self.set_size_request(400, 230)
-        #self.connect('close', self.close_application)
         self.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(
             common.ICON, 64, 64, True))
 
@@ -777,15 +793,6 @@ def init_indicator():
         GLib.MainLoop().quit()
         logging.info("out of main loop")
         exit(0)
-
-
-def feed_thread():
-    logging.info("Downloading rss feed...")
-    #download_feed()
-    time.sleep(3)
-    logging.info("Feed downloaded")
-    print(dbus_service)
-    dbus_service.menu.emit('feed-updated',"foo")
 
 def main():
     if len(sys.argv) > 1:
