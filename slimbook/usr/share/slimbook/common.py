@@ -48,7 +48,7 @@ AUTOSTART_DIR = os.path.join(CONFIG_DIR, 'autostart')
 FILE_AUTO_START = os.path.join(AUTOSTART_DIR,
                                'slimbook-client-autostart.desktop')
                                
-SLB_FEED_URL = "https://github.com/Slimbook-Team/slimbook_service/raw/news/sb-rss-es.xml"
+SLB_FEED_URL = "https://github.com/Slimbook-Team/slimbook_service/raw/news/sb-rss-{0}.xml"
 SLB_CACHE_PATH = os.path.expanduser("~/.cache/slimbook-service/")
 
 SLB_IPC_PATH = "/var/run/slimbook-service.socket"
@@ -411,12 +411,23 @@ def get_system_info():
     
     return info
 
+def get_lang():
+    lang = locale.getlocale()[0]
+    lang = lang.split("_")[0]
+    
+    if not lang in ["en","es"]:
+        lang = "en"
+        
+    return lang
+
 def download_feed():
     os.makedirs(SLB_CACHE_PATH,exist_ok = True)
     
-    r = requests.get(SLB_FEED_URL, allow_redirects = True)
+    lang = get_lang()
+    print(SLB_FEED_URL.format(lang))
+    r = requests.get(SLB_FEED_URL.format(lang), allow_redirects = True)
     
-    path = SLB_CACHE_PATH + "/sb-rss-es.xml"
+    path = SLB_CACHE_PATH + "/sb-rss.xml"
     f = open(path,"wb")
     f.write(r.content)
     f.close()

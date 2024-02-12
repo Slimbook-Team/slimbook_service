@@ -141,7 +141,17 @@ def store_cache_feeds(feeds):
         f.close()
     except Exception as e:
         print(e)
+
+def check_time_feeds():
+    feed = os.path.expanduser("~/.cache/slimbook-service/sb-rss.xml")
     
+    if os.path.exists(feed):
+        mtime = os.path.getmtime(feed)
+        now = time.time()
+        return (now - mtime) < (3600*24)
+    else:
+        return False
+
 def check_news():
     
     news = []
@@ -152,7 +162,7 @@ def check_news():
     print(product)
     
     try:
-        feed = feedparser.parse(os.path.expanduser("~/.cache/slimbook-service/sb-rss-es.xml"))
+        feed = feedparser.parse(os.path.expanduser("~/.cache/slimbook-service/sb-rss.xml"))
     
         for entry in feed["entries"]:
             nw = Feed(entry)
@@ -235,9 +245,10 @@ class ServiceIndicator(Gio.Application):
         self.set_indicator()
         Notify.init('Slimbook')
         
+        GLib.timeout_add_seconds(5,self.on_initial_check)
+        
         self.feed_updating = False
-        self.update_feed()
-    
+        
     def on_name_acquired(self, connection, name):
     
         connection.register_object(
@@ -260,6 +271,12 @@ class ServiceIndicator(Gio.Application):
         
         return True
     
+    def on_initial_check(self):
+        if (not check_time_feeds()):
+            self.update_feed()
+        
+        return False
+        
     def update_feed(self):
         print("updating feed...")
         
@@ -271,7 +288,7 @@ class ServiceIndicator(Gio.Application):
             thread.start()
     
     def update_feed_worker(self):
-        #common.download_feed()
+        common.download_feed()
         GLib.idle_add(self.on_feed_update)
     
     def on_feed_update(self):
