@@ -747,6 +747,24 @@ class NewsDialog(Gtk.Window):
     
     def on_btn_refresh_clicked(self, widget):
         self.parent.update_feed()
+        children = self.listbox.get_children()
+        for child in children:
+            self.listbox.remove(child)
+        
+        theme = Gtk.IconTheme()
+        pix = theme.load_icon(icon_name = "emblem-synchronizing-symbolic", size = 64, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
+            
+        img = Gtk.Image.new_from_pixbuf(pix)
+        
+        hbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        hbox.pack_start(img, True, False, 1)
+        lbl = Gtk.Label(label = _("Fetching..."))
+        hbox.pack_start(lbl, True, False, 1)
+        row = Gtk.ListBoxRow()
+        row.add(hbox)
+            
+        self.listbox.add(row)
+        self.listbox.show_all()
 
     def on_feed_update_start(self, *args):
         self.btn_refresh.set_sensitive(False)
@@ -757,6 +775,10 @@ class NewsDialog(Gtk.Window):
         
     def on_feed_update_complete(self, *args):
         self.btn_refresh.set_sensitive(True)
+        children = self.listbox.get_children()
+        
+        for child in children:
+            self.listbox.remove(child)
         self.populate()
 
 def manage_autostart(create):
