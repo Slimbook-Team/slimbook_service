@@ -8,33 +8,33 @@
   <description>Slimbook RSS feed</description>
   
   <item>
-    <title>Nuevo Slimbook Service</title>
+    <title>New Slimbook Service</title>
     <link>https://slimbook.com/blog/tutoriales-2/post/slimbook-service-364</link>
-    <description>Liberado Slimbook Service 1.6</description>
+    <description>Slimbook Service 1.6 is already out</description>
   </item>
   
   <item>
-    <title>Mejoras en el foro</title>
+    <title>Forum improvements</title>
     <link>https://slimbook.com/forum/foro-de-la-comunidad-1/question/aviso-slimbook-mejoras-en-el-foro-questions-1176</link>
-    <description>Hemos mejorado el foro</description>
+    <description>We have improved forum</description>
   </item>
   
   <item>
-    <title>Actualizacion de firmware</title>
-    <description>Actualizacion del firmware EC para ProX</description>
+    <title>Firmware update</title>
+    <description>There is a firmware update for ProX</description>
     <category>model:prox*</category>
     <category>firmware</category>
   </item>
   
   <item>
-    <title>Felices Fiestas</title>
-    <description>Slimbook os desea feliz navidad</description>
+    <title>Happy X-Mas</title>
+    <description>Slimbook wishes a happy hollydays for everyone</description>
   </item>
 </channel>
 
   <item>
-    <title>Configura tu nuevo Excalibur</title>
-    <description>Entra en el foro de Slimbook para aprender a configurar tu nuevo Excalibur</description>
+    <title>Set up your new Excalibur</title>
+    <description>Check out the Slimbook forum to know how to set up your new Excalibur</description>
     <category>model:excalibur*</category>
   </item>
 
