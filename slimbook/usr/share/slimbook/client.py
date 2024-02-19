@@ -289,6 +289,7 @@ class ServiceIndicator(Gio.Application):
     
     def update_feed_worker(self):
         common.download_feed()
+        #time.sleep(3)
         GLib.idle_add(self.on_feed_update)
     
     def on_feed_update(self):
@@ -741,37 +742,54 @@ class NewsDialog(Gtk.Window):
             row.add(grid)
             
             self.listbox.add(row)
+        
+        if (len(feeds) == 0):
+            theme = Gtk.IconTheme()
+            pix = theme.load_icon(icon_name = "face-plain-symbolic", size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
+                
+            img = Gtk.Image.new_from_pixbuf(pix)
+            lbl = Gtk.Label(label = _("Nothing to show"))
             
+            grid = Gtk.Grid.new()
+            grid.set_row_spacing(4)
+            grid.set_column_spacing(8)
+            grid.attach(img,0,0,1,4)
+            grid.attach(lbl,2,0,2,1)
+                
+            self.listbox.add(grid)
+        
         self.listbox.show_all()
         
     
     def on_btn_refresh_clicked(self, widget):
         self.parent.update_feed()
+        self.show_feed_update()
+        
+
+    def on_feed_update_start(self, *args):
+        self.show_feed_update()
+            
+    
+    def show_feed_update(self):
+        self.btn_refresh.set_sensitive(False)
         children = self.listbox.get_children()
         for child in children:
             self.listbox.remove(child)
         
         theme = Gtk.IconTheme()
-        pix = theme.load_icon(icon_name = "emblem-synchronizing-symbolic", size = 64, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
+        pix = theme.load_icon(icon_name = "emblem-synchronizing-symbolic", size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
             
         img = Gtk.Image.new_from_pixbuf(pix)
-        
-        hbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
-        hbox.pack_start(img, True, False, 1)
         lbl = Gtk.Label(label = _("Fetching..."))
-        hbox.pack_start(lbl, True, False, 1)
-        row = Gtk.ListBoxRow()
-        row.add(hbox)
-            
-        self.listbox.add(row)
-        self.listbox.show_all()
-
-    def on_feed_update_start(self, *args):
-        self.btn_refresh.set_sensitive(False)
-        children = self.listbox.get_children()
         
-        for child in children:
-            self.listbox.remove(child)
+        grid = Gtk.Grid.new()
+        grid.set_row_spacing(4)
+        grid.set_column_spacing(8)
+        grid.attach(img,0,0,1,4)
+        grid.attach(lbl,1,0,1,1)
+            
+        self.listbox.add(grid)
+        self.listbox.show_all()
         
     def on_feed_update_complete(self, *args):
         self.btn_refresh.set_sensitive(True)
