@@ -21,16 +21,21 @@
 import iohid
 import common
 
+import slimbook.info
+import slimbook.qc71
+
+import zmq
+import evdev
+
 import subprocess
 from datetime import datetime
-import evdev
 import os
 import logging
-import zmq
 import threading
+import queue
 import time
 
-logger = logging.getLogger("main")
+logger = logging.getLogger("slimbook.service")
 logging.basicConfig(format='%(levelname)s-%(message)s')
 logger.setLevel(logging.INFO)
 
@@ -38,6 +43,10 @@ context = zmq.Context()
 socket = context.socket(zmq.PUB)
 socket.bind("ipc://{0}".format(common.SLB_IPC_PATH))
 os.chmod(common.SLB_IPC_PATH, 0o777)
+
+slb_events = queue.Queue()
+
+
 
 QC71_DIR = '/sys/devices/platform/qc71_laptop'
 QC71_mod_loaded = True if os.path.isdir(QC71_DIR) else False
@@ -376,33 +385,127 @@ def read_titan_performance_mode():
         time.sleep(0.5)
 
 
+def keyboard_worker():
+    device = evdev.InputDevice(slimbook.info.keyboard_device())
+    
+    state = {}
+    
+    for event in device.read_loop():
+        if (event.type == evdev.ecodes.EV_MSC):
+        
+            last = state.get(event.value)
+            
+            if (last == 1):
+                state[event.value] = 0
+                continue
+            else:
+                state[event.value] = 1
+            
+            if (event.value == slimbook.info.SLB_SCAN_QC71_SUPER_LOCK):
+                slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
+            
+            elif (event.value == slimbook.info.SLB_SCAN_QC71_SILENT_MODE):
+                slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
+            
+            elif (event.value == slimbook.info.SLB_SCAN_QC71_TOUCHPAD_SWITCH):
+                slb_events.put(common.SLB_EVENT_QC71_TOUCHPAD_CHANGED)
+    
+            elif (event.value == slimbook.info.SLB_SCAN_Z16_SILENT_MODE):
+                slb_events.put(common.SLB_EVENT_Z16_SILENT_MODE)
+                
+            elif (event.value == slimbook.info.SLB_SCAN_Z16_NORMAL_MODE):
+                slb_events.put(common.SLB_EVENT_Z16_NORMAL_MODE)
+                
+            elif (event.value == slimbook.info.SLB_SCAN_Z16_PERFORMANCE_MODE):
+                slb_events.put(common.SLB_EVENT_Z16_PERFORMANCE_MODE)
+
+def qc71_module_worker():
+    device = evdev.InputDevice(slimbook.info.module_device())
+    
+    for event in device.read_loop():
+        if (event.type == evdev.ecodes.EV_MSC):
+            logger.info("qc71:{0}".format(event.value))
+    
+def titan_worker():
+    pass
+    
+def send_notify(code):
+    dt = datetime.now()
+    ts = datetime.timestamp(dt)
+    data = {"code": code, "timestamp": ts}
+    socket.send_json(data)
+    
 def main():
+
+    touchpad_fd = None
+    touchpad_report = None
 
     logger.info("Slimbook service")
     
-    slimbook_model = get_content("/sys/class/dmi/id/product_name").strip()
-    logger.info("Model: {0}".format(slimbook_model))
+    model = slimbook.info.get_model()
+    platform = slimbook.info.get_platform()
     
-    is_titan = (slimbook_model == "TITAN") or (slimbook_model == "HERO-RPL-RTX")
-
-    read_kbd_thread = threading.Thread(
-        name='my_service', target=read_keyboard)
-    read_kbd_thread.start()
-
-    if QC71_mod_loaded:
-        if is_titan:
-            read_titan_performance_mode_thread = threading.Thread(
-                name='my_service', target=read_titan_performance_mode
-            )
-            read_titan_performance_mode_thread.start()
-
+    if (model == slimbook.info.SLB_MODEL_UNKNOWN):
+        logger.error("Unknown model:")
+        logger.error("{0}".format(slimbook.info.product_name()))
+        logger.error("{0}".format(slimbook.info.board_vendor()))
+        sys.exit(1)
         
-        read_qc71_thread = threading.Thread(
-            name='my_service', target=read_qc71
-        )
-        read_qc71_thread.start()
+    module_loaded = slimbook.info.is_module_loaded()
+    
+    if (platform == slimbook.info.SLB_PLATFORM_QC71):
+        touchpad_fd, touchpad_report = detect_touchpad()
+    
+        qc71_keyboard_thread = threading.Thread(
+            name='slimbook.service.qc71.keyboard', target=keyboard_worker)
+        qc71_keyboard_thread.start()
+    
+        if (module_loaded):
+            qc71_module_thread = threading.Thread(
+                name='slimbook.service.qc71.module', target=qc71_module_worker)
+            qc71_module_thread.start()
+        
+    
+    elif (platform == slimbook.info.SLB_PLATFORM_Z16):
+        z16_keyboard_thread = threading.Thread(
+            name='slimbook.service.z16.keyboard', target=keyboard_worker)
+        z16_keyboard_thread.start()
+    
     else:
-        logger.warning("qc71_laptop kernel module is not loaded")
+        logger.info("Unsupported Slimbook model:")
+        logger.info("{0}".format(slimbook.info.product_name()))
+        logger.info("{0}".format(slimbook.info.board_vendor()))
+        sys.exit(0)
+        
+    while True:
+        event = slb_events.get()
+        logger.info("event {0}".format(event))
+        
+        if (platform == slimbook.info.SLB_PLATFORM_QC71):
+            
+            if (module_loaded):
+                if (event == common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED):
+                    value = slimbook.qc71.super_lock_get()
+                    if (value == 1):
+                        event = common.SLB_EVENT_QC71_SUPER_LOCK_ON
+                    else:
+                        event = common.SLB_EVENT_QC71_SUPER_LOCK_OFF
+                
+                elif (event == common.SLB_EVENT_QC71_SILENT_MODE_CHANGED):
+                    value = slimbook.qc71.silent_mode_get()
+                    
+                    if (value == 1):
+                        event = common.SLB_EVENT_QC71_SILENT_MODE_ON
+                    else:
+                        event = common.SLB_EVENT_QC71_SILENT_MODE_OFF
+                        
+            if (touchpad_fd):
+                if (event == common.SLB_EVENT_QC71_TOUCHPAD_CHANGED):
+                    status = iohid.get_feature(touchpad_fd, touchpad_report,1)
+                    print(status)
+        
+        print(event)
+        send_notify(event)
         
 if __name__=="__main__":
     main()
