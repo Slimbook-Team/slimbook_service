@@ -403,6 +403,7 @@ def keyboard_worker():
             
             if (event.value == slimbook.info.SLB_SCAN_QC71_SUPER_LOCK):
                 slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
+                pass
             
             elif (event.value == slimbook.info.SLB_SCAN_QC71_SILENT_MODE):
                 slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
@@ -423,8 +424,9 @@ def qc71_module_worker():
     device = evdev.InputDevice(slimbook.info.module_device())
     
     for event in device.read_loop():
-        if (event.type == evdev.ecodes.EV_MSC):
-            logger.info("qc71:{0}".format(event.value))
+        if (event.type == evdev.ecodes.EV_KEY):
+            if (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F2):
+                slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
     
 def titan_worker():
     pass
@@ -502,7 +504,15 @@ def main():
             if (touchpad_fd):
                 if (event == common.SLB_EVENT_QC71_TOUCHPAD_CHANGED):
                     status = iohid.get_feature(touchpad_fd, touchpad_report,1)
-                    print(status)
+                    status = int(status[0])
+                    
+                    
+                    if (status == 0):
+                        event = common.SLB_EVENT_QC71_TOUCHPAD_ON
+                        iohid.set_feature(touchpad_fd,touchpad_report,bytes([0x03]))
+                    else:
+                        event = common.SLB_EVENT_QC71_TOUCHPAD_OFF
+                        iohid.set_feature(touchpad_fd,touchpad_report,bytes([0x00]))
         
         print(event)
         send_notify(event)

@@ -267,7 +267,8 @@ class ServiceIndicator(Gio.Application):
     
         while self.poller.poll(timeout = 50):
             data = self.socket.recv_json()
-            self.message("slimbook",data["msg"])
+            event = common.SLB_EVENT_DATA[data["code"]]
+            self.message("slimbook",event[0],event[1])
         
         return True
     
@@ -288,8 +289,8 @@ class ServiceIndicator(Gio.Application):
             thread.start()
     
     def update_feed_worker(self):
-        common.download_feed()
-        #time.sleep(3)
+        #common.download_feed()
+        time.sleep(3)
         GLib.idle_add(self.on_feed_update)
     
     def on_feed_update(self):
@@ -323,8 +324,8 @@ class ServiceIndicator(Gio.Application):
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
             appindicator.IndicatorStatus.PASSIVE)
 
-    def message(self, title, message):
-        notification.update(title, message, 'dialog-information')
+    def message(self, title, message, icon = "dialog-information"):
+        notification.update(title, message, icon)
         notification.show()
 
     def read_preferences(self):
