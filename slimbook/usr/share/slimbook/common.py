@@ -36,7 +36,7 @@ except Exception as e:
     _ = str
 
 SLB_EVENT_QC71_SILENT_MODE_ON = 0
-SLB_EVENT_QC71_SILENT_MODE_OFF = 1      
+SLB_EVENT_QC71_SILENT_MODE_OFF = 1
 SLB_EVENT_QC71_SILENT_MODE_CHANGED = 2
 
 SLB_EVENT_QC71_SUPER_LOCK_ON = 3
@@ -47,9 +47,13 @@ SLB_EVENT_QC71_TOUCHPAD_ON = 6
 SLB_EVENT_QC71_TOUCHPAD_OFF = 7
 SLB_EVENT_QC71_TOUCHPAD_CHANGED = 8
 
-SLB_EVENT_Z16_SILENT_MODE = 9
-SLB_EVENT_Z16_NORMAL_MODE = 10
-SLB_EVENT_Z16_PERFORMANCE_MODE = 11
+SLB_EVENT_QC71_SILENT_MODE = 9
+SLB_EVENT_QC71_NORMAL_MODE = 10
+SLB_EVENT_QC71_PERFORMANCE_MODE = 11
+
+SLB_EVENT_Z16_SILENT_MODE = 12
+SLB_EVENT_Z16_NORMAL_MODE = 13
+SLB_EVENT_Z16_PERFORMANCE_MODE = 14
 
 SLB_EVENT_DATA = {
     SLB_EVENT_QC71_SILENT_MODE_ON : [_("Silent Mode enabled"),"power-profile-power-saver-symbolic"],
@@ -63,6 +67,10 @@ SLB_EVENT_DATA = {
     SLB_EVENT_QC71_TOUCHPAD_ON : [_("Touchpad enabled"),"input-touchpad-symbolic"],
     SLB_EVENT_QC71_TOUCHPAD_OFF : [_("Touchpad disabled"),"input-touchpad-symbolic"],
     SLB_EVENT_QC71_TOUCHPAD_CHANGED : [_("Touchpad changed"),"input-touchpad-symbolic"],
+    
+    SLB_EVENT_QC71_SILENT_MODE : [_("Silent Mode"),"power-profile-power-saver-symbolic"],
+    SLB_EVENT_QC71_NORMAL_MODE : [_("Normal Mode"),"power-profile-balanced-symbolic"],
+    SLB_EVENT_QC71_PERFORMANCE_MODE : [_("Performance Mode"),"power-profile-performance-symbolic"],
     
     SLB_EVENT_Z16_SILENT_MODE : [_("Silent Mode"),"power-profile-power-saver-symbolic"],
     SLB_EVENT_Z16_NORMAL_MODE : [_("Normal Mode"),"power-profile-balanced-symbolic"],
@@ -80,7 +88,7 @@ PARAMS = {
             }
 
 APP = 'slimbook'
-VERSION = '0.5'
+VERSION = '0.6'
 APPCONF = APP + '.conf'
 APPDATA = APP + '.data'
 APPNAME = 'Slimbook Service'

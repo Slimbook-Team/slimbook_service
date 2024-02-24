@@ -30,6 +30,7 @@ import evdev
 import subprocess
 from datetime import datetime
 import os
+import sys
 import logging
 import threading
 import queue
@@ -62,14 +63,6 @@ SURFACE_SWITCH_USAGE_ID = (iohid.HID_USAGE_PAGE_DIGITIZER << 16) | iohid.HID_USA
 #is_titan = True if "TITAN" in subprocess.getstatusoutput("sudo dmidecode --string baseboard-product-name")[1] else False
 is_titan = False
 slimbook_model = None
-
-def notify_send(msg):
-    dt = datetime.now()
-    ts = datetime.timestamp(dt)
-    data = {"msg": msg, "timestamp": ts}
-    logger.debug("notify:"+str(data))
-    socket.send_json(data)
-
 
 def detect_touchpad():
     touchpad_fd = None
@@ -110,280 +103,6 @@ def detect_touchpad():
             break
     
     return (touchpad_fd,touchpad_report)
-
-
-def detect_keyboard():
-    keyboard_device_path = None
-    for file in os.listdir('/dev/input/by-path'):
-        if file.endswith('event-kbd') and file.find('i8042') != -1:
-            file_path = os.path.join('/dev/input/by-path', file)
-            keyboard_device_path = os.path.realpath(
-                os.path.join(file_path, os.readlink(file_path)))
-            logger.info('Found keyboard: ' + keyboard_device_path)
-    return keyboard_device_path
-
-
-def detect_qc71():
-    qc71_device_path = None
-    for file in os.listdir('/dev/input/by-path'):
-        if file.endswith('qc71_laptop-event'):
-            file_path = os.path.join('/dev/input/by-path', file)
-            qc71_device_path = os.path.realpath(
-                os.path.join(file_path, os.readlink(file_path)))
-            logger.info('Found qc71 input: ' + qc71_device_path)
-    return qc71_device_path
-
-
-def get_content(file_path):
-    if os.path.isfile(file_path):
-        # open text file in read mode
-        text_file = open(file_path, "r")
-
-        # read whole file to a string
-        data = text_file.read()
-
-        # close file
-        text_file.close()
-        return data
-
-EVENTS = {
-    104: {
-        "key": "F2",
-        "msg": {0: "Super Key Lock disabled",
-                1: "Super Key Lock enabled",
-                'default': "Super Key Lock state changed"},
-        "type": "",
-    },
-    165: {  # f2 ON QC71 module
-        "key": "F2",
-        "msg": {0: "Super Key Lock disabled",
-                1: "Super Key Lock enabled",
-                'default': "Super Key Lock state changed"},
-        "type": "",
-    },
-    105: {
-        "key": "F5",
-        "msg": {0: "Silent Mode disabled",
-                1: "Silent Mode enabled",
-                'default': "Silent Mode state changed"},
-        "type": "",
-    },
-    118: {
-        "key": "Touchpad button",
-        "msg": {0: "Touchpad disabled",
-                1: "Touchpad enabled",
-                'default': "Touchpad state changed"},
-        "type": "",
-    },
-    188: {
-        "key": "Performace Button Titan",
-        "msg": {0: "Performance Mode changed: Silent",
-                1: "Performance Mode changed: Normal",
-                2: "Performance Mode changed: Turbo",
-                'default': "Performance Mode changed"},
-        "type": "",
-    },
-}
-
-MODES = {
-        0: 'silent',
-        1: 'normal',
-        2: 'turbo',
-    }
-
-
-def read_keyboard():
-    touchpad_fd, touchpad_report = detect_touchpad()
-    last_event = 0
-    send_notification = None
-    keyboard_device_path = detect_keyboard()
-    device = evdev.InputDevice(keyboard_device_path)
-    last_event = None
-    
-    for event in device.read_loop():
-        if event.type == evdev.ecodes.EV_MSC:
-            
-            # event filter, it has some room for improvement but it works good enought
-            if (last_event and event.value == last_event.value):
-                delta = event.timestamp() - last_event.timestamp()
-                
-                if (delta < 0.5):
-                    logger.debug("Event filtered (<0.5s)")
-                    continue
-                    
-            state_int = None
-            
-            # super key lock
-            if event.value == 104:
-                send_notification = True
-                if QC71_mod_loaded:
-                    qc71_filename = f"{QC71_DIR}/super_key_lock"
-                    file = open(qc71_filename, mode='r')
-                    content = file.read()
-                    # line = file.readline()
-                    file.close()
-                    try:
-                        state_int = int(content)
-                        last_event = event
-                    except:
-                        logger.error("Super key lock state read error")
-                else:
-                    logger.info('qc71_laptop not loaded')
-
-            # silent mode/performance
-            elif event.value == 105:
-                send_notification = True
-
-                if QC71_mod_loaded:
-                    qc71_filename = f"{QC71_DIR}/silent_mode"
-                    file = open(qc71_filename, mode='r')
-                    content = file.read()
-                    # line = file.readline()
-                    file.close()
-                    try:
-                        logger.debug("perfomance changed:"+str(content))
-                        state_int = int(content)
-                        last_event = event
-                    except:
-                        logger.error("Silent mode state read error")
-
-                else:
-                    logger.info('qc71_laptop not loaded')
-
-            # what is this?
-            elif event.value == 458811:
-                pass
-
-            # touchpad switch
-            elif event.value == 118:
-                STATES = {
-                    0: {
-                        "bytes": bytes([0x00]),
-                        "action": 1,
-                        "msg": "Disabled",
-                    },
-                    1: {
-                        "bytes": bytes([0x03]),
-                        "action": 0,
-                        "msg": "Enabled",
-                    },
-                }
-                try:
-                    # expecting a 1 byte size response
-                    status = iohid.get_feature(touchpad_fd, touchpad_report,1)
-                    current_status = int(status[0])
-                    state_int = 1 if current_status == 0 else 0
-                    logger.debug("touchpad status changed:{0}".format(current_status))
-                    iohid.set_feature(touchpad_fd,touchpad_report,STATES.get(int(state_int)).get("bytes"))
-                    last_event = event
-                except Exception as e:
-                    logger.error(e)
-
-                send_notification = True
-
-            if EVENTS.get(event.value):
-                msg = (
-                    ((EVENTS.get(event.value)).get("msg")).get(state_int)
-                    if state_int != None
-                    else EVENTS.get(event.value).get("msg").get('default')
-                )
-                if send_notification:
-                    logger.debug("Should notify " + str(msg))
-                    notify_send(msg)
-                else:
-                    logger.debug(send_notification)
-
-
-
-def read_qc71():
-    last_event = 0
-    send_notification = None
-    keyboard_device_path = detect_qc71()
-    device = evdev.InputDevice(keyboard_device_path)
-    for event in device.read_loop():
-        if event.type == evdev.ecodes.EV_MSC:
-            # print(event)
-            # if event.value != last_event:
-            state_int = None
-            if event.value == 165:
-                send_notification = True
-                if QC71_mod_loaded:
-                    qc71_filename = f"{QC71_DIR}/super_key_lock"
-                    file = open(qc71_filename, mode='r')
-                    content = file.read()
-                    # line = file.readline()
-                    file.close()
-                    try:
-                        state_int = int(content)
-                    except:
-                        logger.error("Super key lock state read error")
-                else:
-                    logger.info('qc71_laptop not loaded')
-
-            elif event.value == 188:
-                if QC71_mod_loaded and not is_titan:
-                    send_notification = True
-                    silent = get_content(SILENT_FILE)
-                    try:
-                        state_int = int(silent)
-                    except:
-                        logger.error("Silent mode state read error")
-
-                else:
-                    send_notification = False
-
-            last_event = event.value
-            if EVENTS.get(event.value):
-                msg = (
-                    ((EVENTS.get(event.value)).get("msg")).get(state_int)
-                    if state_int != None
-                    else EVENTS.get(event.value).get("msg").get('default')
-                )
-                if send_notification:
-                    logger.debug("Should notify " + str(msg))
-                    notify_send(msg)
-                else:
-                    logger.debug(send_notification)
-
-def read_titan_performance_mode():
-    state_int = None
-    send_notification = False
-    
-    def notify_performance():
-        event_value = 188
-        if EVENTS.get(event_value) and send_notification:
-            msg = (
-                ((EVENTS.get(event_value)).get("msg")).get(state_int)
-                if state_int != None
-                else EVENTS.get(event_value).get("msg").get('default')
-            )
-            logger.info("TITAN - Should notify " + str(msg))
-            notify_send(msg)
-        else:
-            logger.debug(send_notification)
-
-    while True:
-        silent = get_content(SILENT_FILE)
-        turbo = get_content(TURBO_FILE)
-
-        if int(silent) == 1:
-            mode = 0
-        elif int(turbo) == 1:
-            mode = 2
-        elif silent == turbo:
-            time.sleep(0.5)
-            if silent == turbo: # NORMAL
-                mode = 1
-        
-        #logger.info(str(mode)+"   " +str(state_int))
-            
-        if not state_int == mode: # MODE CHANGED
-            send_notification = True if state_int != None else False
-            state_int = mode 
-            notify_performance()
-            
-        time.sleep(0.5)
-
 
 def keyboard_worker():
     device = evdev.InputDevice(slimbook.info.keyboard_device())
@@ -427,9 +146,26 @@ def qc71_module_worker():
         if (event.type == evdev.ecodes.EV_KEY):
             if (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F2):
                 slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
+            elif (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F5):
+                slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
     
 def titan_worker():
-    pass
+    silent = slimbook.qc71.silent_mode_get()
+    turbo = slimbook.qc71.turbo_mode_get()
+    
+    current_mode = int(not silent) + int(turbo)
+    
+    while True:
+        silent = slimbook.qc71.silent_mode_get()
+        turbo = slimbook.qc71.turbo_mode_get()
+        
+        mode = int(not silent) + int(turbo)
+        
+        if (mode != current_mode):
+            current_mode = mode
+            slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED + mode)
+        
+        time.sleep(1)
     
 def send_notify(code):
     dt = datetime.now()
@@ -480,7 +216,9 @@ def main():
         sys.exit(0)
         
     while True:
+       
         event = slb_events.get()
+        
         logger.info("event {0}".format(event))
         
         if (platform == slimbook.info.SLB_PLATFORM_QC71):
@@ -518,4 +256,7 @@ def main():
         send_notify(event)
         
 if __name__=="__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt as e:
+        sys.exit(0)
