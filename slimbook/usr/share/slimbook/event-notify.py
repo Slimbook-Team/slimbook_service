@@ -47,22 +47,8 @@ os.chmod(common.SLB_IPC_PATH, 0o777)
 
 slb_events = queue.Queue()
 
-
-
-QC71_DIR = '/sys/devices/platform/qc71_laptop'
-QC71_mod_loaded = True if os.path.isdir(QC71_DIR) else False
-
-QC71_MOD_DIR = f"{QC71_DIR}"
-SILENT_FILE = f"{QC71_DIR}/silent_mode"
-TURBO_FILE = f"{QC71_DIR}/turbo_mode"
-
 BUTTON_SWITCH_USAGE_ID = (iohid.HID_USAGE_PAGE_DIGITIZER << 16) | iohid.HID_USAGE_DIGITIZER_BUTTON_SWITCH
 SURFACE_SWITCH_USAGE_ID = (iohid.HID_USAGE_PAGE_DIGITIZER << 16) | iohid.HID_USAGE_DIGITIZER_SURFACE_SWITCH
-
-
-#is_titan = True if "TITAN" in subprocess.getstatusoutput("sudo dmidecode --string baseboard-product-name")[1] else False
-is_titan = False
-slimbook_model = None
 
 def detect_touchpad():
     touchpad_fd = None

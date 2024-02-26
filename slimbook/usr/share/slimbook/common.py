@@ -77,8 +77,6 @@ SLB_EVENT_DATA = {
     SLB_EVENT_Z16_PERFORMANCE_MODE : [_("Performance Mode"),"power-profile-performance-symbolic"]
 }
 
-
-
 PARAMS = {
             'first-time': True,
             'version': '',
@@ -113,8 +111,6 @@ if is_package():
 else:
     APPDIR = os.path.abspath(os.path.join('..', os.path.dirname(os.path.realpath(__file__))))
 
-print('Config = '+CONFIG_FILE)
-
 LANGDIR = os.path.join(APPDIR, 'locale-langpack')
 ICONDIR = os.path.join(APPDIR, 'icons')
 FILE_AUTO_START_ORIG = os.path.join(APPDIR,
@@ -126,7 +122,6 @@ ICON = os.path.join(ICONDIR, 'slimbook_be1ofus_light.svg')
 STATUS_ICON = {}
 STATUS_ICON['light'] = (os.path.join(ICONDIR, 'slimbook_be1ofus_light.svg'))
 STATUS_ICON['dark'] = (os.path.join(ICONDIR, 'slimbook_be1ofus_dark.svg'))
-
 
 INFO_UPTIME = _("Uptime")
 INFO_MEM = _("Memory Free/Total")
@@ -145,14 +140,13 @@ INFO_SB = _("Secure Boot")
 INFO_CPU = _("CPU")
 INFO_GPU = _("GPU")
 INFO_MODULE = _("Module loaded")
-INFO_FN_LOCK = ("Fn Lock")
-INFO_SUPER_LOCK = ("Super Lock")
-INFO_SILENT_MODE = ("Silent Mode")
+INFO_FN_LOCK = _("Fn Lock")
+INFO_SUPER_LOCK = _("Super Lock")
+INFO_SILENT_MODE = _("Silent Mode")
+INFO_TURBO_MODE = _("Turbo Mode")
 
 INFO_YES = _("Yes")
 INFO_NO = _("No")
-
-# print(os.path.dirname(os.path.abspath(__file__)))
 
 class Configuration(object):
     def __init__(self):
@@ -469,7 +463,7 @@ def download_feed():
     os.makedirs(SLB_CACHE_PATH,exist_ok = True)
     
     lang = get_lang()
-    print(SLB_FEED_URL.format(lang))
+    #print(SLB_FEED_URL.format(lang))
     r = requests.get(SLB_FEED_URL.format(lang), allow_redirects = True)
     
     path = SLB_CACHE_PATH + "/sb-rss.xml"

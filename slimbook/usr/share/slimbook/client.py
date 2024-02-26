@@ -23,22 +23,22 @@ from common import _
 
 import slimbook.info
 
-#import dbus
-#import dbus.service
 import zmq
+import feedparser
+import gi
+
 import logging
 import threading
-import gi
 import os
 import sys
 import shutil
 import common
 import webbrowser
-import feedparser
 import hashlib
 import time
 import signal
 import fnmatch
+from optparse import OptionParser
 
 try:
     gi.require_version('Gtk', '3.0')
@@ -62,10 +62,7 @@ from gi.repository import Gtk,Gdk,Gio
 from gi.repository import GLib
 from gi.repository import GdkPixbuf
 from gi.repository import Notify
-#from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
-from optparse import OptionParser
-
 
 BUS_NAME = 'es.slimbook.ServiceIndicator'
 BUS_PATH = '/es/slimbook/ServiceIndicator'
@@ -152,60 +149,6 @@ def check_time_feeds():
     else:
         return False
 
-def check_news():
-    
-    news = []
-    
-    cached = load_cache_feeds()
-    
-    product = slimbook.info.product_name().lower()
-    print(product)
-    
-    try:
-        feed = feedparser.parse(os.path.expanduser("~/.cache/slimbook-service/sb-rss.xml"))
-    
-        for entry in feed["entries"]:
-            nw = Feed(entry)
-            
-            ignore = False
-            for tag in nw.tags:
-                if (tag.startswith("model:")):
-                    target=tag.split(":")[1]
-                    print(target)
-                    if (not fnmatch.fnmatch(product,target)):
-                        logging.info("feed ignored by filter:{0}!={1}".format(product,target))
-                        ignore = True
-                    else:
-                        ignore = False
-            
-            if (ignore):
-                continue
-                
-            for cid in cached:
-                if cid == nw.id:
-                    print("id cached:",nw.id)
-                    nw.cached = True
-                    break
-                    
-            news.append(nw)
-            
-            body = nw.body
-            
-            if (nw.link):
-                body = body + " " + nw.link
-            
-            if (nw.cached == False):
-                nt = Notify.Notification.new(nw.title, body, nw.icon)
-                nt.show()
-        
-        store_cache_feeds(news)
-        
-            
-    except Exception as e:
-        print(e)
-        
-    return news
-
 class ServiceIndicator(Gio.Application):
     def __init__(self):
         super().__init__(application_id="slimbook.service",flags=Gio.ApplicationFlags.IS_SERVICE)
@@ -279,7 +222,7 @@ class ServiceIndicator(Gio.Application):
         return False
         
     def update_feed(self):
-        print("updating feed...")
+        logging.info("updating feed...")
         
         if self.feed_updating == False:
             self.emit('feed-update-start', False)
@@ -297,6 +240,72 @@ class ServiceIndicator(Gio.Application):
         logging.info("feed has been updated")
         self.feed_updating = False
         self.emit("feed-update-complete", False)
+        
+    def check_news(self):
+    
+        news = []
+        warn_user = False
+        
+        logging.info("checking news...")
+        cached = load_cache_feeds()
+        
+        product = slimbook.info.product_name().lower()
+        logging.info("Slimbook model:{0}".format(product))
+        
+        try:
+            feed = feedparser.parse(os.path.expanduser("~/.cache/slimbook-service/sb-rss.xml"))
+        
+            for entry in feed["entries"]:
+                nw = Feed(entry)
+                
+                ignore = False
+                for tag in nw.tags:
+                    if (tag.startswith("model:")):
+                        target=tag.split(":")[1]
+                        
+                        if (not fnmatch.fnmatch(product,target)):
+                            logging.info("feed ignored by filter:{0}!={1}".format(product,target))
+                            ignore = True
+                        else:
+                            ignore = False
+                
+                if (ignore):
+                    continue
+                    
+                for cid in cached:
+                    if cid == nw.id:
+                        logging.info("id cached:{0}".format(nw.id))
+                        nw.cached = True
+                        break
+                        
+                news.append(nw)
+                
+                body = nw.body
+                
+                if (nw.link):
+                    body = body + " " + nw.link
+                
+                if (nw.cached == False):
+                    nt = Notify.Notification.new(nw.title, body, nw.icon)
+                    nt.show()
+                    
+                    warn_user = True
+            
+            store_cache_feeds(news)
+            
+                
+        except Exception as e:
+            logging.error(e)
+        
+        
+        if (warn_user):
+            self.indicator.set_attention_icon_full("mail-unread-symbolic","")
+            self.indicator.set_status(appindicator.IndicatorStatus.ATTENTION)
+        else:
+            self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
+            appindicator.IndicatorStatus.PASSIVE)
+            
+        return news
     
     def set_indicator(self):
 
@@ -465,14 +474,12 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
     def on_news_delete_event(self, window, event):
         self.menu_news.set_sensitive(True)
+        self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
+            appindicator.IndicatorStatus.PASSIVE)
     
     def on_preferences_close(self, *args):
         self.menu_preferences.set_sensitive(True)
-        print(args)
-        #self.indicator.set_icon(self.active_icon)
-        self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
-            appindicator.IndicatorStatus.PASSIVE)
-
+        
     def show_preferences(self):
         self.menu_preferences.set_sensitive(False)
         preferences_dialog = PreferencesDialog()
@@ -495,6 +502,7 @@ class PreferencesDialog(Gtk.Window):
         
         self.btn_save = Gtk.Button.new_with_label(_("Save"))
         self.btn_save.set_sensitive(False) 
+        self.btn_save.connect("clicked",self.on_btn_save_clicked)
         header.pack_end(self.btn_save)
         self.set_titlebar(header)
 
@@ -541,7 +549,13 @@ class PreferencesDialog(Gtk.Window):
         self.emit('preferences-close', self.changes)
         return False
     
+    def on_btn_save_clicked(self, widget):
+        self.save_preferences()
+        self.btn_save.set_sensitive(False)
+        
+        
     def close_ok(self):
+        print("what")
         self.save_preferences()
 
     def load_preferences(self):
@@ -658,6 +672,7 @@ class NewsDialog(Gtk.Window):
         Gtk.Window.__init__(self)
         self.set_modal(True)
         self.parent = parent
+        self.set_default_size(500,600)
         
         CSS = '''
             list {
@@ -697,12 +712,14 @@ class NewsDialog(Gtk.Window):
         self.set_titlebar(header)
         
         vbox = Gtk.VBox(spacing = 12)
+        sw = Gtk.ScrolledWindow()
         self.listbox = Gtk.ListBox()
         
         self.listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         
         self.add(vbox)
-        vbox.pack_start(self.listbox,False,False,1)
+        sw.add(self.listbox)
+        vbox.pack_start(sw,True,True,1)
         vbox.set_border_width(16)
         
         self.populate()
@@ -710,7 +727,8 @@ class NewsDialog(Gtk.Window):
         self.show_all()
     
     def populate(self):
-        feeds = check_news()
+        #feeds = check_news()
+        feeds = self.parent.check_news()
         
         for feed in feeds:
             
@@ -755,9 +773,12 @@ class NewsDialog(Gtk.Window):
             grid.set_row_spacing(4)
             grid.set_column_spacing(8)
             grid.attach(img,0,0,1,4)
-            grid.attach(lbl,2,0,2,1)
+            grid.attach(lbl,1,1,1,1)
                 
-            self.listbox.add(grid)
+            row = Gtk.ListBoxRow()
+            row.add(grid)
+            
+            self.listbox.add(row)
         
         self.listbox.show_all()
         
@@ -787,9 +808,12 @@ class NewsDialog(Gtk.Window):
         grid.set_row_spacing(4)
         grid.set_column_spacing(8)
         grid.attach(img,0,0,1,4)
-        grid.attach(lbl,1,0,1,1)
+        grid.attach(lbl,1,1,1,1)
             
-        self.listbox.add(grid)
+        row = Gtk.ListBoxRow()
+        row.add(grid)
+            
+        self.listbox.add(row)
         self.listbox.show_all()
         
     def on_feed_update_complete(self, *args):
