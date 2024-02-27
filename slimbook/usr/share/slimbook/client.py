@@ -211,7 +211,7 @@ class ServiceIndicator(Gio.Application):
         while self.poller.poll(timeout = 50):
             data = self.socket.recv_json()
             event = common.SLB_EVENT_DATA[data["code"]]
-            self.message("slimbook",event[0],event[1])
+            self.message("Slimbook",event[0],event[1])
         
         return True
     
@@ -299,7 +299,6 @@ class ServiceIndicator(Gio.Application):
         
         
         if (warn_user):
-            self.indicator.set_attention_icon_full("mail-unread-symbolic","")
             self.indicator.set_status(appindicator.IndicatorStatus.ATTENTION)
         else:
             self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
@@ -311,6 +310,7 @@ class ServiceIndicator(Gio.Application):
 
         logging.debug("Setting indicator...")
         self.active_icon = None
+        self.attention_icon = None
         self.about_dialog = None
         self.active = False
         
@@ -326,6 +326,8 @@ class ServiceIndicator(Gio.Application):
         
         self.indicator.set_title('Slimbook Client Notifications')
 
+        self.indicator.set_attention_icon_full(self.attention_icon,"")
+        
         self.running = True
         
         self.menu = self.get_menu()
@@ -345,7 +347,9 @@ class ServiceIndicator(Gio.Application):
         self.theme = configuration.get('theme')
         self.active_icon = os.path.abspath(
             common.STATUS_ICON[configuration.get('theme')])
+        self.attention_icon = common.STATUS_ICON[self.theme+"-attention"]
         self.show = configuration.get('show')
+        self.notifications_enabled = configuration.get('notifications')
 
     def get_menu(self):
         """Create and populate the menu."""
@@ -355,20 +359,20 @@ class ServiceIndicator(Gio.Application):
         separator1.show()
         menu.append(separator1)
 
-        self.menu_preferences = Gtk.MenuItem.new_with_label(_('Preferences'))
-        self.menu_preferences.connect('activate', self.on_preferences_item)
-        self.menu_preferences.show()
-        menu.append(self.menu_preferences)
+        self.menu_news = Gtk.MenuItem.new_with_label(_('Notifications'))
+        self.menu_news.connect('activate', self.on_news_item)
+        self.menu_news.show()
+        menu.append(self.menu_news)
         
         menu_sysinfo = Gtk.MenuItem.new_with_label(_('System information'))
         menu_sysinfo.connect('activate', self.on_sysinfo_item)
         menu_sysinfo.show()
         menu.append(menu_sysinfo)
         
-        self.menu_news = Gtk.MenuItem.new_with_label(_('News'))
-        self.menu_news.connect('activate', self.on_news_item)
-        self.menu_news.show()
-        menu.append(self.menu_news)
+        self.menu_preferences = Gtk.MenuItem.new_with_label(_('Preferences'))
+        self.menu_preferences.connect('activate', self.on_preferences_item)
+        self.menu_preferences.show()
+        menu.append(self.menu_preferences)
         
         about_item = Gtk.MenuItem.new_with_label(_('About'))
         about_item.connect('activate', self.on_about_item)
@@ -453,7 +457,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     def on_news_item(self, widget, data = None):
         logging.debug("news")
         widget.set_sensitive(False)
-        news_dialog = NewsDialog(self)
+        news_dialog = NotificationsDialog(self)
         news_dialog.connect('delete-event', self.on_news_delete_event)
     
     def on_quit_item(self, widget, data=None):
@@ -552,7 +556,6 @@ class PreferencesDialog(Gtk.Window):
     def on_btn_save_clicked(self, widget):
         self.save_preferences()
         self.btn_save.set_sensitive(False)
-        
         
     def close_ok(self):
         print("what")
@@ -666,7 +669,7 @@ class SystemInfoDialog(Gtk.Dialog):
         clipboard.set_text(txt,-1)
         button.set_sensitive(False)
 
-class NewsDialog(Gtk.Window):
+class NotificationsDialog(Gtk.Window):
 
     def __init__(self, parent):
         Gtk.Window.__init__(self)
@@ -702,7 +705,7 @@ class NewsDialog(Gtk.Window):
         parent.connect("feed-update-complete", self.on_feed_update_complete)
         
         header = Gtk.HeaderBar()
-        header.set_title('Slimbook ' + _('News'))
+        header.set_title('Slimbook ' + _('Notifications'))
         header.set_show_close_button(True)
 
         self.btn_refresh = Gtk.Button.new_with_label(_("Refresh"))
@@ -849,22 +852,6 @@ def preferences():
         Gio.DBusCallFlags.NONE,
         10000,
         None)
-        
-    
-    
-    
-    """"
-    try:
-        init_indicator()
-
-    except:
-        bus = dbus.SessionBus()
-        session = bus.get_object(BUS_NAME, BUS_PATH)
-        show_preferences = session.get_dbus_method(
-            'show_preferences', BUS_NAME)
-        # Call the methods with their specific parameters
-        show_preferences()
-    """
 
 def init_indicator():
     

@@ -91,7 +91,15 @@ def detect_touchpad():
     return (touchpad_fd,touchpad_report)
 
 def keyboard_worker():
-    device = evdev.InputDevice(slimbook.info.keyboard_device())
+    
+    device_path = "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
+    # work around for buggy dmi info
+    try:
+        devie_path = slimbook.info.keyboard_device()
+    except:
+        pass
+        
+    device = evdev.InputDevice(device_path)
     
     state = {}
     
@@ -116,11 +124,11 @@ def keyboard_worker():
             elif (event.value == slimbook.info.SLB_SCAN_QC71_TOUCHPAD_SWITCH):
                 slb_events.put(common.SLB_EVENT_QC71_TOUCHPAD_CHANGED)
     
-            elif (event.value == slimbook.info.SLB_SCAN_Z16_SILENT_MODE):
-                slb_events.put(common.SLB_EVENT_Z16_SILENT_MODE)
+            elif (event.value == slimbook.info.SLB_SCAN_Z16_ENERGY_SAVER_MODE):
+                slb_events.put(common.SLB_EVENT_Z16_ENERGY_SAVER_MODE)
                 
-            elif (event.value == slimbook.info.SLB_SCAN_Z16_NORMAL_MODE):
-                slb_events.put(common.SLB_EVENT_Z16_NORMAL_MODE)
+            elif (event.value == slimbook.info.SLB_SCAN_Z16_BALANCED_MODE):
+                slb_events.put(common.SLB_EVENT_Z16_BALANCED_MODE)
                 
             elif (event.value == slimbook.info.SLB_SCAN_Z16_PERFORMANCE_MODE):
                 slb_events.put(common.SLB_EVENT_Z16_PERFORMANCE_MODE)
@@ -170,10 +178,18 @@ def main():
     platform = slimbook.info.get_platform()
     
     if (model == slimbook.info.SLB_MODEL_UNKNOWN):
-        logger.error("Unknown model:")
-        logger.error("{0}".format(slimbook.info.product_name()))
-        logger.error("{0}".format(slimbook.info.board_vendor()))
-        sys.exit(1)
+        product = slimbook.info.product_name()
+        vendor = slimbook.info.board_vendor()
+        
+        if (vendor.startswith("SLIMBOOK") and product.startswith("EXCALIBUR")):
+            # work-around for buggy dmi data
+            model = slimbook.info.SLB_MODEL_EXCALIBUR
+            platform = slimbook.info.SLB_PLATFORM_Z16
+        else:
+            logger.error("Unknown model:")
+            logger.error("{0}".format(product))
+            logger.error("{0}".format(vendor))
+            sys.exit(1)
         
     module_loaded = slimbook.info.is_module_loaded()
     

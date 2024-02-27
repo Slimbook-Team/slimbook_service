@@ -51,8 +51,8 @@ SLB_EVENT_QC71_SILENT_MODE = 9
 SLB_EVENT_QC71_NORMAL_MODE = 10
 SLB_EVENT_QC71_PERFORMANCE_MODE = 11
 
-SLB_EVENT_Z16_SILENT_MODE = 12
-SLB_EVENT_Z16_NORMAL_MODE = 13
+SLB_EVENT_Z16_ENERGY_SAVER_MODE = 12
+SLB_EVENT_Z16_BALANCED_MODE = 13
 SLB_EVENT_Z16_PERFORMANCE_MODE = 14
 
 SLB_EVENT_DATA = {
@@ -72,9 +72,9 @@ SLB_EVENT_DATA = {
     SLB_EVENT_QC71_NORMAL_MODE : [_("Normal Mode"),"power-profile-balanced-symbolic"],
     SLB_EVENT_QC71_PERFORMANCE_MODE : [_("Performance Mode"),"power-profile-performance-symbolic"],
     
-    SLB_EVENT_Z16_SILENT_MODE : [_("Silent Mode"),"power-profile-power-saver-symbolic"],
-    SLB_EVENT_Z16_NORMAL_MODE : [_("Normal Mode"),"power-profile-balanced-symbolic"],
-    SLB_EVENT_Z16_PERFORMANCE_MODE : [_("Performance Mode"),"power-profile-performance-symbolic"]
+    SLB_EVENT_Z16_ENERGY_SAVER_MODE : [_("Energy Saver"),"power-profile-power-saver-symbolic"],
+    SLB_EVENT_Z16_BALANCED_MODE : [_("Balanced"),"power-profile-balanced-symbolic"],
+    SLB_EVENT_Z16_PERFORMANCE_MODE : [_("Performance"),"power-profile-performance-symbolic"]
 }
 
 PARAMS = {
@@ -82,7 +82,8 @@ PARAMS = {
             'version': '',
             'autostart': True,
             'theme': 'light',
-            'show': True
+            'show': True,
+            'notifications' : True
             }
 
 APP = 'slimbook'
@@ -120,8 +121,11 @@ ICONDIR = os.path.join(APPDIR, 'icons')
 ICON = os.path.join(ICONDIR, 'slimbook_be1ofus_light.svg')
 
 STATUS_ICON = {}
-STATUS_ICON['light'] = (os.path.join(ICONDIR, 'slimbook_be1ofus_light.svg'))
-STATUS_ICON['dark'] = (os.path.join(ICONDIR, 'slimbook_be1ofus_dark.svg'))
+STATUS_ICON['light'] = (os.path.join(ICONDIR, 'slimbook-status-active-light.svg'))
+STATUS_ICON['light-attention'] = (os.path.join(ICONDIR, 'slimbook-status-attention-light.svg'))
+STATUS_ICON['dark'] = (os.path.join(ICONDIR, 'slimbook-status-active-dark.svg'))
+STATUS_ICON['dark-attention'] = (os.path.join(ICONDIR, 'slimbook-status-attention-dark.svg'))
+
 
 INFO_UPTIME = _("Uptime")
 INFO_MEM = _("Memory Free/Total")
