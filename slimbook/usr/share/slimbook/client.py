@@ -145,7 +145,7 @@ def check_time_feeds():
     if os.path.exists(feed):
         mtime = os.path.getmtime(feed)
         now = time.time()
-        return (now - mtime) < (3600*24)
+        return (now - mtime) < (3600)
     else:
         return False
 
@@ -188,7 +188,7 @@ class ServiceIndicator(Gio.Application):
         self.set_indicator()
         Notify.init('Slimbook')
         
-        GLib.timeout_add_seconds(5,self.on_initial_check)
+        GLib.timeout_add_seconds(5,self.on_notifications_timeout)
         
         self.feed_updating = False
         
@@ -215,9 +215,12 @@ class ServiceIndicator(Gio.Application):
         
         return True
     
-    def on_initial_check(self):
-        if (not check_time_feeds()):
-            self.update_feed()
+    def on_notifications_timeout(self):
+        if (self.notifications_enabled):
+            if (not check_time_feeds()):
+                self.update_feed()
+        
+        GLib.timeout_add_seconds(3600 * 6,self.on_notifications_timeout)
         
         return False
         
@@ -232,14 +235,16 @@ class ServiceIndicator(Gio.Application):
             thread.start()
     
     def update_feed_worker(self):
-        #common.download_feed()
-        time.sleep(3)
+        common.download_feed()
         GLib.idle_add(self.on_feed_update)
     
     def on_feed_update(self):
         logging.info("feed has been updated")
         self.feed_updating = False
         self.emit("feed-update-complete", False)
+        
+        if (self.menu_news.get_sensitive()):
+            self.check_news()
         
     def check_news(self):
     
@@ -350,6 +355,7 @@ class ServiceIndicator(Gio.Application):
         self.attention_icon = common.STATUS_ICON[self.theme+"-attention"]
         self.show = configuration.get('show')
         self.notifications_enabled = configuration.get('notifications')
+        
 
     def get_menu(self):
         """Create and populate the menu."""
@@ -483,6 +489,10 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     
     def on_preferences_close(self, *args):
         self.menu_preferences.set_sensitive(True)
+        self.read_preferences()
+        
+        self.indicator.set_attention_icon_full(self.attention_icon,"")
+        self.indicator.set_icon_full(self.active_icon,"")
         
     def show_preferences(self):
         self.menu_preferences.set_sensitive(False)
@@ -513,7 +523,7 @@ class PreferencesDialog(Gtk.Window):
         vbox0 = Gtk.VBox(spacing=5)
         vbox0.set_border_width(20)
         self.add(vbox0)
-        table1 = Gtk.Table(n_columns=8, n_rows=2, homogeneous=False)
+        table1 = Gtk.Table(n_rows = 10, n_columns = 2, homogeneous = False)
         vbox0.pack_start(table1, False, True, 1)
 
         label0 = Gtk.Label(label=_('Show indicator') + ':')
@@ -529,11 +539,18 @@ class PreferencesDialog(Gtk.Window):
         self.switch1 = Gtk.Switch()
         table1.attach(self.switch1, 1, 2, 7, 8, xpadding=15, ypadding=15,
                       xoptions=Gtk.AttachOptions.SHRINK)
-        label2 = Gtk.Label(label=_('Icon light') + ':')
+        label2 = Gtk.Label(label=_('Light-mode Icon') + ':')
         label2.set_halign(Gtk.Align.CENTER)
         table1.attach(label2, 0, 1, 8, 9, xpadding=15, ypadding=15)
         self.switch2 = Gtk.Switch()
         table1.attach(self.switch2, 1, 2, 8, 9, xpadding=15, ypadding=15,
+                      xoptions=Gtk.AttachOptions.SHRINK)
+        
+        label3 = Gtk.Label(label=_('Check Notifications') + ':')
+        label3.set_halign(Gtk.Align.CENTER)
+        table1.attach(label3, 0, 1, 9, 10, xpadding=15, ypadding=15)
+        self.switch3 = Gtk.Switch()
+        table1.attach(self.switch3, 1, 2, 9, 10, xpadding=15, ypadding=15,
                       xoptions=Gtk.AttachOptions.SHRINK)
         
         self.load_preferences()
@@ -542,6 +559,7 @@ class PreferencesDialog(Gtk.Window):
         self.switch0.connect('state-set',self.on_switch_state_set)
         self.switch1.connect('state-set',self.on_switch_state_set)
         self.switch2.connect('state-set',self.on_switch_state_set)
+        self.switch3.connect('state-set',self.on_switch_state_set)
         
         self.show_all()
 
@@ -558,7 +576,6 @@ class PreferencesDialog(Gtk.Window):
         self.btn_save.set_sensitive(False)
         
     def close_ok(self):
-        print("what")
         self.save_preferences()
 
     def load_preferences(self):
@@ -572,6 +589,7 @@ class PreferencesDialog(Gtk.Window):
         self.switch0.set_active(configuration.get('show') == True)
         self.switch1.set_active(os.path.exists(common.FILE_AUTO_START))
         self.switch2.set_active(configuration.get('theme') == 'light')
+        self.switch3.set_active(configuration.get('notifications') == True)
 
     def save_preferences(self):
 
@@ -585,6 +603,8 @@ class PreferencesDialog(Gtk.Window):
             configuration.set('theme', 'light')
         else:
             configuration.set('theme', 'dark')
+        
+        configuration.set('notifications', self.switch3.get_active())
         configuration.save()
 
 

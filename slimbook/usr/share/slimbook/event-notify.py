@@ -116,7 +116,6 @@ def keyboard_worker():
             
             if (event.value == slimbook.info.SLB_SCAN_QC71_SUPER_LOCK):
                 slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
-                pass
             
             elif (event.value == slimbook.info.SLB_SCAN_QC71_SILENT_MODE):
                 slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
@@ -177,6 +176,9 @@ def main():
     model = slimbook.info.get_model()
     platform = slimbook.info.get_platform()
     
+    logger.info("platform:{0:04x}".format(platform))
+    logger.info("model:{0:04x}".format(model))
+    
     if (model == slimbook.info.SLB_MODEL_UNKNOWN):
         product = slimbook.info.product_name()
         vendor = slimbook.info.board_vendor()
@@ -194,18 +196,29 @@ def main():
     module_loaded = slimbook.info.is_module_loaded()
     
     if (platform == slimbook.info.SLB_PLATFORM_QC71):
-        touchpad_fd, touchpad_report = detect_touchpad()
+        family = slimbook.info.get_family()
+        
+        if (family == slimbook.info.SLB_MODEL_PROX or
+            family == slimbook.info.SLB_MODEL_EXECUTIVE):
+            touchpad_fd, touchpad_report = detect_touchpad()
     
-        qc71_keyboard_thread = threading.Thread(
-            name='slimbook.service.qc71.keyboard', target=keyboard_worker)
-        qc71_keyboard_thread.start()
-    
+            qc71_keyboard_thread = threading.Thread(
+                name='slimbook.service.qc71.keyboard', target=keyboard_worker)
+            qc71_keyboard_thread.start()
+            
         if (module_loaded):
             qc71_module_thread = threading.Thread(
                 name='slimbook.service.qc71.module', target=qc71_module_worker)
             qc71_module_thread.start()
         
-    
+            if (family == slimbook.info.SLB_MODEL_HERO or
+                family == slimbook.info.SLB_MODEL_TITAN):
+                titan_thread = threading.Thread(
+                    name='slimbook.service.qc71.titan', target=titan_worker)
+                titan_thread.start()
+        else:
+            logger.warning("QC71 kernel module is not available!")
+            
     elif (platform == slimbook.info.SLB_PLATFORM_Z16):
         z16_keyboard_thread = threading.Thread(
             name='slimbook.service.z16.keyboard', target=keyboard_worker)

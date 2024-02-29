@@ -99,7 +99,7 @@ AUTOSTART_DIR = os.path.join(CONFIG_DIR, 'autostart')
 FILE_AUTO_START = os.path.join(AUTOSTART_DIR,
                                'slimbook-client-autostart.desktop')
                                
-SLB_FEED_URL = "https://github.com/Slimbook-Team/slimbook_service/raw/news/sb-rss-{0}.xml"
+SLB_FEED_URL = "https://github.com/Slimbook-Team/slimbook-notiifications-feed/raw/main/slb-rss-{0}.xml"
 SLB_CACHE_PATH = os.path.expanduser("~/.cache/slimbook-service/")
 
 SLB_IPC_PATH = "/var/run/slimbook-service.socket"
