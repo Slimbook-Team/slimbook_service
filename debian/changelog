@@ -1,3 +1,13 @@
+slimbook (0.6.0) jammy; urgency=medium
+
+  * Added new Slimbook notification system
+  * Added support for new Excalibur devices
+  * New Status icons
+  * Lots of visual fixes and enhacements
+  * Daemon has been overhauled
+
+ -- Slimbook <dev@slimbook.es>  Fri, 01 Mar 2024 13:16:39 +0100
+
 slimbook (0.5.2) jammy; urgency=medium
 
   * This release is a dummy one for Ubuntu.

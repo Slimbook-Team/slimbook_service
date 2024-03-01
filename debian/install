@@ -2,3 +2,4 @@ slimbook/usr/share/slimbook/* /usr/share/slimbook/
 slimbook/usr/share/slimbook/slimbook-indicator.desktop /usr/share/applications/
 slimbook/usr/share/slimbook/icons/* /usr/share/pixmaps/
 slimbook/bin/* /usr/bin/
+*.service /usr/lib/systemd/system/
