@@ -8,7 +8,7 @@ Homepage: https://slimbook.es
 
 Package: slimbook
 Architecture: all
-Depends: ${misc:Depends}, python3-evdev, libnotify-bin, python3-zmq, python-feedparser, python3-slimbook, libslimbook1, slimbook-qc71-dkms, slimbook-keyboard-dkms, gir1.2-ayatanaappindicator3-0.1
+Depends: ${misc:Depends}, python3-evdev, libnotify-bin, python3-zmq, python3-feedparser, python3-slimbook, libslimbook1, slimbook-qc71-dkms, slimbook-keyboard-dkms, gir1.2-ayatanaappindicator3-0.1
 Description: Service desisned for Slimbook hardware features among other.
  Includes notifications such as switch-preformance-mode in ProX models, 
  or double-tap enable/disable touchpad with led indicator.
