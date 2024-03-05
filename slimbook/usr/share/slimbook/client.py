@@ -901,7 +901,12 @@ def main():
         if options.help:
             parser.print_help()
         elif options.preferences:
-            preferences()
+            try:
+                preferences()
+            except Exception as e:
+                logging.warning("slimbook-service dbus not available. Not running?")
+                init_indicator()
+                
 
         exit(0)
     else:

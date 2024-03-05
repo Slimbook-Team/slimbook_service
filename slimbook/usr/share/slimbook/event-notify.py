@@ -156,7 +156,7 @@ def titan_worker():
         
         if (mode != current_mode):
             current_mode = mode
-            slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED + mode)
+            slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE + mode)
         
         time.sleep(1)
     
@@ -198,13 +198,11 @@ def main():
     if (platform == slimbook.info.SLB_PLATFORM_QC71):
         family = slimbook.info.get_family()
         
-        if (family == slimbook.info.SLB_MODEL_PROX or
-            family == slimbook.info.SLB_MODEL_EXECUTIVE):
-            touchpad_fd, touchpad_report = detect_touchpad()
+        touchpad_fd, touchpad_report = detect_touchpad()
     
-            qc71_keyboard_thread = threading.Thread(
-                name='slimbook.service.qc71.keyboard', target=keyboard_worker)
-            qc71_keyboard_thread.start()
+        qc71_keyboard_thread = threading.Thread(
+            name='slimbook.service.qc71.keyboard', target=keyboard_worker)
+        qc71_keyboard_thread.start()
             
         if (module_loaded):
             qc71_module_thread = threading.Thread(
