@@ -1,3 +1,10 @@
+slimbook (0.6.1) jammy; urgency=medium
+
+  * Changed status icon backgrounds
+  * Fixed several bugs on Hero devices
+
+ -- slimbook <dev@slimbook.es>  Tue, 05 Mar 2024 10:53:04 +0100
+
 slimbook (0.6.0) jammy; urgency=medium
 
   * Added new Slimbook notification system
