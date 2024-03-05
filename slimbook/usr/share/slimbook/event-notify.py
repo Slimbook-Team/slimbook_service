@@ -232,7 +232,7 @@ def main():
        
         event = slb_events.get()
         
-        logger.info("event {0}".format(event))
+        logger.debug("event {0}".format(event))
         
         if (platform == slimbook.info.SLB_PLATFORM_QC71):
             
@@ -257,15 +257,14 @@ def main():
                     status = iohid.get_feature(touchpad_fd, touchpad_report,1)
                     status = int(status[0])
                     
-                    
-                    if (status == 0):
-                        event = common.SLB_EVENT_QC71_TOUCHPAD_ON
-                        iohid.set_feature(touchpad_fd,touchpad_report,bytes([0x03]))
-                    else:
+                    if (status == 0x03):
                         event = common.SLB_EVENT_QC71_TOUCHPAD_OFF
                         iohid.set_feature(touchpad_fd,touchpad_report,bytes([0x00]))
-        
-        print(event)
+                    else:
+                        event = common.SLB_EVENT_QC71_TOUCHPAD_ON
+                        iohid.set_feature(touchpad_fd,touchpad_report,bytes([0x03]))
+                    
+        logger.debug("out event {0}".format(event))
         send_notify(event)
         
 if __name__=="__main__":
