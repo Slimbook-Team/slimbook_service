@@ -771,7 +771,10 @@ class NotificationsDialog(Gtk.Window):
                 grid.attach(btn_link,1,2,1,1)
              
             theme = Gtk.IconTheme()
-            pix = theme.load_icon(icon_name = feed.icon, size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
+            pix = None
+            info = theme.lookup_icon(icon_name = feed.icon, size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
+            if (info):
+                pix = info.load_icon()
             
             img = Gtk.Image.new_from_pixbuf(pix)
             
