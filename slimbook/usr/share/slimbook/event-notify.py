@@ -188,11 +188,10 @@ def main():
             model = slimbook.info.SLB_MODEL_EXCALIBUR
             platform = slimbook.info.SLB_PLATFORM_Z16
         else:
-            logger.error("Unknown model:")
-            logger.error("{0}".format(product))
-            logger.error("{0}".format(vendor))
-            sys.exit(1)
-        
+            logger.warning("Unknown model:")
+            logger.warning("Product:[{0}]".format(slimbook.info.product_name()))
+            logger.warning("Vendor:[{0}]".format(slimbook.info.board_vendor()))
+            
     module_loaded = slimbook.info.is_module_loaded()
     
     if (platform == slimbook.info.SLB_PLATFORM_QC71):
@@ -223,10 +222,9 @@ def main():
         z16_keyboard_thread.start()
     
     else:
-        logger.info("Unsupported Slimbook model:")
-        logger.info("{0}".format(slimbook.info.product_name()))
-        logger.info("{0}".format(slimbook.info.board_vendor()))
-        sys.exit(0)
+        logger.warning("Unsupported Slimbook model:")
+        logger.warning("Product:[{0}]".format(slimbook.info.product_name()))
+        logger.warning("Vendor:[{0}]".format(slimbook.info.board_vendor()))
         
     while True:
        

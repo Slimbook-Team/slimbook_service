@@ -787,8 +787,11 @@ class NotificationsDialog(Gtk.Window):
         
         if (len(feeds) == 0):
             theme = Gtk.IconTheme()
-            pix = theme.load_icon(icon_name = "face-plain-symbolic", size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
-                
+            pix = None
+            info = theme.lookup_icon(icon_name = "face-plain-symbolic", size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
+            if (info):
+                pix = info.load_icon()
+            
             img = Gtk.Image.new_from_pixbuf(pix)
             lbl = Gtk.Label(label = _("Nothing to show"))
             
@@ -822,8 +825,11 @@ class NotificationsDialog(Gtk.Window):
             self.listbox.remove(child)
         
         theme = Gtk.IconTheme()
-        pix = theme.load_icon(icon_name = "emblem-synchronizing-symbolic", size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
-            
+        pix = None
+        info = theme.load_icon(icon_name = "emblem-synchronizing-symbolic", size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
+        if (info):
+            pix = info.load_image()
+        
         img = Gtk.Image.new_from_pixbuf(pix)
         lbl = Gtk.Label(label = _("Fetching..."))
         
@@ -907,7 +913,6 @@ def main():
                 logging.warning("slimbook-service dbus not available. Not running?")
                 init_indicator()
                 
-
         exit(0)
     else:
         logging.debug("Try Indicator init")
