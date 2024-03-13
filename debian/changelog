@@ -1,3 +1,13 @@
+slimbook (0.6.3) jammy; urgency=medium
+
+  * No longer depending on drivers, metapackages will do
+  * Added a missing python dependency (requests)
+  * Added a dependency for adwaita icon theme
+  * Service does not crash on unrecognized models
+  * Indicator does not crash on missing icons
+
+ -- Slimbook <dev@slimbook.es>  Wed, 13 Mar 2024 11:21:47 +0100
+
 slimbook (0.6.2) jammy; urgency=medium
 
   * Switched icon backgrounds
