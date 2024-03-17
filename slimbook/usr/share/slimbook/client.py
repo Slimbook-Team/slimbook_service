@@ -235,7 +235,7 @@ class ServiceIndicator(Gio.Application):
             thread.start()
     
     def update_feed_worker(self):
-        common.download_feed()
+        #common.download_feed()
         GLib.idle_add(self.on_feed_update)
     
     def on_feed_update(self):
@@ -255,7 +255,9 @@ class ServiceIndicator(Gio.Application):
         cached = load_cache_feeds()
         
         product = slimbook.info.product_name().lower()
-        logging.info("Slimbook model:{0}".format(product))
+        sku = slimbook.info.product_sku().lower()
+        logging.info("model:{0}".format(product))
+        logging.info("sku:{0}".format(sku))
         
         try:
             feed = feedparser.parse(os.path.expanduser("~/.cache/slimbook-service/sb-rss.xml"))
@@ -263,18 +265,23 @@ class ServiceIndicator(Gio.Application):
             for entry in feed["entries"]:
                 nw = Feed(entry)
                 
-                ignore = False
+                filters = 0
+                match = False
+                
                 for tag in nw.tags:
                     if (tag.startswith("model:")):
                         target=tag.split(":")[1]
+                        filters = filters + 1
                         
-                        if (not fnmatch.fnmatch(product,target)):
-                            logging.info("feed ignored by filter:{0}!={1}".format(product,target))
-                            ignore = True
-                        else:
-                            ignore = False
-                
-                if (ignore):
+                        if (fnmatch.fnmatch(product,target)):
+                            logging.info("feed match product filter:{0}={1}".format(product,target))
+                            match = True
+                        elif (fnmatch.fnmatch(sku,target)):
+                            logging.info("feed match sku filter:{0}={1}".format(sku,target))
+                            match = True
+                        
+                if (filters > 0 and match == False):
+                    logging.info("entry ignored by filter")
                     continue
                     
                 for cid in cached:
