@@ -235,7 +235,7 @@ class ServiceIndicator(Gio.Application):
             thread.start()
     
     def update_feed_worker(self):
-        #common.download_feed()
+        common.download_feed()
         GLib.idle_add(self.on_feed_update)
     
     def on_feed_update(self):
