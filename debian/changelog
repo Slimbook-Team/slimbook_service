@@ -1,3 +1,10 @@
+slimbook (0.6.6) noble; urgency=medium
+
+  * Renamed binary package
+  * Postinstall adds autostart to skel
+
+ -- Slimbook <dev@slimbook.es>  Wed, 01 May 2024 22:29:42 +0200
+
 slimbook (0.6.5) jammy; urgency=medium
 
   * Using both product name as sku for notification filter

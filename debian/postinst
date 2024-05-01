@@ -1,0 +1,21 @@
+#!/bin/sh
+
+set -e
+
+
+case "$1" in
+    configure)
+        mkdir -p /etc/skel/.config/autostart
+        cp /usr/share/slimbook/slimbook-client-autostart.desktop /etc/skel/.config/autostart/
+    ;;
+
+    abort-upgrade|abort-deconfigure|abort-remove)
+    ;;
+
+    *)
+    echo "$0 called with unknown argument \`$1'" 1>&2
+    exit 1
+    ;;
+esac
+
+exit 0
