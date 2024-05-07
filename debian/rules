@@ -3,11 +3,5 @@
 PKGDIR=debian/tmp
 
 %:
-	dh $@
+	dh $@ --with systemd
 
-override_dh_installinit:
-	dh_systemd_enable --name=slimbook-service
-	dh_systemd_start --no-restart-on-upgrade --name=slimbook-service
-
-override_dh_systemd_start:
-	echo "Not running dh_systemd_start"
