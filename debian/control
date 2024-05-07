@@ -2,7 +2,7 @@ Source: slimbook
 Section: utils
 Priority: optional
 Maintainer: Slimbook <dev@slimbook.es>
-Build-Depends: debhelper (>= 10)
+Build-Depends: debhelper (>= 10), dh-systemd
 Standards-Version: 4.1.4
 Homepage: https://slimbook.es
 
