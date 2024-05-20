@@ -1,3 +1,10 @@
+slimbook (0.6.10) noble; urgency=medium
+
+  * Added an autostart delay
+  * Catching request timeout exceptions
+
+ -- Slimbook <dev@slimbook.es>  Mon, 20 May 2024 08:00:39 +0200
+
 slimbook (0.6.9) noble; urgency=medium
 
   * simple rules systemd helper
