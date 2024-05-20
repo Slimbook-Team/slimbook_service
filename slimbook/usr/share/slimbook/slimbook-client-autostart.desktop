@@ -5,3 +5,4 @@ Hidden=false
 NoDisplay=false
 Name[es_ES]=Slimbook Client Autostart
 Name=Slimbook Client Autostart
+X-GNOME-Autostart-Delay=3

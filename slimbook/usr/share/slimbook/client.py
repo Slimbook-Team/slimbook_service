@@ -235,9 +235,12 @@ class ServiceIndicator(Gio.Application):
             thread.start()
     
     def update_feed_worker(self):
-        common.download_feed()
-        GLib.idle_add(self.on_feed_update)
-    
+        try:
+            common.download_feed()
+            GLib.idle_add(self.on_feed_update)
+        except:
+            logging.warning("failed to get rss feed (no connection?)")
+
     def on_feed_update(self):
         logging.info("feed has been updated")
         self.feed_updating = False

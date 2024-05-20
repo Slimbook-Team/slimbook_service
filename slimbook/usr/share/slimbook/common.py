@@ -465,12 +465,13 @@ def get_lang():
 
 def download_feed():
     os.makedirs(SLB_CACHE_PATH,exist_ok = True)
-    
+
     lang = get_lang()
     #print(SLB_FEED_URL.format(lang))
     r = requests.get(SLB_FEED_URL.format(lang), allow_redirects = True)
-    
+
     path = SLB_CACHE_PATH + "/sb-rss.xml"
     f = open(path,"wb")
     f.write(r.content)
     f.close()
+
