@@ -92,6 +92,7 @@ class Feed:
             self.title = entry.title
             self.body = entry.description
             self.link = entry.get("link")
+            self.published = entry.get("published")
             #print("link:",entry.get("link"))
             self.tags = []
             self.icon = "dialog-information"
@@ -240,7 +241,7 @@ class ServiceIndicator(Gio.Application):
             GLib.idle_add(self.on_feed_update)
         except:
             logging.warning("failed to get rss feed (no connection?)")
-
+    
     def on_feed_update(self):
         logging.info("feed has been updated")
         self.feed_updating = False
@@ -257,10 +258,12 @@ class ServiceIndicator(Gio.Application):
         logging.info("checking news...")
         cached = load_cache_feeds()
         
-        product = slimbook.info.product_name().lower()
-        sku = slimbook.info.product_sku().lower()
+        product = slimbook.info.product_name().lower().strip()
+        sku = slimbook.info.product_sku().lower().strip()
+        family = slimbook.info.get_family_name()
         logging.info("model:{0}".format(product))
         logging.info("sku:{0}".format(sku))
+        logging.info("family:{0}".format(family))
         
         try:
             feed = feedparser.parse(os.path.expanduser("~/.cache/slimbook-service/sb-rss.xml"))
@@ -272,6 +275,13 @@ class ServiceIndicator(Gio.Application):
                 match = False
                 
                 for tag in nw.tags:
+                    if (tag.startswith("family:")):
+                        target=tag.split(":")[1]
+                        filters = filters + 1
+                        if (fnmatch.fnmatch(family,target)):
+                            logging.info("feed match family filter:{0}={1}".format(family,target))
+                            match = True
+                    
                     if (tag.startswith("model:")):
                         target=tag.split(":")[1]
                         filters = filters + 1
@@ -640,7 +650,7 @@ class SystemInfoDialog(Gtk.Dialog):
                 border-style: outset;
                 border-color: lightgrey;
                 min-height: 32px;
-                min-width: 400px;
+                min-width: 600px;
             }
             '''
         
@@ -671,8 +681,8 @@ class SystemInfoDialog(Gtk.Dialog):
         for k in info:
             key = k[0]
             value = k[1]
-            label_key = Gtk.Label()
-            label_key.set_markup("<b>{0}</b>".format(key))
+            label_key = Gtk.Label(label=key)
+            #label_key.set_markup("<b>{0}</b>".format(key))
             label_value = Gtk.Label(label=value)
             
             hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
@@ -800,10 +810,7 @@ class NotificationsDialog(Gtk.Window):
         
         if (len(feeds) == 0):
             theme = Gtk.IconTheme()
-            pix = None
-            info = theme.lookup_icon(icon_name = "face-plain-symbolic", size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
-            if (info):
-                pix = info.load_icon()
+            pix = theme.lookup_icon(icon_name = "face-plain-symbolic", size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
             
             img = Gtk.Image.new_from_pixbuf(pix)
             lbl = Gtk.Label(label = _("Nothing to show"))
@@ -838,10 +845,8 @@ class NotificationsDialog(Gtk.Window):
             self.listbox.remove(child)
         
         theme = Gtk.IconTheme()
-        pix = None
-        info = theme.load_icon(icon_name = "emblem-synchronizing-symbolic", size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
-        if (info):
-            pix = info.load_image()
+
+        pix = theme.load_icon(icon_name = "emblem-synchronizing-symbolic", size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
         
         img = Gtk.Image.new_from_pixbuf(pix)
         lbl = Gtk.Label(label = _("Fetching..."))

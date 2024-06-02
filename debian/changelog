@@ -1,3 +1,10 @@
+slimbook (0.7.0) noble; urgency=medium
+
+  * Fixed bug with deprecated gtk api (Pixbuf)
+  * Stripping whitespaces from dmi product string
+
+ -- Slimbook <dev@slimbook.es>  Sun, 02 Jun 2024 23:13:08 +0200
+
 slimbook (0.6.10) noble; urgency=medium
 
   * Added an autostart delay
