@@ -791,10 +791,7 @@ class NotificationsDialog(Gtk.Window):
                 grid.attach(btn_link,1,2,1,1)
              
             theme = Gtk.IconTheme()
-            pix = None
-            info = theme.lookup_icon(icon_name = feed.icon, size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
-            if (info):
-                pix = info.load_icon()
+            pix = theme.load_icon(icon_name = feed.icon, size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
             
             img = Gtk.Image.new_from_pixbuf(pix)
             
@@ -810,7 +807,8 @@ class NotificationsDialog(Gtk.Window):
         
         if (len(feeds) == 0):
             theme = Gtk.IconTheme()
-            pix = theme.lookup_icon(icon_name = "face-plain-symbolic", size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
+            
+            pix = theme.load_icon(icon_name = "face-plain-symbolic", size = 32, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
             
             img = Gtk.Image.new_from_pixbuf(pix)
             lbl = Gtk.Label(label = _("Nothing to show"))

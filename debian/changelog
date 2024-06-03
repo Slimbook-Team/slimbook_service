@@ -1,3 +1,9 @@
+slimbook (0.7.1) noble; urgency=medium
+
+  * Fixed bug loading images
+
+ -- Slimbook <dev@slimbook.es>  Mon, 03 Jun 2024 10:38:33 +0200
+
 slimbook (0.7.0) noble; urgency=medium
 
   * Fixed bug with deprecated gtk api (Pixbuf)
