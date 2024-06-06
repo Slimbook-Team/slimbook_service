@@ -254,8 +254,8 @@ class ServiceIndicator(Gio.Application):
         logging.info("checking news...")
         cached = load_cache_feeds()
         
-        product = slimbook.info.product_name().lower()
-        sku = slimbook.info.product_sku().lower()
+        product = slimbook.info.product_name().lower().strip()
+        sku = slimbook.info.product_sku().lower().strip()
         logging.info("model:{0}".format(product))
         logging.info("sku:{0}".format(sku))
         
