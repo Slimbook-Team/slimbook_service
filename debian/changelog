@@ -1,3 +1,9 @@
+slimbook (0.7.2) noble; urgency=medium
+
+  * Using normal urgency notifications
+
+ -- Slimbook <dev@slimbook.es>  Sun, 23 Jun 2024 23:08:19 +0200
+
 slimbook (0.7.1) noble; urgency=medium
 
   * Fixed bug loading images
