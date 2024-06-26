@@ -71,7 +71,7 @@ Notify.init("Slimbok Client Notifications")
 notification = Notify.Notification.new('', '' )
 notification.set_app_name("Slimbok Client Notifications")
 notification.set_timeout(Notify.EXPIRES_DEFAULT)
-notification.set_urgency(Notify.Urgency.CRITICAL)
+notification.set_urgency(Notify.Urgency.NORMAL)
 
 dbus_service = None
 

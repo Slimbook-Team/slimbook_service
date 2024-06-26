@@ -1,3 +1,9 @@
+slimbook (0.6.5+p1) jammy; urgency=medium
+
+  * Using normal urgency notifications
+
+ -- Slimbook <dev@slimbook.es>  Wed, 26 Jun 2024 16:16:36 +0200
+
 slimbook (0.6.5+p0) jammy; urgency=medium
 
   * Stripping product and sku dmi strings from trail characters
