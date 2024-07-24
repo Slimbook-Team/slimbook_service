@@ -1,3 +1,10 @@
+slimbook (0.7.3) noble; urgency=medium
+
+  * Added notify gir dependency
+  * Using a default dark theme on plasma desktop
+
+ -- Slimbook <dev@slimbook.es>  Thu, 25 Jul 2024 00:07:48 +0200
+
 slimbook (0.7.2) noble; urgency=medium
 
   * Using normal urgency notifications

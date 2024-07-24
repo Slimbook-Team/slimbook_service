@@ -86,6 +86,10 @@ PARAMS = {
             'notifications' : True
             }
 
+#set a default dark theme for kde
+if os.environ["XDG_CURRENT_DESKTOP"] == "KDE":
+    PARAMS['theme'] = 'dark'
+
 APP = 'slimbook'
 VERSION = '0.6'
 APPCONF = APP + '.conf'
