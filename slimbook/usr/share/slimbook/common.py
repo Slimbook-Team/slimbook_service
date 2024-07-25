@@ -87,7 +87,8 @@ PARAMS = {
             }
 
 #set a default dark theme for kde
-if os.environ["XDG_CURRENT_DESKTOP"] == "KDE":
+xdg_current_desktop = os.environ.get("XDG_CURRENT_DESKTOP")
+if xdg_current_desktop == "KDE":
     PARAMS['theme'] = 'dark'
 
 APP = 'slimbook'
