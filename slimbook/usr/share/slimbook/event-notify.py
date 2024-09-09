@@ -180,10 +180,10 @@ def main():
     logger.info("model:{0:04x}".format(model))
     
     if (model == slimbook.info.SLB_MODEL_UNKNOWN):
-        product = slimbook.info.product_name()
-        vendor = slimbook.info.board_vendor()
+        product = slimbook.info.product_name().lower()
+        vendor = slimbook.info.board_vendor().lower()
         
-        if (vendor.startswith("SLIMBOOK") and product.startswith("EXCALIBUR")):
+        if (product.startswith("excalibur")):
             # work-around for buggy dmi data
             model = slimbook.info.SLB_MODEL_EXCALIBUR
             platform = slimbook.info.SLB_PLATFORM_Z16
