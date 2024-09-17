@@ -2,17 +2,23 @@ Source: slimbook
 Section: utils
 Priority: optional
 Maintainer: Slimbook <dev@slimbook.es>
-Build-Depends: debhelper (>= 10)
-Standards-Version: 4.1.4
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.0
 Homepage: https://slimbook.es
+
+Package: slimbook
+Architecture: all
+Depends: slimbook-service
+Description: Dummy transitional package
+ Dummy transitional package
 
 Package: slimbook-service
 Architecture: all
 Pre-Depends: adwaita-icon-theme-full
 Depends: ${misc:Depends}, python3-evdev, libnotify-bin, python3-zmq, python3-requests, python3-feedparser, python3-slimbook, libslimbook1, gir1.2-ayatanaappindicator3-0.1, gir1.2-notify-0.7
 Provides: slimbook
+Conflicts: neon-adwaita
 Replaces: slimbook
-Conflicts: slimbook, neon-adwaita
 Description: Service designed for Slimbook hardware features among other.
- Includes notifications such as switch-preformance-mode in ProX models, 
+ Includes notifications such as switch-preformance-mode in Slimbook laptops,
  or double-tap enable/disable touchpad with led indicator.
