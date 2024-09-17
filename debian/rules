@@ -3,5 +3,5 @@
 PKGDIR=debian/tmp
 
 %:
-	dh $@ --with systemd
+	dh $@
 
