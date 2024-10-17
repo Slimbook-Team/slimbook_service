@@ -170,6 +170,8 @@ def main():
 
     touchpad_fd = None
     touchpad_report = None
+    
+    keyboard_platforms = [slimbook.info.SLB_PLATFORM_Z16,slimbook.info.SLB_PLATFORM_HMT16,slimbook.info.SLB_PLATFORM_IDL,slimbook.info.SLB_PLATFORM_IDA]
 
     logger.info("Slimbook service")
     
@@ -216,10 +218,10 @@ def main():
         else:
             logger.warning("QC71 kernel module is not available!")
             
-    elif (platform == slimbook.info.SLB_PLATFORM_Z16):
-        z16_keyboard_thread = threading.Thread(
-            name='slimbook.service.z16.keyboard', target=keyboard_worker)
-        z16_keyboard_thread.start()
+    elif (platform in keyboard_platforms):
+        keyboard_thread = threading.Thread(
+            name='slimbook.service.generic.keyboard', target=keyboard_worker)
+        keyboard_thread.start()
     
     else:
         logger.warning("Unsupported Slimbook model:")
