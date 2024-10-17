@@ -1,3 +1,9 @@
+slimbook (0.7.7+bpo0) jammy; urgency=medium
+
+  * Backported from noble
+
+ -- Slimbook <dev@slimbook.es>  Thu, 17 Oct 2024 23:50:38 +0200
+
 slimbook (0.7.7) noble; urgency=medium
 
   * Handling incoming laptops
