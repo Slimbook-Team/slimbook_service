@@ -1,3 +1,9 @@
+slimbook (0.7.7.1) noble; urgency=medium
+
+  * Fixing not working package post scripts
+
+ -- Slimbook <dev@slimbook.es>  Tue, 22 Oct 2024 19:09:21 +0200
+
 slimbook (0.7.7) noble; urgency=medium
 
   * Handling incoming laptops
