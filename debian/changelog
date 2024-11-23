@@ -1,3 +1,10 @@
+slimbook (0.7.8.0) noble; urgency=medium
+
+  * Removed ida/idl platforms
+  * Fixed bug with default keyboard device path
+
+ -- Slimbook <dev@slimbook.es>  Sat, 23 Nov 2024 15:40:42 +0100
+
 slimbook (0.7.7.1) noble; urgency=medium
 
   * Fixing not working package post scripts
