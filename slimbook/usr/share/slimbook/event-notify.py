@@ -95,7 +95,7 @@ def keyboard_worker():
     device_path = "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
     # work around for buggy dmi info
     try:
-        devie_path = slimbook.info.keyboard_device()
+        device_path = slimbook.info.keyboard_device()
     except:
         pass
         
@@ -171,7 +171,7 @@ def main():
     touchpad_fd = None
     touchpad_report = None
     
-    keyboard_platforms = [slimbook.info.SLB_PLATFORM_Z16,slimbook.info.SLB_PLATFORM_HMT16,slimbook.info.SLB_PLATFORM_IDL,slimbook.info.SLB_PLATFORM_IDA]
+    keyboard_platforms = [slimbook.info.SLB_PLATFORM_Z16,slimbook.info.SLB_PLATFORM_HMT16]
 
     logger.info("Slimbook service")
     
@@ -224,9 +224,7 @@ def main():
         keyboard_thread.start()
     
     else:
-        logger.warning("Unsupported Slimbook model:")
-        logger.warning("Product:[{0}]".format(slimbook.info.product_name()))
-        logger.warning("Vendor:[{0}]".format(slimbook.info.board_vendor()))
+        logger.warning("No event handler for this model!")
         
     while True:
        
