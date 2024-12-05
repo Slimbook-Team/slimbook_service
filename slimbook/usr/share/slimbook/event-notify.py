@@ -120,8 +120,8 @@ def keyboard_worker():
             elif (event.value == slimbook.info.SLB_SCAN_QC71_SILENT_MODE):
                 slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
             
-            elif (event.value == slimbook.info.SLB_SCAN_QC71_TOUCHPAD_SWITCH):
-                slb_events.put(common.SLB_EVENT_QC71_TOUCHPAD_CHANGED)
+            elif (event.value == slimbook.info.SLB_SCAN_TOUCHPAD_SWITCH):
+                slb_events.put(common.SLB_EVENT_TOUCHPAD_CHANGED)
     
             elif (event.value == slimbook.info.SLB_SCAN_Z16_ENERGY_SAVER_MODE):
                 slb_events.put(common.SLB_EVENT_Z16_ENERGY_SAVER_MODE)
@@ -193,14 +193,15 @@ def main():
             logger.warning("Unknown model:")
             logger.warning("Product:[{0}]".format(slimbook.info.product_name()))
             logger.warning("Vendor:[{0}]".format(slimbook.info.board_vendor()))
-            
+    
+    if (model != slimbook.info.SLB_MODEL_UNKNOWN):
+        touchpad_fd, touchpad_report = detect_touchpad()
+    
     module_loaded = slimbook.info.is_module_loaded()
     
     if (platform == slimbook.info.SLB_PLATFORM_QC71):
         family = slimbook.info.get_family()
         
-        touchpad_fd, touchpad_report = detect_touchpad()
-    
         qc71_keyboard_thread = threading.Thread(
             name='slimbook.service.qc71.keyboard', target=keyboard_worker)
         qc71_keyboard_thread.start()
@@ -250,17 +251,17 @@ def main():
                     else:
                         event = common.SLB_EVENT_QC71_SILENT_MODE_OFF
                         
-            if (touchpad_fd):
-                if (event == common.SLB_EVENT_QC71_TOUCHPAD_CHANGED):
-                    status = iohid.get_feature(touchpad_fd, touchpad_report,1)
-                    status = int(status[0])
-                    
-                    if (status == 0x03):
-                        event = common.SLB_EVENT_QC71_TOUCHPAD_OFF
-                        iohid.set_feature(touchpad_fd,touchpad_report,bytes([0x00]))
-                    else:
-                        event = common.SLB_EVENT_QC71_TOUCHPAD_ON
-                        iohid.set_feature(touchpad_fd,touchpad_report,bytes([0x03]))
+        if (touchpad_fd):
+            if (event == common.SLB_EVENT_TOUCHPAD_CHANGED):
+                status = iohid.get_feature(touchpad_fd, touchpad_report,1)
+                status = int(status[0])
+                
+                if (status == 0x03):
+                    event = common.SLB_EVENT_TOUCHPAD_OFF
+                    iohid.set_feature(touchpad_fd,touchpad_report,bytes([0x00]))
+                else:
+                    event = common.SLB_EVENT_TOUCHPAD_ON
+                    iohid.set_feature(touchpad_fd,touchpad_report,bytes([0x03]))
                     
         logger.debug("out event {0}".format(event))
         send_notify(event)
