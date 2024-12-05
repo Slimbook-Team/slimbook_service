@@ -1,3 +1,9 @@
+slimbook (0.7.9.0) noble; urgency=medium
+
+  * Fixed touchpad events working on non-qc71 platforms
+
+ -- Slimbook <dev@slimbook.es>  Thu, 05 Dec 2024 13:26:06 +0100
+
 slimbook (0.7.8.0) noble; urgency=medium
 
   * Removed ida/idl platforms
