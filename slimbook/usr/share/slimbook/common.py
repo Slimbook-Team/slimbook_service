@@ -43,9 +43,10 @@ SLB_EVENT_QC71_SUPER_LOCK_ON = 3
 SLB_EVENT_QC71_SUPER_LOCK_OFF = 4
 SLB_EVENT_QC71_SUPER_LOCK_CHANGED = 5
 
-SLB_EVENT_QC71_TOUCHPAD_ON = 6
-SLB_EVENT_QC71_TOUCHPAD_OFF = 7
-SLB_EVENT_QC71_TOUCHPAD_CHANGED = 8
+#this events are shared on several platforms and no longer are qc71 exclusive
+SLB_EVENT_TOUCHPAD_ON = 6
+SLB_EVENT_TOUCHPAD_OFF = 7
+SLB_EVENT_TOUCHPAD_CHANGED = 8
 
 SLB_EVENT_QC71_SILENT_MODE = 9
 SLB_EVENT_QC71_NORMAL_MODE = 10
@@ -64,9 +65,9 @@ SLB_EVENT_DATA = {
     SLB_EVENT_QC71_SUPER_LOCK_OFF : [_("Super Key Lock disabled"),"preferences-system-privacy-symbolic"],
     SLB_EVENT_QC71_SUPER_LOCK_CHANGED : [_("Super Key Lock changed"),"preferences-system-privacy-symbolic"],
     
-    SLB_EVENT_QC71_TOUCHPAD_ON : [_("Touchpad enabled"),"input-touchpad-symbolic"],
-    SLB_EVENT_QC71_TOUCHPAD_OFF : [_("Touchpad disabled"),"input-touchpad-symbolic"],
-    SLB_EVENT_QC71_TOUCHPAD_CHANGED : [_("Touchpad changed"),"input-touchpad-symbolic"],
+    SLB_EVENT_TOUCHPAD_ON : [_("Touchpad enabled"),"input-touchpad-symbolic"],
+    SLB_EVENT_TOUCHPAD_OFF : [_("Touchpad disabled"),"input-touchpad-symbolic"],
+    SLB_EVENT_TOUCHPAD_CHANGED : [_("Touchpad changed"),"input-touchpad-symbolic"],
     
     SLB_EVENT_QC71_SILENT_MODE : [_("Silent Mode"),"power-profile-power-saver-symbolic"],
     SLB_EVENT_QC71_NORMAL_MODE : [_("Normal Mode"),"power-profile-balanced-symbolic"],
