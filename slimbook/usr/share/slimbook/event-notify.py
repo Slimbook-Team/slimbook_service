@@ -141,6 +141,8 @@ def qc71_module_worker():
                 slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
             elif (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F5):
                 slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
+            elif (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F12):
+                slb_events.put(common.SLB_EVENT_WEBCAM_CHANGED)
     
 def titan_worker():
     silent = slimbook.qc71.silent_mode_get()
@@ -244,13 +246,22 @@ def main():
                         event = common.SLB_EVENT_QC71_SUPER_LOCK_OFF
                 
                 elif (event == common.SLB_EVENT_QC71_SILENT_MODE_CHANGED):
-                    value = slimbook.qc71.silent_mode_get()
+                    value = slimbook.qc71.profile_get()
                     
-                    if (value == 1):
-                        event = common.SLB_EVENT_QC71_SILENT_MODE_ON
-                    else:
-                        event = common.SLB_EVENT_QC71_SILENT_MODE_OFF
-                        
+                    if (family == slimbook.info.SLB_MODEL_PROX or family == slimbook.info.SLB_MODEL_EXECUTIVE):
+                        if (value == slimbook.info.SLB_QC71_PROFILE_SILENT):
+                            event = common.SLB_EVENT_QC71_SILENT_MODE_ON
+                        else:
+                            event = common.SLB_EVENT_QC71_SILENT_MODE_OFF
+
+                    if (family == slimbook.info.SLB_MODEL_EVO or family == slimbook.info.SLB_MODEL_CREATIVE):
+                        if (value == slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER):
+                            event = common.SLB_EVENT_ENERGY_SAVER_MODE
+                        elif (value == slimbook.info.SLB_QC71_PROFILE_BALANCED):
+                            event = common.SLB_EVENT_BALANCED_MODE
+                        elif (value == slimbook.info.SLB_QC71_PROFILE_PERFORMANCE):
+                            event = common.SLB_EVENT_PERFORMANCE_MODE
+
         if (touchpad_fd):
             if (event == common.SLB_EVENT_TOUCHPAD_CHANGED):
                 status = iohid.get_feature(touchpad_fd, touchpad_report,1)
