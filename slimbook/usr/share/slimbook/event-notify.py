@@ -128,6 +128,9 @@ def send_notify(code):
 def main():
 
     tpad = touchpad.Touchpad()
+    if (tpad.valid()):
+        tpad_mode_name = {touchpad.Touchpad.MODE_HIDRAW:"hidraw",touchpad.Touchpad.MODE_EVDEV:"evdev"}
+        logger.info("Found a touchpad device of type {0}".format(tpad_mode_name[tpad.mode]))
     
     keyboard_platforms = [slimbook.info.SLB_PLATFORM_Z16,slimbook.info.SLB_PLATFORM_HMT16]
 
@@ -152,8 +155,6 @@ def main():
             logger.warning("Product:[{0}]".format(slimbook.info.product_name()))
             logger.warning("Vendor:[{0}]".format(slimbook.info.board_vendor()))
     
-    if (model != slimbook.info.SLB_MODEL_UNKNOWN):
-        touchpad_fd, touchpad_report = detect_touchpad()
     
     module_loaded = slimbook.info.is_module_loaded()
     

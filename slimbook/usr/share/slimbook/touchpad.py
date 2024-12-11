@@ -28,7 +28,7 @@ SURFACE_SWITCH_USAGE_ID = (iohid.HID_USAGE_PAGE_DIGITIZER << 16) | iohid.HID_USA
 
 class Touchpad:
     MODE_UNKNOWN = 0
-    MODE_HID = 1
+    MODE_HIDRAW = 1
     MODE_EVDEV = 2
     
     STATE_UNKNOWN = 0
@@ -67,7 +67,7 @@ class Touchpad:
                         if button_switch and surface_switch:
                             self.report_id = r.id
                             self.fd = fd
-                            self.mode = Touchpad.MODE_HID
+                            self.mode = Touchpad.MODE_HIDRAW
                             found = True
                 if not found:
                     os.close(fd)
@@ -100,7 +100,7 @@ class Touchpad:
                 break
                 
     def lock(self):
-        if self.mode == Touchpad.MODE_HID and self.fd>0:
+        if self.mode == Touchpad.MODE_HIDRAW and self.fd>0:
             iohid.set_feature(self.fd,self.report_id,bytes([0x03]))
         
         if self.mode == Touchpad.MODE_EVDEV and self.device:
@@ -108,7 +108,7 @@ class Touchpad:
             self.state = Touchpad.STATE_LOCKED
     
     def unlock(self):
-        if self.mode == Touchpad.MODE_HID and self.fd>0:
+        if self.mode == Touchpad.MODE_HIDRAW and self.fd>0:
             iohid.set_feature(self.fd,self.report_id,bytes([0x00]))
             
         if self.mode == Touchpad.MODE_EVDEV and self.device:
@@ -118,7 +118,7 @@ class Touchpad:
     def toggle(self):
         self.get_state()
     
-        if (self.mode == Touchpad.MODE_HID and self.fd>0) or (self.mode == Touchpad.MODE_EVDEV and self.device):
+        if (self.mode == Touchpad.MODE_HIDRAW and self.fd>0) or (self.mode == Touchpad.MODE_EVDEV and self.device):
             if self.state == Touchpad.STATE_LOCKED:
                 self.unlock()
             elif self.state == Touchpad.STATE_UNLOCKED:
@@ -128,7 +128,7 @@ class Touchpad:
         
     def get_state(self):
         
-        if self.mode == Touchpad.MODE_HID and self.fd>0:
+        if self.mode == Touchpad.MODE_HIDRAW and self.fd>0:
             self.state = Touchpad.MODE_UNKNOWN
             data = iohid.get_feature(self.fd, self.report_id,1)
             data = int(data[0])
