@@ -101,7 +101,7 @@ class Touchpad:
                 
     def lock(self):
         if self.mode == Touchpad.MODE_HIDRAW and self.fd>0:
-            iohid.set_feature(self.fd,self.report_id,bytes([0x03]))
+            iohid.set_feature(self.fd,self.report_id,bytes([0x00]))
         
         if self.mode == Touchpad.MODE_EVDEV and self.device:
             self.device.grab()
@@ -109,7 +109,7 @@ class Touchpad:
     
     def unlock(self):
         if self.mode == Touchpad.MODE_HIDRAW and self.fd>0:
-            iohid.set_feature(self.fd,self.report_id,bytes([0x00]))
+            iohid.set_feature(self.fd,self.report_id,bytes([0x03]))
             
         if self.mode == Touchpad.MODE_EVDEV and self.device:
             self.device.ungrab()
@@ -120,8 +120,10 @@ class Touchpad:
     
         if (self.mode == Touchpad.MODE_HIDRAW and self.fd>0) or (self.mode == Touchpad.MODE_EVDEV and self.device):
             if self.state == Touchpad.STATE_LOCKED:
+                
                 self.unlock()
             elif self.state == Touchpad.STATE_UNLOCKED:
+                
                 self.lock()
             elif self.state == Touchpad.STATE_UNKNOWN:
                 self.unlock()
@@ -133,7 +135,7 @@ class Touchpad:
             data = iohid.get_feature(self.fd, self.report_id,1)
             data = int(data[0])
             
-            if (data>0):
+            if (data == 0):
                 self.state = Touchpad.STATE_LOCKED
             else:
                 self.state = Touchpad.STATE_UNLOCKED
