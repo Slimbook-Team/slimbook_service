@@ -80,14 +80,14 @@ def keyboard_worker():
             elif (event.value == slimbook.info.SLB_SCAN_TOUCHPAD_SWITCH):
                 slb_events.put(common.SLB_EVENT_TOUCHPAD_CHANGED)
     
-            elif (event.value == slimbook.info.SLB_SCAN_Z16_ENERGY_SAVER_MODE):
-                slb_events.put(common.SLB_EVENT_Z16_ENERGY_SAVER_MODE)
+            elif (event.value == slimbook.info.SLB_SCAN_ENERGY_SAVER_MODE):
+                slb_events.put(common.SLB_EVENT_ENERGY_SAVER_MODE)
                 
-            elif (event.value == slimbook.info.SLB_SCAN_Z16_BALANCED_MODE):
-                slb_events.put(common.SLB_EVENT_Z16_BALANCED_MODE)
+            elif (event.value == slimbook.info.SLB_SCAN_BALANCED_MODE):
+                slb_events.put(common.SLB_EVENT_BALANCED_MODE)
                 
-            elif (event.value == slimbook.info.SLB_SCAN_Z16_PERFORMANCE_MODE):
-                slb_events.put(common.SLB_EVENT_Z16_PERFORMANCE_MODE)
+            elif (event.value == slimbook.info.SLB_SCAN_PERFORMANCE_MODE):
+                slb_events.put(common.SLB_EVENT_PERFORMANCE_MODE)
 
 def qc71_module_worker():
     device = evdev.InputDevice(slimbook.info.module_device())
