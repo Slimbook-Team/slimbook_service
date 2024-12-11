@@ -18,8 +18,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import iohid
 import common
+import touchpad
 
 import slimbook.info
 import slimbook.qc71
@@ -46,49 +46,6 @@ socket.bind("ipc://{0}".format(common.SLB_IPC_PATH))
 os.chmod(common.SLB_IPC_PATH, 0o777)
 
 slb_events = queue.Queue()
-
-BUTTON_SWITCH_USAGE_ID = (iohid.HID_USAGE_PAGE_DIGITIZER << 16) | iohid.HID_USAGE_DIGITIZER_BUTTON_SWITCH
-SURFACE_SWITCH_USAGE_ID = (iohid.HID_USAGE_PAGE_DIGITIZER << 16) | iohid.HID_USAGE_DIGITIZER_SURFACE_SWITCH
-
-def detect_touchpad():
-    touchpad_fd = None
-    touchpad_report = -1
-    
-    for device in iohid.list_devices():
-        fd = open(device,"rb")
-        info = iohid.get_device_info(fd)
-        found = False
-        
-        if (info.bus == iohid.HID_BUS_I2C and info.vendor == 0x93A):
-            report = iohid.get_report_descriptor(fd)
-            reports = iohid.parse_report_descriptor(report)
-            
-            for r in reports:
-                if r.report_type == iohid.HID_MAIN_FEATURE:
-                    button_switch = False
-                    surface_switch = False
-                    
-                    for usage in r.usages:
-                        
-                        if usage == BUTTON_SWITCH_USAGE_ID:
-                            button_switch = True
-                        if usage == SURFACE_SWITCH_USAGE_ID:
-                            surface_switch = True
-                    
-                    if button_switch and surface_switch:
-                        touchpad_report = r.id
-                        touchpad_fd = fd
-                        found = True
-                        logger.info("Found touchpad: {0} report ID {1}".format(device,r.id))
-            if not found:
-                fd.close()
-        else:
-            fd.close()
-        
-        if found:
-            break
-    
-    return (touchpad_fd,touchpad_report)
 
 def keyboard_worker():
     
@@ -170,8 +127,7 @@ def send_notify(code):
     
 def main():
 
-    touchpad_fd = None
-    touchpad_report = None
+    tpad = touchpad.Touchpad()
     
     keyboard_platforms = [slimbook.info.SLB_PLATFORM_Z16,slimbook.info.SLB_PLATFORM_HMT16]
 
@@ -262,17 +218,21 @@ def main():
                         elif (value == slimbook.info.SLB_QC71_PROFILE_PERFORMANCE):
                             event = common.SLB_EVENT_PERFORMANCE_MODE
 
-        if (touchpad_fd):
-            if (event == common.SLB_EVENT_TOUCHPAD_CHANGED):
-                status = iohid.get_feature(touchpad_fd, touchpad_report,1)
-                status = int(status[0])
+        if (event == common.SLB_EVENT_TOUCHPAD_CHANGED):
+            if (tpad.valid()):
+                tpad.toggle()
+                state = tpad.get_state()
                 
-                if (status == 0x03):
+                if (state == touchpad.Touchpad.STATE_LOCKED):
                     event = common.SLB_EVENT_TOUCHPAD_OFF
-                    iohid.set_feature(touchpad_fd,touchpad_report,bytes([0x00]))
-                else:
+                elif (state == touchpad.Touchpad.STATE_UNLOCKED):
                     event = common.SLB_EVENT_TOUCHPAD_ON
-                    iohid.set_feature(touchpad_fd,touchpad_report,bytes([0x03]))
+                else:
+                    continue
+                
+            else:
+                #discard event
+                continue
                     
         logger.debug("out event {0}".format(event))
         send_notify(event)
