@@ -133,7 +133,9 @@ class Touchpad:
         if self.mode == Touchpad.MODE_HIDRAW and self.fd>0:
             self.state = Touchpad.MODE_UNKNOWN
             data = iohid.get_feature(self.fd, self.report_id,1)
-            data = int(data[0])
+            # mask is hardcoded, in the future maybe would be
+            # better to obtain it from report descriptor
+            data = int(data[0]) & 0x03
             
             if (data == 0):
                 self.state = Touchpad.STATE_LOCKED
