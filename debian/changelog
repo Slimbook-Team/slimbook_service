@@ -1,3 +1,9 @@
+slimbook (0.7.14~bpo22.04.0) jammy; urgency=medium
+
+  * Backport from noble
+
+ -- Slimbook <dev@slimbook.es>  Wed, 15 Jan 2025 19:25:25 +0100
+
 slimbook (0.7.7.1+bpo0) jammy; urgency=medium
 
   * Fixed package post-scripts
