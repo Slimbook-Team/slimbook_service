@@ -35,25 +35,29 @@ try:
 except Exception as e:
     _ = str
 
-SLB_EVENT_QC71_SILENT_MODE_ON = 0
-SLB_EVENT_QC71_SILENT_MODE_OFF = 1
-SLB_EVENT_QC71_SILENT_MODE_CHANGED = 2
+SLB_EVENT_QC71_SILENT_MODE_CHANGED = 0x00
+SLB_EVENT_QC71_SILENT_MODE_ON = 0x01
+SLB_EVENT_QC71_SILENT_MODE_OFF = 0x02
 
-SLB_EVENT_QC71_SUPER_LOCK_ON = 3
-SLB_EVENT_QC71_SUPER_LOCK_OFF = 4
-SLB_EVENT_QC71_SUPER_LOCK_CHANGED = 5
+SLB_EVENT_QC71_SUPER_LOCK_CHANGED = 0x03
+SLB_EVENT_QC71_SUPER_LOCK_ON = 0x04
+SLB_EVENT_QC71_SUPER_LOCK_OFF = 0x05
 
-SLB_EVENT_QC71_TOUCHPAD_ON = 6
-SLB_EVENT_QC71_TOUCHPAD_OFF = 7
-SLB_EVENT_QC71_TOUCHPAD_CHANGED = 8
+SLB_EVENT_QC71_SILENT_MODE = 0x06
+SLB_EVENT_QC71_NORMAL_MODE = 0x07
+SLB_EVENT_QC71_PERFORMANCE_MODE = 0x08
 
-SLB_EVENT_QC71_SILENT_MODE = 9
-SLB_EVENT_QC71_NORMAL_MODE = 10
-SLB_EVENT_QC71_PERFORMANCE_MODE = 11
+#this events are shared on several platforms and no longer are qc71 exclusive
+SLB_EVENT_TOUCHPAD_CHANGED = 0x0100
+SLB_EVENT_TOUCHPAD_ON = 0x0200
+SLB_EVENT_TOUCHPAD_OFF = 0x0300
+SLB_EVENT_WEBCAM_CHANGED = 0x0400
+SLB_EVENT_WEBCAM_ON = 0x0500
+SLB_EVENT_WEBCAM_OFF = 0x0600
 
-SLB_EVENT_Z16_ENERGY_SAVER_MODE = 12
-SLB_EVENT_Z16_BALANCED_MODE = 13
-SLB_EVENT_Z16_PERFORMANCE_MODE = 14
+SLB_EVENT_ENERGY_SAVER_MODE = 0x0700
+SLB_EVENT_BALANCED_MODE = 0x0800
+SLB_EVENT_PERFORMANCE_MODE = 0x0900
 
 SLB_EVENT_DATA = {
     SLB_EVENT_QC71_SILENT_MODE_ON : [_("Silent Mode enabled"),"power-profile-power-saver-symbolic"],
@@ -64,17 +68,20 @@ SLB_EVENT_DATA = {
     SLB_EVENT_QC71_SUPER_LOCK_OFF : [_("Super Key Lock disabled"),"preferences-system-privacy-symbolic"],
     SLB_EVENT_QC71_SUPER_LOCK_CHANGED : [_("Super Key Lock changed"),"preferences-system-privacy-symbolic"],
     
-    SLB_EVENT_QC71_TOUCHPAD_ON : [_("Touchpad enabled"),"input-touchpad-symbolic"],
-    SLB_EVENT_QC71_TOUCHPAD_OFF : [_("Touchpad disabled"),"input-touchpad-symbolic"],
-    SLB_EVENT_QC71_TOUCHPAD_CHANGED : [_("Touchpad changed"),"input-touchpad-symbolic"],
-    
     SLB_EVENT_QC71_SILENT_MODE : [_("Silent Mode"),"power-profile-power-saver-symbolic"],
     SLB_EVENT_QC71_NORMAL_MODE : [_("Normal Mode"),"power-profile-balanced-symbolic"],
     SLB_EVENT_QC71_PERFORMANCE_MODE : [_("Performance Mode"),"power-profile-performance-symbolic"],
     
-    SLB_EVENT_Z16_ENERGY_SAVER_MODE : [_("Energy Saver"),"power-profile-power-saver-symbolic"],
-    SLB_EVENT_Z16_BALANCED_MODE : [_("Balanced"),"power-profile-balanced-symbolic"],
-    SLB_EVENT_Z16_PERFORMANCE_MODE : [_("Performance"),"power-profile-performance-symbolic"]
+    SLB_EVENT_TOUCHPAD_ON : [_("Touchpad enabled"),"input-touchpad-symbolic"],
+    SLB_EVENT_TOUCHPAD_OFF : [_("Touchpad disabled"),"input-touchpad-symbolic"],
+    SLB_EVENT_TOUCHPAD_CHANGED : [_("Touchpad changed"),"input-touchpad-symbolic"],
+    SLB_EVENT_WEBCAM_CHANGED : [_("Webcam changed"),"preferences-system-privacy-symbolic"],
+    SLB_EVENT_WEBCAM_ON : [_("Webcam enabled"),"preferences-system-privacy-symbolic"],
+    SLB_EVENT_WEBCAM_OFF : [_("Webcam disabled"),"preferences-system-privacy-symbolic"],
+
+    SLB_EVENT_ENERGY_SAVER_MODE : [_("Energy Saver"),"power-profile-power-saver-symbolic"],
+    SLB_EVENT_BALANCED_MODE : [_("Balanced"),"power-profile-balanced-symbolic"],
+    SLB_EVENT_PERFORMANCE_MODE : [_("Performance"),"power-profile-performance-symbolic"]
 }
 
 PARAMS = {
@@ -131,7 +138,6 @@ STATUS_ICON['light-attention'] = (os.path.join(ICONDIR, 'slimbook-status-attenti
 STATUS_ICON['dark'] = (os.path.join(ICONDIR, 'slimbook-status-active-dark.svg'))
 STATUS_ICON['dark-attention'] = (os.path.join(ICONDIR, 'slimbook-status-attention-dark.svg'))
 
-
 INFO_UPTIME = _("Uptime")
 INFO_MEM = _("Memory Free/Total")
 INFO_MEM_DEVICE = _("Memory device")
@@ -153,6 +159,7 @@ INFO_FN_LOCK = _("Fn Lock")
 INFO_SUPER_LOCK = _("Super Lock")
 INFO_SILENT_MODE = _("Silent Mode")
 INFO_TURBO_MODE = _("Turbo Mode")
+INFO_PROFILE = _("Profile")
 
 INFO_YES = _("Yes")
 INFO_NO = _("No")
@@ -314,6 +321,7 @@ def get_system_info():
     fn_lock = ""
     super_lock = ""
     silent_mode = ""
+    profile = ""
     
     tmp = []
     
@@ -354,6 +362,9 @@ def get_system_info():
              
             if (key == "silent mode"):
                 silent_mode = value.capitalize()
+
+            if (key == "profile"):
+                profile = value.capitalize()
    
     info.append([INFO_MEM,memory])
     
@@ -455,7 +466,7 @@ def get_system_info():
         if (sb_platform == slimbook.info.SLB_PLATFORM_QC71):
             info.append([INFO_FN_LOCK,fn_lock])
             info.append([INFO_SUPER_LOCK,super_lock])
-            info.append([INFO_SILENT_MODE,silent_mode])
+            info.append([INFO_PROFILE,profile])
     
     return info
 
