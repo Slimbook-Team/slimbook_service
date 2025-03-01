@@ -7,5 +7,5 @@ Hidden=false
 NoDisplay=false
 StartupNotify=true
 Encoding=UTF-8
-Name[es_ES]=Slimbook Client Autostart
-Name=Slimbook Client Autostart
+Name[es_ES]=Slimbook Service
+Name=Slimbook Service

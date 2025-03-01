@@ -46,6 +46,7 @@ SLB_EVENT_QC71_SUPER_LOCK_OFF = 0x05
 SLB_EVENT_QC71_SILENT_MODE = 0x06
 SLB_EVENT_QC71_NORMAL_MODE = 0x07
 SLB_EVENT_QC71_PERFORMANCE_MODE = 0x08
+SLB_EVENT_QC71_DYNAMIC_MODE = 0x09
 
 #this events are shared on several platforms and no longer are qc71 exclusive
 SLB_EVENT_TOUCHPAD_CHANGED = 0x0100
@@ -71,6 +72,7 @@ SLB_EVENT_DATA = {
     SLB_EVENT_QC71_SILENT_MODE : [_("Silent Mode"),"power-profile-power-saver-symbolic"],
     SLB_EVENT_QC71_NORMAL_MODE : [_("Normal Mode"),"power-profile-balanced-symbolic"],
     SLB_EVENT_QC71_PERFORMANCE_MODE : [_("Performance Mode"),"power-profile-performance-symbolic"],
+    SLB_EVENT_QC71_DYNAMIC_MODE : [_("Dynamic Mode"),"power-profile-power-saver-symbolic"],
     
     SLB_EVENT_TOUCHPAD_ON : [_("Touchpad enabled"),"input-touchpad-symbolic"],
     SLB_EVENT_TOUCHPAD_OFF : [_("Touchpad disabled"),"input-touchpad-symbolic"],

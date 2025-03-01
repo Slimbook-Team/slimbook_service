@@ -161,6 +161,15 @@ def main():
     if (platform == slimbook.info.SLB_PLATFORM_QC71):
         family = slimbook.info.get_family()
         
+        # Set energy saver profile if AC is noy connected on Creative
+        # because this model enters in a dynamic tdp mode when running on battery
+        if (family == slimbook.info.SLB_MODEL_CREATIVE):
+            ac = slimbook.info.get_ac_state(0)
+            
+            if (ac == 0):
+                logger.debug("AC is offline")
+                slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
+        
         qc71_keyboard_thread = threading.Thread(
             name='slimbook.service.qc71.keyboard', target=keyboard_worker)
         qc71_keyboard_thread.start()
@@ -210,7 +219,7 @@ def main():
                             event = common.SLB_EVENT_QC71_SILENT_MODE_ON
                         else:
                             event = common.SLB_EVENT_QC71_SILENT_MODE_OFF
-
+                        
                     if (family == slimbook.info.SLB_MODEL_EVO or family == slimbook.info.SLB_MODEL_CREATIVE):
                         if (value == slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER):
                             event = common.SLB_EVENT_ENERGY_SAVER_MODE
@@ -218,6 +227,15 @@ def main():
                             event = common.SLB_EVENT_BALANCED_MODE
                         elif (value == slimbook.info.SLB_QC71_PROFILE_PERFORMANCE):
                             event = common.SLB_EVENT_PERFORMANCE_MODE
+
+                        if (family == slimbook.info.SLB_MODEL_CREATIVE):
+                            ac = slimbook.info.get_ac_state(0)
+                            
+                            if (ac == 0):
+                                logger.debug("AC is offline")
+                                slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
+                                event = common.SLB_EVENT_QC71_DYNAMIC_MODE
+
 
         if (event == common.SLB_EVENT_TOUCHPAD_CHANGED):
             if (tpad.valid()):
