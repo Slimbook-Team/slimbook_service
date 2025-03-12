@@ -408,6 +408,11 @@ class ServiceIndicator(Gio.Application):
         menu.append(separator)
         menu.append(about_item)
 
+        self.report = Gtk.MenuItem.new_with_label(_('Gen Report'))
+        self.report.connect('activate', self.on_report_item)
+        self.report.show()
+        menu.append(self.report)
+
         bug_item = Gtk.MenuItem(label=_(
             'Report a bug...'))
         bug_item.connect(
@@ -500,6 +505,10 @@ this program. If not, see <http://www.gnu.org/licenses/>.
             self.about_dialog.destroy()
             self.about_dialog = None
 
+    def on_report_item(self, widget, data=None):
+        self.show_report()
+
+
     # Interface and Method
 
     def on_news_delete_event(self, window, event):
@@ -518,7 +527,51 @@ this program. If not, see <http://www.gnu.org/licenses/>.
         self.menu_preferences.set_sensitive(False)
         preferences_dialog = PreferencesDialog()
         preferences_dialog.connect("preferences-close",self.on_preferences_close)
-        
+
+    def show_report(self):
+        self.report.set_sensitive(False)
+        report_dialog = ReportDialog()
+
+class ReportDialog(Gtk.Window):
+    def __init__(self):
+        Gtk.Window.__init__(self)
+        self.set_modal(True)
+                
+        self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
+        self.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(
+            common.ICON, 64, 64, True))
+
+        header = Gtk.HeaderBar()
+        header.set_title(_('Generating Report'))
+        header.set_show_close_button(True)
+
+        self.set_titlebar(header)
+
+        vbox = Gtk.VBox(spacing = 20)
+
+        self.progress_bar = Gtk.ProgressBar()
+
+        vbox.pack_start(self.progress_bar, True, True, 40)
+
+        self.add(vbox)
+
+        self.bar_thread = ReportThread(self.prog_bar_proc)
+        self.bar_thread.start()
+
+        self.show_all()
+
+    def prog_bar_proc(self):
+        self.progress_bar.pulse()
+
+class ReportThread(threading.Thread):
+    def __init__(self, cb):
+        threading.Thread.__init__(self)
+        self.callback = cb
+
+    def run(self):
+        GLib.idle_add(self.callback)    
+
+
 class PreferencesDialog(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self)
