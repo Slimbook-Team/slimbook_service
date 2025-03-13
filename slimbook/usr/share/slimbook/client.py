@@ -29,6 +29,7 @@ import gi
 
 import logging
 import threading
+import subprocess
 import os
 import sys
 import shutil
@@ -39,6 +40,7 @@ import time
 import signal
 import fnmatch
 from optparse import OptionParser
+
 
 try:
     gi.require_version('Gtk', '3.0')
@@ -408,7 +410,7 @@ class ServiceIndicator(Gio.Application):
         menu.append(separator)
         menu.append(about_item)
 
-        self.report = Gtk.MenuItem.new_with_label(_('Gen Report'))
+        self.report = Gtk.MenuItem.new_with_label(_('Generate Report'))
         self.report.connect('activate', self.on_report_item)
         self.report.show()
         menu.append(self.report)
@@ -547,9 +549,12 @@ class ReportDialog(Gtk.Window):
 
         self.set_titlebar(header)
 
-        vbox = Gtk.VBox(spacing = 20)
+        vbox = Gtk.VBox()
+        vbox.set_margin_start(20)
+        vbox.set_margin_end(20)
 
         self.progress_bar = Gtk.ProgressBar()
+        self.progress_bar.set_show_text(True)
 
         vbox.pack_start(self.progress_bar, True, True, 40)
 
@@ -560,8 +565,14 @@ class ReportDialog(Gtk.Window):
 
         self.show_all()
 
-    def prog_bar_proc(self):
-        self.progress_bar.pulse()
+    def prog_bar_proc(self, args):
+        if args[0] == True:
+            self.progress_bar.set_fraction(1.0)
+        else:
+            self.progress_bar.pulse()
+        
+        if args[1] != "":
+            self.progress_bar.set_text("Report dumped at " + args[1])
 
 class ReportThread(threading.Thread):
     def __init__(self, cb):
@@ -569,7 +580,8 @@ class ReportThread(threading.Thread):
         self.callback = cb
 
     def run(self):
-        GLib.idle_add(self.callback)    
+        common.report_proc(self, GLib.idle_add, self.callback)
+
 
 
 class PreferencesDialog(Gtk.Window):

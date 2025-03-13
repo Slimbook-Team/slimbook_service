@@ -26,6 +26,7 @@ import subprocess
 import locale
 import gettext
 import requests
+import re
 
 try:
     current_locale, encoding = locale.getdefaultlocale()
@@ -46,7 +47,6 @@ SLB_EVENT_QC71_SUPER_LOCK_OFF = 0x05
 SLB_EVENT_QC71_SILENT_MODE = 0x06
 SLB_EVENT_QC71_NORMAL_MODE = 0x07
 SLB_EVENT_QC71_PERFORMANCE_MODE = 0x08
-SLB_EVENT_QC71_DYNAMIC_MODE = 0x09
 
 #this events are shared on several platforms and no longer are qc71 exclusive
 SLB_EVENT_TOUCHPAD_CHANGED = 0x0100
@@ -72,7 +72,6 @@ SLB_EVENT_DATA = {
     SLB_EVENT_QC71_SILENT_MODE : [_("Silent Mode"),"power-profile-power-saver-symbolic"],
     SLB_EVENT_QC71_NORMAL_MODE : [_("Normal Mode"),"power-profile-balanced-symbolic"],
     SLB_EVENT_QC71_PERFORMANCE_MODE : [_("Performance Mode"),"power-profile-performance-symbolic"],
-    SLB_EVENT_QC71_DYNAMIC_MODE : [_("Dynamic Mode"),"power-profile-power-saver-symbolic"],
     
     SLB_EVENT_TOUCHPAD_ON : [_("Touchpad enabled"),"input-touchpad-symbolic"],
     SLB_EVENT_TOUCHPAD_OFF : [_("Touchpad disabled"),"input-touchpad-symbolic"],
@@ -493,3 +492,26 @@ def download_feed():
     f.write(r.content)
     f.close()
 
+def report_proc(self, glib_cb, cb):
+        proc = subprocess.Popen(["slimbookctl", "report"], stdout= subprocess.PIPE, stderr= subprocess.PIPE)
+
+        cb_args = [False, ""]
+
+        while(proc.poll() != 0 and proc.poll() == None):
+            glib_cb(cb, cb_args)  
+
+        try:
+            o = proc.communicate(timeout = 5) 
+        except TimeoutExpired:
+            proc.kill()
+            o = proc.communicate()
+            
+        if re.search("\/.*", o[0].decode("utf-8")):
+            cb_args.pop(1)
+            path = re.search("\/.*", o[0].decode("utf-8")).group(0)
+            cb_args.append(path)
+
+        cb_args.pop(0)
+        cb_args.insert(0, True)
+
+        glib_cb(cb, cb_args)  
