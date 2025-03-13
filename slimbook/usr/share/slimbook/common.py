@@ -492,8 +492,8 @@ def download_feed():
     f.write(r.content)
     f.close()
 
-def report_proc(self, glib_cb, cb):
-        proc = subprocess.Popen(["slimbookctl", "report"], stdout= subprocess.PIPE, stderr= subprocess.PIPE)
+def report_proc(self, glib_cb, cb, report_type):
+        proc = subprocess.Popen(["slimbookctl", report_type], stdout= subprocess.PIPE, stderr= subprocess.PIPE)
 
         cb_args = [False, ""]
 

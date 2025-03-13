@@ -538,6 +538,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 class ReportDialog(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self)
+        self.set_default_size(400, 100)
         self.set_modal(True)
 
         self.connect('delete-event',self.on_report_delete_event)
@@ -556,16 +557,29 @@ class ReportDialog(Gtk.Window):
         vbox.set_margin_start(20)
         vbox.set_margin_end(20)
 
+        hbox = Gtk.HBox()
+        hbox.set_margin_start(5)
+        hbox.set_margin_end(5)
+
+        self.normal_report_btn = Gtk.Button.new_with_label(_("Report"))
+        self.normal_report_btn.connect("clicked",self.on_report_button)
+
+        self.full_report_btn = Gtk.Button.new_with_label(_("Full Report"))
+        self.full_report_btn.connect("clicked",self.on_full_report_button)
+
+        hbox.pack_start(self.normal_report_btn, True, True, 4)
+        hbox.pack_start(self.full_report_btn, True, True, 4)
+        
+
+        vbox.pack_start(hbox, True, True, 4)
+
         self.progress_bar = Gtk.ProgressBar()
         self.progress_bar.set_text("")
         self.progress_bar.set_show_text(True)
 
-        vbox.pack_start(self.progress_bar, True, True, 40)
+        vbox.pack_start(self.progress_bar, True, True, 4)
 
         self.add(vbox)
-
-        self.bar_thread = ReportThread(self.prog_bar_proc)
-        self.bar_thread.start()
 
         self.show_all()
 
@@ -578,17 +592,31 @@ class ReportDialog(Gtk.Window):
         if args[1] != "":
             self.progress_bar.set_text("Report dumped at " + args[1])
 
+    def on_report_button(self, widget):
+        self.bar_thread = ReportThread(self.prog_bar_proc, "report")
+        self.bar_thread.start()
+        self.disable_buttons()
+
+    def on_full_report_button(self, widget):
+        self.bar_thread = ReportThread(self.prog_bar_proc, "report-full")
+        self.bar_thread.start()
+        self.disable_buttons()
+
+    def disable_buttons(self):
+        self.normal_report_btn.set_sensitive(False)
+        self.full_report_btn.set_sensitive(False)  
+
     def on_report_delete_event(self, window, event):
         self.set_sensitive(False)
 
-
 class ReportThread(threading.Thread):
-    def __init__(self, cb):
+    def __init__(self, cb, report_type):
         threading.Thread.__init__(self)
         self.callback = cb
+        self.report_type = report_type
 
     def run(self):
-        common.report_proc(self, GLib.idle_add, self.callback)
+        common.report_proc(self, GLib.idle_add, self.callback, self.report_type)
 
 
 class PreferencesDialog(Gtk.Window):
