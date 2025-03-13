@@ -517,7 +517,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
         self.menu_news.set_sensitive(True)
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
             appindicator.IndicatorStatus.PASSIVE)
-    
+
     def on_preferences_close(self, *args):
         self.menu_preferences.set_sensitive(True)
         self.read_preferences()
@@ -533,11 +533,14 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     def show_report(self):
         self.report.set_sensitive(False)
         report_dialog = ReportDialog()
+        self.report.set_sensitive(True)
 
 class ReportDialog(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self)
         self.set_modal(True)
+
+        self.connect('delete-event',self.on_report_delete_event)
                 
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(
@@ -574,6 +577,10 @@ class ReportDialog(Gtk.Window):
         if args[1] != "":
             self.progress_bar.set_text("Report dumped at " + args[1])
 
+    def on_report_delete_event(self, window, event):
+        self.set_sensitive(False)
+
+
 class ReportThread(threading.Thread):
     def __init__(self, cb):
         threading.Thread.__init__(self)
@@ -581,7 +588,6 @@ class ReportThread(threading.Thread):
 
     def run(self):
         common.report_proc(self, GLib.idle_add, self.callback)
-
 
 
 class PreferencesDialog(Gtk.Window):
