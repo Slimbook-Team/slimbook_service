@@ -515,3 +515,5 @@ def report_proc(self, glib_cb, cb, report_type):
         cb_args.insert(0, True)
 
         glib_cb(cb, cb_args)  
+
+        subprocess.Popen(["xdg-open", (cb_args[1])[:-7]])

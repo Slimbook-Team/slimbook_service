@@ -410,7 +410,7 @@ class ServiceIndicator(Gio.Application):
         menu.append(separator)
         menu.append(about_item)
 
-        self.report = Gtk.MenuItem.new_with_label(_('Generate Report'))
+        self.report = Gtk.MenuItem.new_with_label(_('Generate report'))
         self.report.connect('activate', self.on_report_item)
         self.report.show()
         menu.append(self.report)
@@ -548,7 +548,7 @@ class ReportDialog(Gtk.Window):
             common.ICON, 64, 64, True))
 
         header = Gtk.HeaderBar()
-        header.set_title(_('Generate Report'))
+        header.set_title(_('Generate report'))
         header.set_show_close_button(True)
 
         self.set_titlebar(header)
@@ -556,21 +556,26 @@ class ReportDialog(Gtk.Window):
         vbox = Gtk.VBox()
         vbox.set_margin_start(20)
         vbox.set_margin_end(20)
+        vbox.set_margin_top(10)
+        vbox.set_margin_bottom(10)
 
         hbox = Gtk.HBox()
         hbox.set_margin_start(5)
         hbox.set_margin_end(5)
 
+        report_desc = Gtk.Label.new("This is a report of several hardware and software stats.\nFull report generates a report with sensitive information,\nbeware of sharing it online!")
+
+        vbox.pack_start(report_desc, True, True, 4)
+
         self.normal_report_btn = Gtk.Button.new_with_label(_("Report"))
         self.normal_report_btn.connect("clicked",self.on_report_button)
 
-        self.full_report_btn = Gtk.Button.new_with_label(_("Full Report"))
+        self.full_report_btn = Gtk.Button.new_with_label(_("Full report"))
         self.full_report_btn.connect("clicked",self.on_full_report_button)
 
         hbox.pack_start(self.normal_report_btn, True, True, 4)
         hbox.pack_start(self.full_report_btn, True, True, 4)
         
-
         vbox.pack_start(hbox, True, True, 4)
 
         self.progress_bar = Gtk.ProgressBar()
@@ -590,7 +595,7 @@ class ReportDialog(Gtk.Window):
             self.progress_bar.pulse()
         
         if args[1] != "":
-            self.progress_bar.set_text("Report dumped at " + args[1])
+            self.progress_bar.set_text("Completed! Report dumped at " + args[1])
 
     def on_report_button(self, widget):
         self.bar_thread = ReportThread(self.prog_bar_proc, "report")
