@@ -557,6 +557,7 @@ class ReportDialog(Gtk.Window):
         vbox.set_margin_end(20)
 
         self.progress_bar = Gtk.ProgressBar()
+        self.progress_bar.set_text("")
         self.progress_bar.set_show_text(True)
 
         vbox.pack_start(self.progress_bar, True, True, 40)
