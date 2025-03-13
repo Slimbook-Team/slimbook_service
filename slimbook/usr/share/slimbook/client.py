@@ -548,7 +548,7 @@ class ReportDialog(Gtk.Window):
             common.ICON, 64, 64, True))
 
         header = Gtk.HeaderBar()
-        header.set_title(_('Generating Report'))
+        header.set_title(_('Generate Report'))
         header.set_show_close_button(True)
 
         self.set_titlebar(header)
