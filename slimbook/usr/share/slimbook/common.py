@@ -497,10 +497,32 @@ def download_feed():
 def report_proc(self, glib_cb, cb, report_type):
         proc = subprocess.Popen(["slimbookctl", report_type], stdout= subprocess.PIPE, stderr= subprocess.PIPE)
 
-        cb_args = [False, ""]
+        cb_args = [False, "", ""]
 
-        while(proc.poll() != 0 and proc.poll() == None):
+        while(proc.poll() == None):
             glib_cb(cb, cb_args)  
+
+        if(proc.poll() != 0):
+            ret_code = proc.poll()
+
+            match ret_code:
+                #should never happen
+                case 1:
+                    cb_args[2] = "error"
+                case 129:
+                    cb_args[2] = "terminal disconnected (SIGHUP)"
+                #should never happen
+                case 130:
+                    cb_args[2] = "process stopping by user(SIGINT)"
+                case 137:
+                    cb_args[2] = "process killed (SIGKILL)"
+                case 143:
+                    cb_args[2] = "process terminated (SIGTERM)"
+                case 147:
+                    cb_args[2] = "process stopped (SIGSTOP)"
+                #should never happen
+                case 148:
+                    cb_args[2] = "process stopped by user (SIGSTP)"
 
         try:
             o = proc.communicate(timeout = 5) 
