@@ -509,7 +509,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
     def on_report_item(self, widget, data=None):
         self.show_report()
-
+        widget.set_sensitive(True)
 
     # Interface and Method
 
@@ -533,13 +533,15 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     def show_report(self):
         self.report.set_sensitive(False)
         report_dialog = ReportDialog()
-        self.report.set_sensitive(True)
 
 class ReportDialog(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self)
-        self.set_default_size(400, 100)
+        self.set_default_size(600, 100)
         self.set_modal(True)
+
+        self.path = ""
+        self.has_ended = False
 
         self.connect('delete-event',self.on_report_delete_event)
                 
@@ -553,19 +555,31 @@ class ReportDialog(Gtk.Window):
 
         self.set_titlebar(header)
 
-        vbox = Gtk.VBox()
-        vbox.set_margin_start(20)
-        vbox.set_margin_end(20)
-        vbox.set_margin_top(10)
-        vbox.set_margin_bottom(10)
+        self.stack = Gtk.Stack()
 
-        hbox = Gtk.HBox()
-        hbox.set_margin_start(5)
-        hbox.set_margin_end(5)
+        vboxrv = Gtk.VBox()
+        vboxmv = Gtk.VBox()
+
+        # Report View
+
+        vboxrv.set_margin_start(20)
+        vboxrv.set_margin_end(20)
+        vboxrv.set_margin_top(10)
+        vboxrv.set_margin_bottom(10)
+
+        hboxrv = Gtk.HBox()
+        hboxrv.set_margin_start(5)
+        hboxrv.set_margin_end(5)
 
         report_desc = Gtk.Label.new("This is a report of several hardware and software stats.\nFull report generates a report with sensitive information,\nbeware of sharing it online!")
 
-        vbox.pack_start(report_desc, True, True, 4)
+        vboxrv.pack_start(report_desc, True, True, 4)
+
+        self.progress_bar = Gtk.ProgressBar()
+        self.progress_bar.set_text("")
+        self.progress_bar.set_show_text(True)
+
+        vboxrv.pack_start(self.progress_bar, True, True, 4)
 
         self.normal_report_btn = Gtk.Button.new_with_label(_("Report"))
         self.normal_report_btn.connect("clicked",self.on_report_button)
@@ -573,43 +587,75 @@ class ReportDialog(Gtk.Window):
         self.full_report_btn = Gtk.Button.new_with_label(_("Full report"))
         self.full_report_btn.connect("clicked",self.on_full_report_button)
 
-        hbox.pack_start(self.normal_report_btn, True, True, 4)
-        hbox.pack_start(self.full_report_btn, True, True, 4)
+        hboxrv.pack_start(self.normal_report_btn, True, True, 4)
+        hboxrv.pack_start(self.full_report_btn, True, True, 4)
         
-        vbox.pack_start(hbox, True, True, 4)
+        vboxrv.pack_start(hboxrv, True, True, 4)
 
-        self.progress_bar = Gtk.ProgressBar()
-        self.progress_bar.set_text("")
-        self.progress_bar.set_show_text(True)
+        # Message View
 
-        vbox.pack_start(self.progress_bar, True, True, 4)
+        vboxmv.set_margin_start(20)
+        vboxmv.set_margin_end(20)
+        vboxmv.set_margin_top(10)
+        vboxmv.set_margin_bottom(10)
 
-        self.add(vbox)
+        hboxmv = Gtk.HBox()
+        hboxmv.set_margin_start(5)
+        hboxmv.set_margin_end(5)
+
+        self.path_label = Gtk.Label.new(self.path)
+        vboxmv.pack_start(self.path_label, True, True, 4)
+
+        self.open_btn = Gtk.Button.new_with_label(_('Open'))
+        self.open_btn.connect("clicked", self.on_open_button)
+
+        self.close_btn = Gtk.Button.new_with_label(_('Close'))
+        self.close_btn.connect("clicked", self.on_close_button)
+
+        hboxmv.pack_start(self.open_btn, True, True, 4)
+        hboxmv.pack_start(self.close_btn, True, True, 4)
+
+        vboxmv.pack_start(hboxmv, True, True, 4)
+        self.stack.add_named(vboxrv, name = "Report view")
+
+        self.stack.add_named(vboxmv, name = "Message view")
+
+        self.add(self.stack)
 
         self.show_all()
 
     def prog_bar_proc(self, args):
         if args[0] == True:
+            self.path_label.set_label("Succesful! Dumped at " + self.path)
+            self.stack.set_visible_child_name("Message view")
             self.progress_bar.set_fraction(1.0)
         else:
             self.progress_bar.pulse()
         
         if args[1] != "":
-            self.progress_bar.set_text("Completed! Report dumped at " + args[1])
+            self.path = args[1]
+
+    def on_report_button_common(self, widget, str):
+        self.bar_thread = ReportThread(self.prog_bar_proc, str)
+        self.bar_thread.start()
+        self.disable_buttons()
 
     def on_report_button(self, widget):
-        self.bar_thread = ReportThread(self.prog_bar_proc, "report")
-        self.bar_thread.start()
-        self.disable_buttons()
+        self.on_report_button_common(widget, "report")
 
     def on_full_report_button(self, widget):
-        self.bar_thread = ReportThread(self.prog_bar_proc, "report-full")
-        self.bar_thread.start()
-        self.disable_buttons()
+        self.on_report_button_common(widget, "report-full")
 
     def disable_buttons(self):
         self.normal_report_btn.set_sensitive(False)
         self.full_report_btn.set_sensitive(False)  
+
+    def on_close_button(self, widget):
+        self.close()
+    
+    def on_open_button(self, widget):
+        subprocess.Popen(["xdg-open", (self.path)[:-7]])
+
 
     def on_report_delete_event(self, window, event):
         self.set_sensitive(False)
