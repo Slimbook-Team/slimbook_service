@@ -26,6 +26,7 @@ import slimbook.qc71
 
 import zmq
 import evdev
+import pyudev
 
 import subprocess
 from datetime import datetime
@@ -47,6 +48,36 @@ os.chmod(common.SLB_IPC_PATH, 0o777)
 
 slb_events = queue.Queue()
 
+def get_udev_ac_status(device):
+    try:
+        ps_type = device.get("POWER_SUPPLY_TYPE")
+        ps_online = device.get("POWER_SUPPLY_ONLINE")
+        
+        if (ps_type and ps_online):
+            if (ps_type == "Mains"):
+                return int(ps_online)
+    except:
+        pass
+    
+    return -1
+    
+def udev_worker():
+    context = pyudev.Context()
+    
+    for device in context.list_devices(subsystem="power_supply"):
+        status = get_udev_ac_status(device)
+        if (status >=0):
+            logger.info("AC status:{0}".format(status))
+            slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
+    
+    monitor = pyudev.Monitor.from_netlink(context)
+    monitor.filter_by('power_supply')
+    for device in iter(monitor.poll, None):
+        status = get_udev_ac_status(device)
+        if (status >=0):
+            logger.info("AC status:{0}".format(status))
+            slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
+        
 def keyboard_worker():
     
     device_path = "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
@@ -126,15 +157,18 @@ def send_notify(code):
     socket.send_json(data)
     
 def main():
+    logger.info("Slimbook service")
 
+    udev_thread = threading.Thread(
+            name='slimbook.service.udev', target=udev_worker)
+    udev_thread.start()
+        
     tpad = touchpad.Touchpad()
     if (tpad.valid()):
         tpad_mode_name = {touchpad.Touchpad.MODE_HIDRAW:"hidraw",touchpad.Touchpad.MODE_EVDEV:"evdev"}
         logger.info("Found a touchpad device of type {0}".format(tpad_mode_name[tpad.mode]))
     
     keyboard_platforms = [slimbook.info.SLB_PLATFORM_Z16,slimbook.info.SLB_PLATFORM_HMT16]
-
-    logger.info("Slimbook service")
     
     model = slimbook.info.get_model()
     platform = slimbook.info.get_platform()
@@ -155,20 +189,10 @@ def main():
             logger.warning("Product:[{0}]".format(slimbook.info.product_name()))
             logger.warning("Vendor:[{0}]".format(slimbook.info.board_vendor()))
     
-    
     module_loaded = slimbook.info.is_module_loaded()
     
     if (platform == slimbook.info.SLB_PLATFORM_QC71):
         family = slimbook.info.get_family()
-        
-        # Set energy saver profile if AC is noy connected on Creative
-        # because this model enters in a dynamic tdp mode when running on battery
-        if (family == slimbook.info.SLB_MODEL_CREATIVE):
-            ac = slimbook.info.get_ac_state(0)
-            
-            if (ac == 0):
-                logger.debug("AC is offline")
-                slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
         
         qc71_keyboard_thread = threading.Thread(
             name='slimbook.service.qc71.keyboard', target=keyboard_worker)
@@ -228,14 +252,11 @@ def main():
                         elif (value == slimbook.info.SLB_QC71_PROFILE_PERFORMANCE):
                             event = common.SLB_EVENT_PERFORMANCE_MODE
 
-                        if (family == slimbook.info.SLB_MODEL_CREATIVE):
-                            ac = slimbook.info.get_ac_state(0)
-                            
-                            if (ac == 0):
-                                logger.debug("AC is offline")
-                                slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
-                                event = common.SLB_EVENT_QC71_DYNAMIC_MODE
-
+                elif (event == common.SLB_EVENT_AC_OFFLINE):
+                
+                    if (family == slimbook.info.SLB_MODEL_CREATIVE):
+                        slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
+                        event = common.SLB_EVENT_QC71_DYNAMIC_MODE
 
         if (event == common.SLB_EVENT_TOUCHPAD_CHANGED):
             if (tpad.valid()):
