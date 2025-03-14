@@ -48,6 +48,9 @@ os.chmod(common.SLB_IPC_PATH, 0o777)
 
 slb_events = queue.Queue()
 
+def set_power_profile(profile):
+    subprocess.run(["powerprofilesctl","set",profile])
+
 def get_udev_ac_status(device):
     try:
         ps_type = device.get("POWER_SUPPLY_TYPE")
@@ -235,14 +238,17 @@ def main():
                     else:
                         event = common.SLB_EVENT_QC71_SUPER_LOCK_OFF
                 
+                # General Performance event on QC71
                 elif (event == common.SLB_EVENT_QC71_SILENT_MODE_CHANGED):
                     value = slimbook.qc71.profile_get()
                     
                     if (family == slimbook.info.SLB_MODEL_PROX or family == slimbook.info.SLB_MODEL_EXECUTIVE):
                         if (value == slimbook.info.SLB_QC71_PROFILE_SILENT):
                             event = common.SLB_EVENT_QC71_SILENT_MODE_ON
+                            set_power_profile(common.POWER_PROFILE_POWER_SAVER)
                         else:
                             event = common.SLB_EVENT_QC71_SILENT_MODE_OFF
+                            set_power_profile(common.POWER_PROFILE_BALANCED)
                         
                     if (family == slimbook.info.SLB_MODEL_EVO or family == slimbook.info.SLB_MODEL_CREATIVE):
                         if (value == slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER):

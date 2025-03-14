@@ -98,6 +98,10 @@ PARAMS = {
             'notifications' : True
             }
 
+POWER_PROFILE_POWER_SAVER = "power-saver"
+POWER_PROFILE_BALANCED = "balanced"
+POWER_PROFILE_PERFORMANCE = "performance"
+
 #set a default dark theme for kde
 xdg_current_desktop = os.environ.get("XDG_CURRENT_DESKTOP")
 if xdg_current_desktop == "KDE":
