@@ -497,7 +497,6 @@ def download_feed():
 
 def report_proc(self, glib_cb, cb, report_type):
         proc = subprocess.Popen(["slimbookctl", report_type], stdout= subprocess.PIPE, stderr= subprocess.PIPE)
-
         cb_args = [False, "", ""]
 
         while(proc.poll() == None):
@@ -535,9 +534,9 @@ def report_proc(self, glib_cb, cb, report_type):
             proc.kill()
             o = proc.communicate()
             
-        if re.search("\/.*", o[0].decode("utf-8")):
+        if re.search(r"\/.*", o[0].decode("utf-8")):
             cb_args.pop(2)
-            path = re.search("\/.*", o[0].decode("utf-8")).group(0)
+            path = re.search(r"\/.*", o[0].decode("utf-8")).group(0)
             cb_args.append(path)
 
         cb_args.pop(0)

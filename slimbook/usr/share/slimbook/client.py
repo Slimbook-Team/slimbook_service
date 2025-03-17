@@ -601,8 +601,10 @@ class ReportDialog(Gtk.Window):
         vboxmv.set_margin_bottom(10)
 
         hboxmv = Gtk.HBox()
-        hboxmv.set_margin_start(5)
-        hboxmv.set_margin_end(5)
+        hboxmv.set_margin_start(10)
+        hboxmv.set_margin_end(10)
+        hboxmv.set_margin_top(15)
+        hboxmv.set_margin_bottom(15)
 
         self.path_label = Gtk.Label.new(self.path)
         vboxmv.pack_start(self.path_label, True, True, 4)
@@ -626,8 +628,10 @@ class ReportDialog(Gtk.Window):
         vboxev.set_margin_bottom(10)
 
         hboxev = Gtk.HBox()
-        hboxev.set_margin_start(5)
-        hboxev.set_margin_end(5)
+        hboxev.set_margin_start(10)
+        hboxev.set_margin_end(10)
+        hboxev.set_margin_top(15)
+        hboxev.set_margin_bottom(15)
 
         self.err_code = ""
 
@@ -655,6 +659,7 @@ class ReportDialog(Gtk.Window):
     def prog_bar_proc(self, args):
         if args[0] == True:
             self.path_label.set_label("Succesful! Dumped at " + self.path)
+            self.resize(200, 100)
             self.stack.set_visible_child_name("Message view")
             self.progress_bar.set_fraction(1.0)
         else:
@@ -663,6 +668,7 @@ class ReportDialog(Gtk.Window):
         if args[1] != "":
             self.err_code_label.set_label("Error! Report wasn't able to be generated\nError : " + self.err_code)
             self.stack.set_visible_child_name("Error view")
+            self.resize(200, 100)
             self.err_code = args[1]
 
         if args[2] != "":
