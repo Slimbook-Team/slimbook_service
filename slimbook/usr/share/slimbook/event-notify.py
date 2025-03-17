@@ -228,6 +228,14 @@ def main():
         
         logger.debug("event {0}".format(event))
         
+        if (family == slimbook.info.SLB_MODEL_EXCALIBUR):
+            if (event == common.SLB_EVENT_ENERGY_SAVER_MODE):
+                set_power_profile(common.POWER_PROFILE_POWER_SAVER)
+            elif (event == common.SLB_EVENT_BALANCED_MODE):
+                set_power_profile(common.POWER_PROFILE_BALANCED)
+            elif (event == common.SLB_EVENT_PERFORMANCE_MODE):
+                set_power_profile(common.POWER_PROFILE_PERFORMANCE)
+
         if (platform == slimbook.info.SLB_PLATFORM_QC71):
             
             if (module_loaded):
@@ -253,10 +261,13 @@ def main():
                     if (family == slimbook.info.SLB_MODEL_EVO or family == slimbook.info.SLB_MODEL_CREATIVE):
                         if (value == slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER):
                             event = common.SLB_EVENT_ENERGY_SAVER_MODE
+                            set_power_profile(common.POWER_PROFILE_POWER_SAVER)
                         elif (value == slimbook.info.SLB_QC71_PROFILE_BALANCED):
                             event = common.SLB_EVENT_BALANCED_MODE
+                            set_power_profile(common.POWER_PROFILE_BALANCED)
                         elif (value == slimbook.info.SLB_QC71_PROFILE_PERFORMANCE):
                             event = common.SLB_EVENT_PERFORMANCE_MODE
+                            set_power_profile(common.POWER_PROFILE_PERFORMANCE)
 
                 elif (event == common.SLB_EVENT_AC_OFFLINE):
                 
