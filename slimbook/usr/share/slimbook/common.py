@@ -62,6 +62,9 @@ SLB_EVENT_ENERGY_SAVER_MODE = 0x0700
 SLB_EVENT_BALANCED_MODE = 0x0800
 SLB_EVENT_PERFORMANCE_MODE = 0x0900
 
+SLB_EVENT_AC_OFFLINE = 0x1000
+SLB_EVENT_AC_ONLINE = 0x1100
+
 SLB_EVENT_DATA = {
     SLB_EVENT_QC71_SILENT_MODE_ON : [_("Silent Mode enabled"),"power-profile-power-saver-symbolic"],
     SLB_EVENT_QC71_SILENT_MODE_OFF : [_("Silent Mode disabled"),"power-profile-balanced-symbolic"],
@@ -96,6 +99,10 @@ PARAMS = {
             'show': True,
             'notifications' : True
             }
+
+POWER_PROFILE_POWER_SAVER = "power-saver"
+POWER_PROFILE_BALANCED = "balanced"
+POWER_PROFILE_PERFORMANCE = "performance"
 
 #set a default dark theme for kde
 xdg_current_desktop = os.environ.get("XDG_CURRENT_DESKTOP")
