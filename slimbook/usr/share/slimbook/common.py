@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import time
 import slimbook.info
 import slimbook.smbios
 
@@ -27,6 +28,8 @@ import locale
 import gettext
 import requests
 import re
+
+import signal
 
 try:
     current_locale, encoding = locale.getdefaultlocale()
@@ -502,27 +505,31 @@ def report_proc(self, glib_cb, cb, report_type):
         while(proc.poll() == None):
             glib_cb(cb, cb_args)  
 
-        if(proc.poll() != 0):
-            ret_code = proc.poll()
+        proc.wait()
 
-            match ret_code:
+        ret = proc.poll()
+
+        if(ret != 0):            
+            match ret:
                 #should never happen
                 case 1:
-                    cb_args[2] = "error"
-                case 129:
-                    cb_args[2] = "terminal disconnected (SIGHUP)"
+                    cb_args[1] = "error"
+                case -1:
+                    cb_args[1] = "terminal disconnected (SIGHUP)"
                 #should never happen
-                case 130:
-                    cb_args[2] = "process stopping by user(SIGINT)"
-                case 137:
-                    cb_args[2] = "process killed (SIGKILL)"
-                case 143:
-                    cb_args[2] = "process terminated (SIGTERM)"
-                case 147:
-                    cb_args[2] = "process stopped (SIGSTOP)"
+                case -2:
+                    cb_args[1] = "process stopping by user(SIGINT)"
+                #should never happen unless OOM?
+                case -9:
+                    cb_args[1] = "process killed (SIGKILL)"
+                case -15:
+                    cb_args[1] = "process terminated (SIGTERM)"
                 #should never happen
-                case 148:
-                    cb_args[2] = "process stopped by user (SIGSTP)"
+                case -19:
+                    cb_args[1] = "process stopped (SIGSTOP)"
+                #should never happen
+                case -20:
+                    cb_args[1] = "process stopped by user (SIGTSTP)"
 
         try:
             o = proc.communicate(timeout = 5) 
@@ -531,7 +538,7 @@ def report_proc(self, glib_cb, cb, report_type):
             o = proc.communicate()
             
         if re.search("\/.*", o[0].decode("utf-8")):
-            cb_args.pop(1)
+            cb_args.pop(2)
             path = re.search("\/.*", o[0].decode("utf-8")).group(0)
             cb_args.append(path)
 

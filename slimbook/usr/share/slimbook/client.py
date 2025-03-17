@@ -559,6 +559,7 @@ class ReportDialog(Gtk.Window):
 
         vboxrv = Gtk.VBox()
         vboxmv = Gtk.VBox()
+        vboxev = Gtk.VBox()
 
         # Report View
 
@@ -616,9 +617,36 @@ class ReportDialog(Gtk.Window):
         hboxmv.pack_start(self.close_btn, True, True, 4)
 
         vboxmv.pack_start(hboxmv, True, True, 4)
+
+        # Error view
+
+        vboxev.set_margin_start(20)
+        vboxev.set_margin_end(20)
+        vboxev.set_margin_top(10)
+        vboxev.set_margin_bottom(10)
+
+        hboxev = Gtk.HBox()
+        hboxev.set_margin_start(5)
+        hboxev.set_margin_end(5)
+
+        self.err_code = ""
+
+        self.err_code_label = Gtk.Label.new(self.err_code)
+
+        vboxev.pack_start(self.err_code_label, True, True, 4)
+
+        self.close_btn_err = Gtk.Button.new_with_label(_('Close'))
+        self.close_btn_err.connect("clicked", self.on_close_button)
+
+        hboxev.pack_start(self.close_btn_err, True, True, 4)
+
+        vboxev.pack_start(hboxev, True, True, 4)
+
         self.stack.add_named(vboxrv, name = "Report view")
 
         self.stack.add_named(vboxmv, name = "Message view")
+
+        self.stack.add_named(vboxev, name = "Error view")
 
         self.add(self.stack)
 
@@ -633,7 +661,13 @@ class ReportDialog(Gtk.Window):
             self.progress_bar.pulse()
         
         if args[1] != "":
-            self.path = args[1]
+            self.err_code_label.set_label("Error! Report wasn't able to be generated\nError : " + self.err_code)
+            self.stack.set_visible_child_name("Error view")
+            self.err_code = args[1]
+
+        if args[2] != "":
+            self.path = args[2]
+
 
     def on_report_button_common(self, widget, str):
         self.bar_thread = ReportThread(self.prog_bar_proc, str)
