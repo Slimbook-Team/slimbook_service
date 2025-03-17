@@ -29,6 +29,7 @@ import gi
 
 import logging
 import threading
+import subprocess
 import os
 import sys
 import shutil
@@ -39,6 +40,7 @@ import time
 import signal
 import fnmatch
 from optparse import OptionParser
+
 
 try:
     gi.require_version('Gtk', '3.0')
@@ -408,6 +410,11 @@ class ServiceIndicator(Gio.Application):
         menu.append(separator)
         menu.append(about_item)
 
+        self.report = Gtk.MenuItem.new_with_label(_('Generate report'))
+        self.report.connect('activate', self.on_report_item)
+        self.report.show()
+        menu.append(self.report)
+
         bug_item = Gtk.MenuItem(label=_(
             'Report a bug...'))
         bug_item.connect(
@@ -500,13 +507,17 @@ this program. If not, see <http://www.gnu.org/licenses/>.
             self.about_dialog.destroy()
             self.about_dialog = None
 
+    def on_report_item(self, widget, data=None):
+        self.show_report()
+        widget.set_sensitive(True)
+
     # Interface and Method
 
     def on_news_delete_event(self, window, event):
         self.menu_news.set_sensitive(True)
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE) if self.show else self.indicator.set_status(
             appindicator.IndicatorStatus.PASSIVE)
-    
+
     def on_preferences_close(self, *args):
         self.menu_preferences.set_sensitive(True)
         self.read_preferences()
@@ -518,7 +529,187 @@ this program. If not, see <http://www.gnu.org/licenses/>.
         self.menu_preferences.set_sensitive(False)
         preferences_dialog = PreferencesDialog()
         preferences_dialog.connect("preferences-close",self.on_preferences_close)
+
+    def show_report(self):
+        self.report.set_sensitive(False)
+        report_dialog = ReportDialog()
+
+class ReportDialog(Gtk.Window):
+    def __init__(self):
+        Gtk.Window.__init__(self)
+        self.set_default_size(600, 100)
+        self.set_modal(True)
+
+        self.path = ""
+        self.has_ended = False
+
+        self.connect('delete-event',self.on_report_delete_event)
+                
+        self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
+        self.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(
+            common.ICON, 64, 64, True))
+
+        header = Gtk.HeaderBar()
+        header.set_title(_('Generate report'))
+        header.set_show_close_button(True)
+
+        self.set_titlebar(header)
+
+        self.stack = Gtk.Stack()
+
+        vboxrv = Gtk.VBox()
+        vboxmv = Gtk.VBox()
+        vboxev = Gtk.VBox()
+
+        # Report View
+
+        vboxrv.set_margin_start(20)
+        vboxrv.set_margin_end(20)
+        vboxrv.set_margin_top(10)
+        vboxrv.set_margin_bottom(10)
+
+        hboxrv = Gtk.HBox()
+        hboxrv.set_margin_start(5)
+        hboxrv.set_margin_end(5)
+
+        report_desc = Gtk.Label.new("This is a report of several hardware and software stats.\nFull report generates a report with sensitive information,\nbeware of sharing it online!")
+
+        vboxrv.pack_start(report_desc, True, True, 4)
+
+        self.progress_bar = Gtk.ProgressBar()
+        self.progress_bar.set_text("")
+        self.progress_bar.set_show_text(True)
+
+        vboxrv.pack_start(self.progress_bar, True, True, 4)
+
+        self.normal_report_btn = Gtk.Button.new_with_label(_("Report"))
+        self.normal_report_btn.connect("clicked",self.on_report_button)
+
+        self.full_report_btn = Gtk.Button.new_with_label(_("Full report"))
+        self.full_report_btn.connect("clicked",self.on_full_report_button)
+
+        hboxrv.pack_start(self.normal_report_btn, True, True, 4)
+        hboxrv.pack_start(self.full_report_btn, True, True, 4)
         
+        vboxrv.pack_start(hboxrv, True, True, 4)
+
+        # Message View
+
+        vboxmv.set_margin_start(20)
+        vboxmv.set_margin_end(20)
+        vboxmv.set_margin_top(10)
+        vboxmv.set_margin_bottom(10)
+
+        hboxmv = Gtk.HBox()
+        hboxmv.set_margin_start(10)
+        hboxmv.set_margin_end(10)
+        hboxmv.set_margin_top(15)
+        hboxmv.set_margin_bottom(15)
+
+        self.path_label = Gtk.Label.new(self.path)
+        vboxmv.pack_start(self.path_label, True, True, 4)
+
+        self.open_btn = Gtk.Button.new_with_label(_('Open'))
+        self.open_btn.connect("clicked", self.on_open_button)
+
+        self.close_btn = Gtk.Button.new_with_label(_('Close'))
+        self.close_btn.connect("clicked", self.on_close_button)
+
+        hboxmv.pack_start(self.open_btn, True, True, 4)
+        hboxmv.pack_start(self.close_btn, True, True, 4)
+
+        vboxmv.pack_start(hboxmv, True, True, 4)
+
+        # Error view
+
+        vboxev.set_margin_start(20)
+        vboxev.set_margin_end(20)
+        vboxev.set_margin_top(10)
+        vboxev.set_margin_bottom(10)
+
+        hboxev = Gtk.HBox()
+        hboxev.set_margin_start(10)
+        hboxev.set_margin_end(10)
+        hboxev.set_margin_top(15)
+        hboxev.set_margin_bottom(15)
+
+        self.err_code = ""
+
+        self.err_code_label = Gtk.Label.new(self.err_code)
+
+        vboxev.pack_start(self.err_code_label, True, True, 4)
+
+        self.close_btn_err = Gtk.Button.new_with_label(_('Close'))
+        self.close_btn_err.connect("clicked", self.on_close_button)
+
+        hboxev.pack_start(self.close_btn_err, True, True, 4)
+
+        vboxev.pack_start(hboxev, True, True, 4)
+
+        self.stack.add_named(vboxrv, name = "Report view")
+
+        self.stack.add_named(vboxmv, name = "Message view")
+
+        self.stack.add_named(vboxev, name = "Error view")
+
+        self.add(self.stack)
+
+        self.show_all()
+
+    def prog_bar_proc(self, args):
+        if args[0] == True:
+            self.path_label.set_label("Succesful! Dumped at " + self.path)
+            self.resize(200, 100)
+            self.stack.set_visible_child_name("Message view")
+            self.progress_bar.set_fraction(1.0)
+        else:
+            self.progress_bar.pulse()
+        
+        if args[1] != "":
+            self.err_code_label.set_label("Error! Report wasn't able to be generated\nError : " + self.err_code)
+            self.stack.set_visible_child_name("Error view")
+            self.resize(200, 100)
+            self.err_code = args[1]
+
+        if args[2] != "":
+            self.path = args[2]
+
+
+    def on_report_button_common(self, widget, str):
+        self.bar_thread = ReportThread(self.prog_bar_proc, str)
+        self.bar_thread.start()
+        self.disable_buttons()
+
+    def on_report_button(self, widget):
+        self.on_report_button_common(widget, "report")
+
+    def on_full_report_button(self, widget):
+        self.on_report_button_common(widget, "report-full")
+
+    def disable_buttons(self):
+        self.normal_report_btn.set_sensitive(False)
+        self.full_report_btn.set_sensitive(False)  
+
+    def on_close_button(self, widget):
+        self.close()
+    
+    def on_open_button(self, widget):
+        subprocess.Popen(["xdg-open", (self.path)[:-7]])
+
+
+    def on_report_delete_event(self, window, event):
+        self.set_sensitive(False)
+
+class ReportThread(threading.Thread):
+    def __init__(self, cb, report_type):
+        threading.Thread.__init__(self)
+        self.callback = cb
+        self.report_type = report_type
+
+    def run(self):
+        common.report_proc(self, GLib.idle_add, self.callback, self.report_type)
+
+
 class PreferencesDialog(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self)
