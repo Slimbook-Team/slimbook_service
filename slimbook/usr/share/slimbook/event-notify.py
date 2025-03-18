@@ -275,6 +275,16 @@ def main():
                         slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
                         event = common.SLB_EVENT_QC71_DYNAMIC_MODE
 
+                if (family == slimbook.info.SLB_MODEL_HERO or
+                    family == slimbook.info.SLB_MODEL_TITAN):
+
+                    if (event == common.SLB_EVENT_QC71_SILENT_MODE):
+                        set_power_profile(common.POWER_PROFILE_POWER_SAVER)
+                    elif (event == common.SLB_EVENT_QC71_NORMAL_MODE):
+                        set_power_profile(common.POWER_PROFILE_BALANCED)
+                    elif (event == common.SLB_EVENT_QC71_PERFORMANCE_MODE):
+                        set_power_profile(common.POWER_PROFILE_PERFORMANCE)
+
         if (event == common.SLB_EVENT_TOUCHPAD_CHANGED):
             if (tpad.valid()):
                 tpad.toggle()
