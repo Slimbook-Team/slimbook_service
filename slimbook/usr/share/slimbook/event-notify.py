@@ -26,6 +26,7 @@ import slimbook.qc71
 
 import zmq
 import evdev
+import pyudev
 
 import subprocess
 from datetime import datetime
@@ -47,6 +48,39 @@ os.chmod(common.SLB_IPC_PATH, 0o777)
 
 slb_events = queue.Queue()
 
+def set_power_profile(profile):
+    subprocess.run(["powerprofilesctl","set",profile])
+
+def get_udev_ac_status(device):
+    try:
+        ps_type = device.get("POWER_SUPPLY_TYPE")
+        ps_online = device.get("POWER_SUPPLY_ONLINE")
+        
+        if (ps_type and ps_online):
+            if (ps_type == "Mains"):
+                return int(ps_online)
+    except:
+        pass
+    
+    return -1
+    
+def udev_worker():
+    context = pyudev.Context()
+    
+    for device in context.list_devices(subsystem="power_supply"):
+        status = get_udev_ac_status(device)
+        if (status >=0):
+            logger.info("AC status:{0}".format(status))
+            slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
+    
+    monitor = pyudev.Monitor.from_netlink(context)
+    monitor.filter_by('power_supply')
+    for device in iter(monitor.poll, None):
+        status = get_udev_ac_status(device)
+        if (status >=0):
+            logger.info("AC status:{0}".format(status))
+            slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
+        
 def keyboard_worker():
     
     device_path = "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
@@ -126,15 +160,18 @@ def send_notify(code):
     socket.send_json(data)
     
 def main():
+    logger.info("Slimbook service")
 
+    udev_thread = threading.Thread(
+            name='slimbook.service.udev', target=udev_worker)
+    udev_thread.start()
+        
     tpad = touchpad.Touchpad()
     if (tpad.valid()):
         tpad_mode_name = {touchpad.Touchpad.MODE_HIDRAW:"hidraw",touchpad.Touchpad.MODE_EVDEV:"evdev"}
         logger.info("Found a touchpad device of type {0}".format(tpad_mode_name[tpad.mode]))
     
     keyboard_platforms = [slimbook.info.SLB_PLATFORM_Z16,slimbook.info.SLB_PLATFORM_HMT16]
-
-    logger.info("Slimbook service")
     
     model = slimbook.info.get_model()
     platform = slimbook.info.get_platform()
@@ -154,7 +191,6 @@ def main():
             logger.warning("Unknown model:")
             logger.warning("Product:[{0}]".format(slimbook.info.product_name()))
             logger.warning("Vendor:[{0}]".format(slimbook.info.board_vendor()))
-    
     
     module_loaded = slimbook.info.is_module_loaded()
     
@@ -192,6 +228,14 @@ def main():
         
         logger.debug("event {0}".format(event))
         
+        if (family == slimbook.info.SLB_MODEL_EXCALIBUR):
+            if (event == common.SLB_EVENT_ENERGY_SAVER_MODE):
+                set_power_profile(common.POWER_PROFILE_POWER_SAVER)
+            elif (event == common.SLB_EVENT_BALANCED_MODE):
+                set_power_profile(common.POWER_PROFILE_BALANCED)
+            elif (event == common.SLB_EVENT_PERFORMANCE_MODE):
+                set_power_profile(common.POWER_PROFILE_PERFORMANCE)
+
         if (platform == slimbook.info.SLB_PLATFORM_QC71):
             
             if (module_loaded):
@@ -202,22 +246,44 @@ def main():
                     else:
                         event = common.SLB_EVENT_QC71_SUPER_LOCK_OFF
                 
+                # General Performance event on QC71
                 elif (event == common.SLB_EVENT_QC71_SILENT_MODE_CHANGED):
                     value = slimbook.qc71.profile_get()
                     
                     if (family == slimbook.info.SLB_MODEL_PROX or family == slimbook.info.SLB_MODEL_EXECUTIVE):
                         if (value == slimbook.info.SLB_QC71_PROFILE_SILENT):
                             event = common.SLB_EVENT_QC71_SILENT_MODE_ON
+                            set_power_profile(common.POWER_PROFILE_POWER_SAVER)
                         else:
                             event = common.SLB_EVENT_QC71_SILENT_MODE_OFF
-
+                            set_power_profile(common.POWER_PROFILE_BALANCED)
+                        
                     if (family == slimbook.info.SLB_MODEL_EVO or family == slimbook.info.SLB_MODEL_CREATIVE):
                         if (value == slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER):
                             event = common.SLB_EVENT_ENERGY_SAVER_MODE
+                            set_power_profile(common.POWER_PROFILE_POWER_SAVER)
                         elif (value == slimbook.info.SLB_QC71_PROFILE_BALANCED):
                             event = common.SLB_EVENT_BALANCED_MODE
+                            set_power_profile(common.POWER_PROFILE_BALANCED)
                         elif (value == slimbook.info.SLB_QC71_PROFILE_PERFORMANCE):
                             event = common.SLB_EVENT_PERFORMANCE_MODE
+                            set_power_profile(common.POWER_PROFILE_PERFORMANCE)
+
+                elif (event == common.SLB_EVENT_AC_OFFLINE):
+                
+                    if (family == slimbook.info.SLB_MODEL_CREATIVE):
+                        slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
+                        event = common.SLB_EVENT_QC71_DYNAMIC_MODE
+
+                if (family == slimbook.info.SLB_MODEL_HERO or
+                    family == slimbook.info.SLB_MODEL_TITAN):
+
+                    if (event == common.SLB_EVENT_QC71_SILENT_MODE):
+                        set_power_profile(common.POWER_PROFILE_POWER_SAVER)
+                    elif (event == common.SLB_EVENT_QC71_NORMAL_MODE):
+                        set_power_profile(common.POWER_PROFILE_BALANCED)
+                    elif (event == common.SLB_EVENT_QC71_PERFORMANCE_MODE):
+                        set_power_profile(common.POWER_PROFILE_PERFORMANCE)
 
         if (event == common.SLB_EVENT_TOUCHPAD_CHANGED):
             if (tpad.valid()):

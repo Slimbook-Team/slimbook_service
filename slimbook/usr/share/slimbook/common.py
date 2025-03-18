@@ -26,6 +26,8 @@ import subprocess
 import locale
 import gettext
 import requests
+import re
+import signal
 
 try:
     current_locale, encoding = locale.getdefaultlocale()
@@ -46,6 +48,7 @@ SLB_EVENT_QC71_SUPER_LOCK_OFF = 0x05
 SLB_EVENT_QC71_SILENT_MODE = 0x06
 SLB_EVENT_QC71_NORMAL_MODE = 0x07
 SLB_EVENT_QC71_PERFORMANCE_MODE = 0x08
+SLB_EVENT_QC71_DYNAMIC_MODE = 0x09
 
 #this events are shared on several platforms and no longer are qc71 exclusive
 SLB_EVENT_TOUCHPAD_CHANGED = 0x0100
@@ -59,6 +62,9 @@ SLB_EVENT_ENERGY_SAVER_MODE = 0x0700
 SLB_EVENT_BALANCED_MODE = 0x0800
 SLB_EVENT_PERFORMANCE_MODE = 0x0900
 
+SLB_EVENT_AC_OFFLINE = 0x1000
+SLB_EVENT_AC_ONLINE = 0x1100
+
 SLB_EVENT_DATA = {
     SLB_EVENT_QC71_SILENT_MODE_ON : [_("Silent Mode enabled"),"power-profile-power-saver-symbolic"],
     SLB_EVENT_QC71_SILENT_MODE_OFF : [_("Silent Mode disabled"),"power-profile-balanced-symbolic"],
@@ -71,7 +77,8 @@ SLB_EVENT_DATA = {
     SLB_EVENT_QC71_SILENT_MODE : [_("Silent Mode"),"power-profile-power-saver-symbolic"],
     SLB_EVENT_QC71_NORMAL_MODE : [_("Normal Mode"),"power-profile-balanced-symbolic"],
     SLB_EVENT_QC71_PERFORMANCE_MODE : [_("Performance Mode"),"power-profile-performance-symbolic"],
-    
+    SLB_EVENT_QC71_DYNAMIC_MODE : [_("Dynamic Mode"),"power-profile-power-saver-symbolic"],
+
     SLB_EVENT_TOUCHPAD_ON : [_("Touchpad enabled"),"input-touchpad-symbolic"],
     SLB_EVENT_TOUCHPAD_OFF : [_("Touchpad disabled"),"input-touchpad-symbolic"],
     SLB_EVENT_TOUCHPAD_CHANGED : [_("Touchpad changed"),"input-touchpad-symbolic"],
@@ -92,6 +99,10 @@ PARAMS = {
             'show': True,
             'notifications' : True
             }
+
+POWER_PROFILE_POWER_SAVER = "power-saver"
+POWER_PROFILE_BALANCED = "balanced"
+POWER_PROFILE_PERFORMANCE = "performance"
 
 #set a default dark theme for kde
 xdg_current_desktop = os.environ.get("XDG_CURRENT_DESKTOP")
@@ -491,3 +502,51 @@ def download_feed():
     f.write(r.content)
     f.close()
 
+def report_proc(self, glib_cb, cb, report_type):
+        proc = subprocess.Popen(["slimbookctl", report_type], stdout= subprocess.PIPE, stderr= subprocess.PIPE)
+        cb_args = [False, "", ""]
+
+        while(proc.poll() == None):
+            glib_cb(cb, cb_args)  
+
+        proc.wait()
+
+        ret = proc.poll()
+
+        if(ret != 0):            
+            match ret:
+                #should never happen
+                case 1:
+                    cb_args[1] = "error"
+                case -1:
+                    cb_args[1] = "terminal disconnected (SIGHUP)"
+                #should never happen
+                case -2:
+                    cb_args[1] = "process stopping by user(SIGINT)"
+                #should never happen unless OOM?
+                case -9:
+                    cb_args[1] = "process killed (SIGKILL)"
+                case -15:
+                    cb_args[1] = "process terminated (SIGTERM)"
+                #should never happen
+                case -19:
+                    cb_args[1] = "process stopped (SIGSTOP)"
+                #should never happen
+                case -20:
+                    cb_args[1] = "process stopped by user (SIGTSTP)"
+
+        try:
+            o = proc.communicate(timeout = 5) 
+        except TimeoutExpired:
+            proc.kill()
+            o = proc.communicate()
+            
+        if re.search(r"\/.*", o[0].decode("utf-8")):
+            cb_args.pop(2)
+            path = re.search(r"\/.*", o[0].decode("utf-8")).group(0)
+            cb_args.append(path)
+
+        cb_args.pop(0)
+        cb_args.insert(0, True)
+
+        glib_cb(cb, cb_args)  
