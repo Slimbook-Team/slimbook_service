@@ -213,7 +213,12 @@ class ServiceIndicator(Gio.Application):
     
         while self.poller.poll(timeout = 50):
             data = self.socket.recv_json()
-            event = common.SLB_EVENT_DATA[data["code"]]
+            code = data.get("code")
+            event = common.SLB_EVENT_DATA.get(code)
+            # avoid crashing on unhandled event codes
+            if (event == None):
+                continue
+            
             self.message("Slimbook",event[0],event[1])
         
         return True

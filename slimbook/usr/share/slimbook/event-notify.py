@@ -228,6 +228,10 @@ def main():
         
         logger.debug("event {0}".format(event))
         
+        # no need to bother user with this event as it is already notified elsewhere
+        if (event == common.SLB_EVENT_AC_OFFLINE or event == common.SLB_EVENT_AC_ONLINE):
+            continue
+        
         if (family == slimbook.info.SLB_MODEL_EXCALIBUR):
             if (event == common.SLB_EVENT_ENERGY_SAVER_MODE):
                 set_power_profile(common.POWER_PROFILE_POWER_SAVER)

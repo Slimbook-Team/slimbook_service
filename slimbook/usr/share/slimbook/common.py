@@ -110,7 +110,7 @@ if xdg_current_desktop == "KDE":
     PARAMS['theme'] = 'dark'
 
 APP = 'slimbook'
-VERSION = '0.6'
+VERSION = '0.8'
 APPCONF = APP + '.conf'
 APPDATA = APP + '.data'
 APPNAME = 'Slimbook Service'
