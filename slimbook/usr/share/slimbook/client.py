@@ -699,7 +699,7 @@ class ReportDialog(Gtk.Window):
         self.close()
     
     def on_open_button(self, widget):
-        subprocess.Popen(["xdg-open", (self.path)[:-7]])
+        subprocess.Popen(["xdg-open", (self.path)[:-42]])
 
 
     def on_report_delete_event(self, window, event):
