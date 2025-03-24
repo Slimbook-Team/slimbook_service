@@ -42,14 +42,26 @@ logging.basicConfig(format='%(levelname)s-%(message)s')
 logger.setLevel(logging.INFO)
 
 context = zmq.Context()
-socket = context.socket(zmq.PUB)
-socket.bind("ipc://{0}".format(common.SLB_IPC_PATH))
+socket_out = context.socket(zmq.PUB)
+socket_out.bind("ipc://{0}".format(common.SLB_IPC_PATH))
 os.chmod(common.SLB_IPC_PATH, 0o777)
+
+socket_ctl = context.socket(zmq.REP)
+#socket_ctl.setsockopt_string(zmq.SUBSCRIBE, "")
+#socket_ctl.setsockopt(zmq.SUBSCRIBE, b'')
+socket_ctl.bind("ipc://{0}".format(common.SLB_IPC_CTL_PATH))
+os.chmod(common.SLB_IPC_CTL_PATH, 0o777)
 
 slb_events = queue.Queue()
 
+settings = {
+    common.OPT_TRACKPAD_LOCK: True,
+    common.OPT_POWER_PROFILE: True
+}
+
 def set_power_profile(profile):
-    subprocess.run(["powerprofilesctl","set",profile])
+    if (settings[common.OPT_POWER_PROFILE]):
+        subprocess.run(["powerprofilesctl","set",profile])
 
 def get_udev_ac_status(device):
     try:
@@ -80,7 +92,28 @@ def udev_worker():
         if (status >=0):
             logger.info("AC status:{0}".format(status))
             slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
+
+def zmq_worker():
+    
+    while True: 
+        if (socket_ctl.poll(timeout = 100) == 0):
+            continue
+        data = socket_ctl.recv_json()
         
+        cmd = data.get("cmd")
+        
+        if (cmd and cmd == common.CMD_LOAD_SETTINGS):
+            
+            keys = data.get("settings")
+            if (keys):
+                logger.info("Updating settings...")
+                for k in keys:
+                    logger.info("{0}={1}".format(k,keys[k]))
+                    settings[k] = keys[k]
+                
+        
+        socket_ctl.send_json({})
+    
 def keyboard_worker():
     
     device_path = "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
@@ -157,11 +190,15 @@ def send_notify(code):
     dt = datetime.now()
     ts = datetime.timestamp(dt)
     data = {"code": code, "timestamp": ts}
-    socket.send_json(data)
+    socket_out.send_json(data)
     
 def main():
     logger.info("Slimbook service")
 
+    zmq_thread = threading.Thread(
+            name='slimbook.service.zmq', target=zmq_worker)
+    zmq_thread.start()
+    
     udev_thread = threading.Thread(
             name='slimbook.service.udev', target=udev_worker)
     udev_thread.start()
@@ -290,6 +327,9 @@ def main():
                         set_power_profile(common.POWER_PROFILE_PERFORMANCE)
 
         if (event == common.SLB_EVENT_TOUCHPAD_CHANGED):
+            if (not settings[common.OPT_TRACKPAD_LOCK]):
+                continue
+            
             if (tpad.valid()):
                 tpad.toggle()
                 state = tpad.get_state()

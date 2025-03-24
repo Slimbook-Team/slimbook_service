@@ -82,6 +82,19 @@ logging.basicConfig(
     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
 )
 
+zmq_context = zmq.Context()
+
+def update_server_settings(settings):
+    logging.info("Updating server settings...")
+    socket = zmq_context.socket(zmq.REQ)
+    socket.connect("ipc://{0}".format(common.SLB_IPC_CTL_PATH))
+    
+    data = {}
+    data["cmd"] = common.CMD_LOAD_SETTINGS
+    data["settings"] = settings
+    socket.send_json(data)
+    socket.close()
+        
 class Feed:
 
     def __init__(self, entry):
@@ -179,8 +192,7 @@ class ServiceIndicator(Gio.Application):
         GObject.signal_new('feed-update-complete', ServiceIndicator, GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_BOOLEAN,))
         
         #set up zmq
-        context = zmq.Context()
-        self.socket = context.socket(zmq.SUB)
+        self.socket = zmq_context.socket(zmq.SUB)
         self.socket.connect("ipc://{0}".format(common.SLB_IPC_PATH))
         self.socket.setsockopt_string(zmq.SUBSCRIBE, "")
         self.poller = zmq.Poller()
@@ -383,6 +395,15 @@ class ServiceIndicator(Gio.Application):
         self.show = configuration.get('show')
         self.notifications_enabled = configuration.get('notifications')
         
+        # push settings to server
+        settings = {}
+        
+        for key in [common.OPT_TRACKPAD_LOCK,common.OPT_POWER_PROFILE]:
+            value = configuration.get(key)
+            if (not value == None):
+                settings[key] = value
+        
+        update_server_settings(settings)
 
     def get_menu(self):
         """Create and populate the menu."""
@@ -755,6 +776,7 @@ class PreferencesDialog(Gtk.Window):
         self.switch1 = Gtk.Switch()
         table1.attach(self.switch1, 1, 2, 7, 8, xpadding=15, ypadding=15,
                       xoptions=Gtk.AttachOptions.SHRINK)
+        
         label2 = Gtk.Label(label=_('Light-mode Icon') + ':')
         label2.set_halign(Gtk.Align.CENTER)
         table1.attach(label2, 0, 1, 8, 9, xpadding=15, ypadding=15)
@@ -769,6 +791,20 @@ class PreferencesDialog(Gtk.Window):
         table1.attach(self.switch3, 1, 2, 9, 10, xpadding=15, ypadding=15,
                       xoptions=Gtk.AttachOptions.SHRINK)
         
+        label4 = Gtk.Label(label=_('Trackpad lock') + ':')
+        label4.set_halign(Gtk.Align.CENTER)
+        table1.attach(label4, 0, 1, 10, 11, xpadding=15, ypadding=15)
+        self.switch4 = Gtk.Switch()
+        table1.attach(self.switch4, 1, 2, 10, 11, xpadding=15, ypadding=15,
+                      xoptions=Gtk.AttachOptions.SHRINK)
+        
+        label5 = Gtk.Label(label=_('Set power profile') + ':')
+        label5.set_halign(Gtk.Align.CENTER)
+        table1.attach(label5, 0, 1, 11, 12, xpadding=15, ypadding=15)
+        self.switch5 = Gtk.Switch()
+        table1.attach(self.switch5, 1, 2, 11, 12, xpadding=15, ypadding=15,
+                      xoptions=Gtk.AttachOptions.SHRINK)
+        
         self.load_preferences()
         
         self.changes = False
@@ -776,6 +812,8 @@ class PreferencesDialog(Gtk.Window):
         self.switch1.connect('state-set',self.on_switch_state_set)
         self.switch2.connect('state-set',self.on_switch_state_set)
         self.switch3.connect('state-set',self.on_switch_state_set)
+        self.switch4.connect('state-set',self.on_switch_state_set)
+        self.switch5.connect('state-set',self.on_switch_state_set)
         
         self.show_all()
 
@@ -806,7 +844,9 @@ class PreferencesDialog(Gtk.Window):
         self.switch1.set_active(os.path.exists(common.FILE_AUTO_START))
         self.switch2.set_active(configuration.get('theme') == 'light')
         self.switch3.set_active(configuration.get('notifications') == True)
-
+        self.switch4.set_active(configuration.get('trackpad-lock') == True)
+        self.switch5.set_active(configuration.get('power-profile') == True)
+    
     def save_preferences(self):
 
         configuration = Configuration()
@@ -821,9 +861,15 @@ class PreferencesDialog(Gtk.Window):
             configuration.set('theme', 'dark')
         
         configuration.set('notifications', self.switch3.get_active())
+        configuration.set('trackpad-lock', self.switch4.get_active())
+        configuration.set('power-profile', self.switch5.get_active())
         configuration.save()
-
-
+        
+        settings = {}
+        settings[common.OPT_TRACKPAD_LOCK] = self.switch4.get_active()
+        settings[common.OPT_POWER_PROFILE] = self.switch5.get_active()
+        update_server_settings(settings)
+        
 class SystemInfoDialog(Gtk.Dialog):
 
     def __init__(self,info):
