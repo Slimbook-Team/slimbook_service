@@ -1,3 +1,10 @@
+slimbook (0.8.1.0) noble; urgency=medium
+
+  * Fixed report open folder
+  * User can turn on/off trackpad lock and system power profile changes
+
+ -- slimbook <dev@slimbook.es>  Tue, 25 Mar 2025 13:53:28 +0100
+
 slimbook (0.8.0.0) noble; urgency=medium
 
   * Fixed desktop with a better description
