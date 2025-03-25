@@ -97,12 +97,19 @@ PARAMS = {
             'autostart': True,
             'theme': 'light',
             'show': True,
-            'notifications' : True
+            'notifications' : True,
+            'trackpad-lock' : True,
+            'power-profile' : True
             }
 
 POWER_PROFILE_POWER_SAVER = "power-saver"
 POWER_PROFILE_BALANCED = "balanced"
 POWER_PROFILE_PERFORMANCE = "performance"
+
+OPT_TRACKPAD_LOCK = "trackpad-lock"
+OPT_POWER_PROFILE = "power-profile"
+
+CMD_LOAD_SETTINGS = "cmd-load"
 
 #set a default dark theme for kde
 xdg_current_desktop = os.environ.get("XDG_CURRENT_DESKTOP")
@@ -110,7 +117,7 @@ if xdg_current_desktop == "KDE":
     PARAMS['theme'] = 'dark'
 
 APP = 'slimbook'
-VERSION = '0.6'
+VERSION = '0.8'
 APPCONF = APP + '.conf'
 APPDATA = APP + '.data'
 APPNAME = 'Slimbook Service'
@@ -125,7 +132,8 @@ FILE_AUTO_START = os.path.join(AUTOSTART_DIR,
 SLB_FEED_URL = "https://github.com/Slimbook-Team/slimbook-notifications-feed/raw/main/slb-rss-{0}.xml"
 SLB_CACHE_PATH = os.path.expanduser("~/.cache/slimbook-service/")
 
-SLB_IPC_PATH = "/var/run/slimbook-service.socket"
+SLB_IPC_PATH     = "/var/run/slimbook-service.socket"
+SLB_IPC_CTL_PATH = "/var/run/slimbook-service-ctl.socket"
 
 def is_package():
     return os.path.abspath(os.path.dirname(__file__)).startswith('/usr')
