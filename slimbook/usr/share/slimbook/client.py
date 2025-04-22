@@ -39,6 +39,8 @@ import hashlib
 import time
 import signal
 import fnmatch
+import datetime
+from dateutil import parser
 from optparse import OptionParser
 
 
@@ -280,15 +282,28 @@ class ServiceIndicator(Gio.Application):
         product = slimbook.info.product_name().lower().strip()
         sku = slimbook.info.product_sku().lower().strip()
         family = slimbook.info.get_family_name()
+        ec_firmware = slimbook.info.ec_firmware_release()
+        bios_version = slimbook.info.bios_version()
         logging.info("model:{0}".format(product))
         logging.info("sku:{0}".format(sku))
         logging.info("family:{0}".format(family))
+        logging.info("ec:{0}".format(ec_firmware))
+        logging.info("bios:{0}".format(bios_version))
         
         try:
             feed = feedparser.parse(os.path.expanduser("~/.cache/slimbook-service/sb-rss.xml"))
-        
+            now = datetime.datetime.now(datetime.timezone.utc)
+
             for entry in feed["entries"]:
                 nw = Feed(entry)
+                if nw.published:
+                    
+                    ptime = parser.parse(nw.published)
+                    delta = now - ptime
+                    
+                    if delta.days > 90:
+                        logging.info("feed is already +90 days old, ignoring it:{0}".format(nw.published))
+                        continue
                 
                 filters = 0
                 match = False
