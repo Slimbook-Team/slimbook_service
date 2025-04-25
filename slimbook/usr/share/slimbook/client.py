@@ -115,6 +115,15 @@ class Feed:
             self.icon = "dialog-information"
             
             self.cached = False
+            self.old = False
+            
+            if self.published:
+                now = datetime.datetime.now(datetime.timezone.utc)
+                ptime = parser.parse(self.published)
+                delta = now - ptime
+                self.old = delta.days > 90
+            else:
+                self.old = True
             
             if (entry.get("tags")):
                 for tag in entry.tags:
@@ -296,15 +305,6 @@ class ServiceIndicator(Gio.Application):
 
             for entry in feed["entries"]:
                 nw = Feed(entry)
-                if nw.published:
-                    
-                    ptime = parser.parse(nw.published)
-                    delta = now - ptime
-                    
-                    if delta.days > 90:
-                        logging.info("feed is already +90 days old, ignoring it:{0}".format(nw.published))
-                        continue
-                
                 filters = 0
                 match = False
                 
@@ -344,7 +344,7 @@ class ServiceIndicator(Gio.Application):
                 if (nw.link):
                     body = body + " " + nw.link
                 
-                if (nw.cached == False):
+                if (nw.cached == False and nw.old == False):
                     nt = Notify.Notification.new(nw.title, body, nw.icon)
                     nt.show()
                     
@@ -355,7 +355,6 @@ class ServiceIndicator(Gio.Application):
                 
         except Exception as e:
             logging.error(e)
-        
         
         if (warn_user):
             self.indicator.set_status(appindicator.IndicatorStatus.ATTENTION)
