@@ -117,7 +117,7 @@ if xdg_current_desktop == "KDE":
     PARAMS['theme'] = 'dark'
 
 APP = 'slimbook'
-VERSION = '0.8'
+VERSION = '0.8.2'
 APPCONF = APP + '.conf'
 APPDATA = APP + '.data'
 APPNAME = 'Slimbook Service'
@@ -160,6 +160,7 @@ STATUS_ICON['dark-attention'] = (os.path.join(ICONDIR, 'slimbook-status-attentio
 INFO_UPTIME = _("Uptime")
 INFO_MEM = _("Memory Free/Total")
 INFO_MEM_DEVICE = _("Memory device")
+INFO_UMA = _("UMA")
 INFO_DISK_DEVICE = _("Disk Free/Total")
 INFO_KERNEL = _("Kernel")
 INFO_OS = _("OS")
@@ -172,6 +173,7 @@ INFO_EC = _("EC Version")
 INFO_BOOT = _("Boot Mode")
 INFO_SB = _("Secure Boot")
 INFO_CPU = _("CPU")
+INFO_TDP = _("TDP")
 INFO_GPU = _("GPU")
 INFO_MODULE = _("Module loaded")
 INFO_FN_LOCK = _("Fn Lock")
@@ -335,6 +337,8 @@ def get_system_info():
     memory_devices = []
     disk_devices = []
     memory = ""
+    uma = ""
+    tdp = ""
     
     is_module = INFO_NO
     fn_lock = ""
@@ -384,7 +388,17 @@ def get_system_info():
 
             if (key == "profile"):
                 profile = value.capitalize()
+            
+            # warning, this case may change in the future
+            if (key == "UMA Framebuffer"):
+                uma = value
    
+            if (key == "TDP"):
+                tdp = value
+            
+            if (key.startswith("TDP sustained")):
+                tdp = value
+            
     info.append([INFO_MEM,memory])
     
     for d in disk_devices:
@@ -469,6 +483,8 @@ def get_system_info():
     except:
         pass
     
+    info.append([INFO_TDP,tdp])
+    
     try:
         for gpu in _get_gpu():
             info.append([INFO_GPU,gpu])
@@ -477,7 +493,8 @@ def get_system_info():
         
     for m in memory_devices:
         info.append([INFO_MEM_DEVICE,m])
-    
+        
+    info.append([INFO_UMA,uma])
         
     if (sb_platform != 0 ):
         info.append([INFO_MODULE,is_module])
