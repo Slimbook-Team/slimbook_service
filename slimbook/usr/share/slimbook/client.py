@@ -39,6 +39,8 @@ import hashlib
 import time
 import signal
 import fnmatch
+import datetime
+from dateutil import parser
 from optparse import OptionParser
 
 
@@ -113,6 +115,15 @@ class Feed:
             self.icon = "dialog-information"
             
             self.cached = False
+            self.old = False
+            
+            if self.published:
+                now = datetime.datetime.now(datetime.timezone.utc)
+                ptime = parser.parse(self.published)
+                delta = now - ptime
+                self.old = delta.days > 90
+            else:
+                self.old = True
             
             if (entry.get("tags")):
                 for tag in entry.tags:
@@ -280,16 +291,20 @@ class ServiceIndicator(Gio.Application):
         product = slimbook.info.product_name().lower().strip()
         sku = slimbook.info.product_sku().lower().strip()
         family = slimbook.info.get_family_name()
+        ec_firmware = slimbook.info.ec_firmware_release()
+        bios_version = slimbook.info.bios_version()
         logging.info("model:{0}".format(product))
         logging.info("sku:{0}".format(sku))
         logging.info("family:{0}".format(family))
+        logging.info("ec:{0}".format(ec_firmware))
+        logging.info("bios:{0}".format(bios_version))
         
         try:
             feed = feedparser.parse(os.path.expanduser("~/.cache/slimbook-service/sb-rss.xml"))
-        
+            now = datetime.datetime.now(datetime.timezone.utc)
+
             for entry in feed["entries"]:
                 nw = Feed(entry)
-                
                 filters = 0
                 match = False
                 
@@ -329,7 +344,7 @@ class ServiceIndicator(Gio.Application):
                 if (nw.link):
                     body = body + " " + nw.link
                 
-                if (nw.cached == False):
+                if (nw.cached == False and nw.old == False):
                     nt = Notify.Notification.new(nw.title, body, nw.icon)
                     nt.show()
                     
@@ -340,7 +355,6 @@ class ServiceIndicator(Gio.Application):
                 
         except Exception as e:
             logging.error(e)
-        
         
         if (warn_user):
             self.indicator.set_status(appindicator.IndicatorStatus.ATTENTION)
