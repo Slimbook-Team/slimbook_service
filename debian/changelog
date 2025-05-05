@@ -1,3 +1,9 @@
+slimbook (0.8.3.0) noble; urgency=medium
+
+  * Fixed family detection not being done on some models
+
+ -- slimbook <dev@slimbook.es>  Mon, 05 May 2025 20:28:14 +0200
+
 slimbook (0.8.2.0) noble; urgency=medium
 
   * Notifications older than three months do not pop up
