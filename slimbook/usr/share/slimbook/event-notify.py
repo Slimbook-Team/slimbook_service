@@ -212,7 +212,8 @@ def main():
     
     model = slimbook.info.get_model()
     platform = slimbook.info.get_platform()
-    
+    family = slimbook.info.get_family()
+
     logger.info("platform:{0:04x}".format(platform))
     logger.info("model:{0:04x}".format(model))
     
@@ -231,9 +232,7 @@ def main():
     
     module_loaded = slimbook.info.is_module_loaded()
     
-    if (platform == slimbook.info.SLB_PLATFORM_QC71):
-        family = slimbook.info.get_family()
-        
+    if (platform == slimbook.info.SLB_PLATFORM_QC71):        
         qc71_keyboard_thread = threading.Thread(
             name='slimbook.service.qc71.keyboard', target=keyboard_worker)
         qc71_keyboard_thread.start()
