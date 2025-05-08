@@ -61,7 +61,10 @@ settings = {
 
 def set_power_profile(profile):
     if (settings[common.OPT_POWER_PROFILE]):
-        subprocess.run(["powerprofilesctl","set",profile])
+        if (os.path.exists("/usr/bin/powerprofilesctl")):
+            subprocess.run(["powerprofilesctl","set",profile])
+        elif (os.path.exists("/usr/bin/tuned-adm")):
+            subprocess.run(["powerprofilesctl","profile",common.TUNED_PROFILE[profile])
 
 def get_udev_ac_status(device):
     try:
