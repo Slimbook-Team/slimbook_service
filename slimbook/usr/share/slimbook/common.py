@@ -106,6 +106,12 @@ POWER_PROFILE_POWER_SAVER = "power-saver"
 POWER_PROFILE_BALANCED = "balanced"
 POWER_PROFILE_PERFORMANCE = "performance"
 
+TUNED_PROFILE = {
+    POWER_PROFILE_POWER_SAVER : "powersave",
+    POWER_PROFILE_BALANCED : "balanced-battery",
+    POWER_PROFILE_PERFORMANCE : "throughput-performance"
+    }
+
 OPT_TRACKPAD_LOCK = "trackpad-lock"
 OPT_POWER_PROFILE = "power-profile"
 
