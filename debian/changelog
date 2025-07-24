@@ -1,3 +1,9 @@
+slimbook (0.8.5) noble; urgency=medium
+
+  * Added a scrollbar to system info dialog in order to fit on all screens
+
+ -- slimbook <dev@slimbook.es>  Thu, 24 Jul 2025 11:58:30 +0200
+
 slimbook (0.8.4) noble; urgency=medium
 
   * Using tuned where poweprofile is not available
