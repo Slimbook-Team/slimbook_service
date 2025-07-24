@@ -909,7 +909,7 @@ class SystemInfoDialog(Gtk.Dialog):
                 min-width: 600px;
             }
             '''
-        
+        self.resize(800,700)
         self.info = info
         
         provider = Gtk.CssProvider()
@@ -925,14 +925,16 @@ class SystemInfoDialog(Gtk.Dialog):
         btn_copy.connect("clicked",self.btn_copy_clicked)
         self.get_header_bar().pack_end(btn_copy)
         
-        vbox = Gtk.VBox(spacing = 12)
+        scrw = Gtk.ScrolledWindow()
+        scrw.set_border_width(12)
         listbox = Gtk.ListBox()
+        listbox.set_vexpand(True)
+        listbox.set_hexpand(True)
         
         listbox.set_selection_mode(Gtk.SelectionMode.NONE)
         
-        self.get_content_area().add(vbox)
-        vbox.pack_start(listbox,False,False,1)
-        vbox.set_border_width(16)
+        scrw.add(listbox)
+        self.get_content_area().add(scrw)
         
         for k in info:
             key = k[0]
