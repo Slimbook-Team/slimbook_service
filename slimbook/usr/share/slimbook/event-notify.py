@@ -39,7 +39,7 @@ import time
 
 logger = logging.getLogger("slimbook.service")
 logging.basicConfig(format='%(levelname)s-%(message)s')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 context = zmq.Context()
 socket_out = context.socket(zmq.PUB)
@@ -145,6 +145,7 @@ def keyboard_worker():
                 slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
             
             elif (event.value == slimbook.info.SLB_SCAN_QC71_SILENT_MODE):
+                logger.debug("qc71 performance change requested (i8042)")
                 slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
             
             elif (event.value == slimbook.info.SLB_SCAN_TOUCHPAD_SWITCH):
@@ -167,6 +168,7 @@ def qc71_module_worker():
             if (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F2):
                 slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
             elif (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F5):
+                logger.debug("qc71 performance change requested")
                 slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
             elif (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F12):
                 slb_events.put(common.SLB_EVENT_WEBCAM_CHANGED)
@@ -241,6 +243,9 @@ def main():
         qc71_keyboard_thread.start()
             
         if (module_loaded):
+            logger.info("Setting qc71 manual mode")
+            slimbook.qc71.manual_control_set(True)
+            
             qc71_module_thread = threading.Thread(
                 name='slimbook.service.qc71.module', target=qc71_module_worker)
             qc71_module_thread.start()
@@ -292,6 +297,7 @@ def main():
                 # General Performance event on QC71
                 elif (event == common.SLB_EVENT_QC71_SILENT_MODE_CHANGED):
                     value = slimbook.qc71.profile_get()
+                    logger.debug("current performance:{0}".format(common.POWER_PROFILE_NAME[value]))
                     
                     if (family == slimbook.info.SLB_MODEL_PROX or family == slimbook.info.SLB_MODEL_EXECUTIVE):
                         if (value == slimbook.info.SLB_QC71_PROFILE_SILENT):
