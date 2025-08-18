@@ -88,14 +88,25 @@ def udev_worker():
             logger.info("AC status:{0}".format(status))
             slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
     
+    for device in context.list_devices(subsystem="input"):
+        print(device.action)
+        print(device.get("ID_PATH"))
+        print(device.subsystem)
+        print(device.sys_path)
+        print()
+    
     monitor = pyudev.Monitor.from_netlink(context)
-    monitor.filter_by('power_supply')
+    #monitor.filter_by('power_supply')
     for device in iter(monitor.poll, None):
-        status = get_udev_ac_status(device)
-        if (status >=0):
-            logger.info("AC status:{0}".format(status))
-            slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
-
+        if device.subsystem == "power_supply":
+            status = get_udev_ac_status(device)
+            if (status >=0):
+                logger.info("AC status:{0}".format(status))
+                slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
+        elif device.subsystem == "input":
+            print(device.action)
+            print(device.sys_path)
+            
 def zmq_worker():
     
     while True: 
@@ -173,24 +184,6 @@ def qc71_module_worker():
             elif (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F12):
                 slb_events.put(common.SLB_EVENT_WEBCAM_CHANGED)
     
-def titan_worker():
-    silent = slimbook.qc71.silent_mode_get()
-    turbo = slimbook.qc71.turbo_mode_get()
-    
-    current_mode = int(not silent) + int(turbo)
-    
-    while True:
-        silent = slimbook.qc71.silent_mode_get()
-        turbo = slimbook.qc71.turbo_mode_get()
-        
-        mode = int(not silent) + int(turbo)
-        
-        if (mode != current_mode):
-            current_mode = mode
-            slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE + mode)
-        
-        time.sleep(1)
-    
 def send_notify(code):
     dt = datetime.now()
     ts = datetime.timestamp(dt)
@@ -250,11 +243,6 @@ def main():
                 name='slimbook.service.qc71.module', target=qc71_module_worker)
             qc71_module_thread.start()
         
-            if (family == slimbook.info.SLB_MODEL_HERO or
-                family == slimbook.info.SLB_MODEL_TITAN):
-                titan_thread = threading.Thread(
-                    name='slimbook.service.qc71.titan', target=titan_worker)
-                titan_thread.start()
         else:
             logger.warning("QC71 kernel module is not available!")
             
@@ -314,7 +302,7 @@ def main():
                     value = slimbook.qc71.profile_get()
                     logger.debug("current performance:{0}".format(common.POWER_PROFILE_NAME[value]))
                     
-                    if (family == slimbook.info.SLB_MODEL_PROX or family == slimbook.info.SLB_MODEL_EXECUTIVE):
+                    if (family in common.QC71_DOUBLE_PROFILE):
                         if (value == slimbook.info.SLB_QC71_PROFILE_SILENT):
                             slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_NORMAL)
                             logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_NORMAL]))
@@ -327,14 +315,22 @@ def main():
                             event = common.SLB_EVENT_QC71_SILENT_MODE_ON
                             set_power_profile(common.POWER_PROFILE_POWER_SAVER)
                         
-                    if (family == slimbook.info.SLB_MODEL_EVO or family == slimbook.info.SLB_MODEL_CREATIVE):
-                        if (value == slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER):
+                    if (family in common.QC71_TRIPLE_PROFILE):
+                        if (value == slimbook.info.SLB_QC71_PROFILE_ENERGY_PERFORMANCE):
+                            slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
+                            logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER]))
                             event = common.SLB_EVENT_ENERGY_SAVER_MODE
                             set_power_profile(common.POWER_PROFILE_POWER_SAVER)
-                        elif (value == slimbook.info.SLB_QC71_PROFILE_BALANCED):
+                            
+                        elif (value == slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER):
+                            slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_BALANCED)
+                            logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_BALANCED]))
                             event = common.SLB_EVENT_BALANCED_MODE
                             set_power_profile(common.POWER_PROFILE_BALANCED)
-                        elif (value == slimbook.info.SLB_QC71_PROFILE_PERFORMANCE):
+                            
+                        elif (value == slimbook.info.SLB_QC71_PROFILE_BALANCED):
+                            slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_PERFORMANCE)
+                            logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_PERFORMANCE]))
                             event = common.SLB_EVENT_PERFORMANCE_MODE
                             set_power_profile(common.POWER_PROFILE_PERFORMANCE)
 

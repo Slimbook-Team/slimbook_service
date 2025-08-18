@@ -124,13 +124,16 @@ OPT_POWER_PROFILE = "power-profile"
 
 CMD_LOAD_SETTINGS = "cmd-load"
 
+QC71_DOUBLE_PROFILE = [slimbook.info.SLB_MODEL_PROX, slimbook.info.SLB_MODEL_EXECUTIVE]
+QC71_TRIPLE_PROFILE = [slimbook.info.SLB_MODEL_TITAN, slimbook.info.SLB_MODEL_HERO, slimbook.info.SLB_MODEL_EVO, slimbook.info.SLB_MODEL_CREATIVE]
+
 #set a default dark theme for kde
 xdg_current_desktop = os.environ.get("XDG_CURRENT_DESKTOP")
 if xdg_current_desktop == "KDE":
     PARAMS['theme'] = 'dark'
 
 APP = 'slimbook'
-VERSION = '0.8.2'
+VERSION = '1.0'
 APPCONF = APP + '.conf'
 APPDATA = APP + '.data'
 APPNAME = 'Slimbook Service'
