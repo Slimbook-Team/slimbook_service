@@ -266,11 +266,26 @@ def main():
     else:
         logger.warning("No event handler for this model!")
         
+    cached_events = {}
+    
     while True:
        
         event = slb_events.get()
+        now = time.time()
         
         logger.debug("event {0}".format(event))
+        
+        cached = cached_events.get(event)
+        
+        if cached:
+            delta =  now - cached
+            if delta > 0.750:
+                cached_events[event] = now
+            else:
+                logger.debug("ignored duplicated event {0} ({1})".format(event,delta))
+                continue
+        else:
+            cached_events[event] = now
         
         # no need to bother user with this event as it is already notified elsewhere
         if (event == common.SLB_EVENT_AC_OFFLINE or event == common.SLB_EVENT_AC_ONLINE):
@@ -301,11 +316,16 @@ def main():
                     
                     if (family == slimbook.info.SLB_MODEL_PROX or family == slimbook.info.SLB_MODEL_EXECUTIVE):
                         if (value == slimbook.info.SLB_QC71_PROFILE_SILENT):
-                            event = common.SLB_EVENT_QC71_SILENT_MODE_ON
-                            set_power_profile(common.POWER_PROFILE_POWER_SAVER)
-                        else:
+                            slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_NORMAL)
+                            logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_NORMAL]))
                             event = common.SLB_EVENT_QC71_SILENT_MODE_OFF
                             set_power_profile(common.POWER_PROFILE_BALANCED)
+                            
+                        elif (value == slimbook.info.SLB_QC71_PROFILE_NORMAL):
+                            slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_SILENT)
+                            logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_SILENT]))
+                            event = common.SLB_EVENT_QC71_SILENT_MODE_ON
+                            set_power_profile(common.POWER_PROFILE_POWER_SAVER)
                         
                     if (family == slimbook.info.SLB_MODEL_EVO or family == slimbook.info.SLB_MODEL_CREATIVE):
                         if (value == slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER):
