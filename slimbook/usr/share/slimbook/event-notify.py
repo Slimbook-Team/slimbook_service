@@ -316,7 +316,7 @@ def main():
                             set_power_profile(common.POWER_PROFILE_POWER_SAVER)
                         
                     if (family in common.QC71_TRIPLE_PROFILE):
-                        if (value == slimbook.info.SLB_QC71_PROFILE_ENERGY_PERFORMANCE):
+                        if (value == slimbook.info.SLB_QC71_PROFILE_PERFORMANCE):
                             slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
                             logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER]))
                             event = common.SLB_EVENT_ENERGY_SAVER_MODE
