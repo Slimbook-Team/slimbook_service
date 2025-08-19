@@ -89,12 +89,10 @@ def udev_worker():
             slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
     
     for device in context.list_devices(subsystem="input"):
-        print(device.action)
-        print(device.get("ID_PATH"))
-        print(device.subsystem)
-        print(device.sys_path)
-        print()
-    
+        if device.get("ID_PATH") == "platform-qc71_laptop":
+            if (device.get("DEVNAME")):
+                slb_events.put(common.SLB_EVENT_QC71_INPUT_LOADED)
+            
     monitor = pyudev.Monitor.from_netlink(context)
     #monitor.filter_by('power_supply')
     for device in iter(monitor.poll, None):
@@ -104,9 +102,12 @@ def udev_worker():
                 logger.info("AC status:{0}".format(status))
                 slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
         elif device.subsystem == "input":
-            print(device.action)
-            print(device.sys_path)
-            
+            if (device.get("ID_PATH") == "platform-qc71_laptop" and device.get("DEVNAME")):
+                if (device.action == "add"):
+                    slb_events.put(common.SLB_EVENT_QC71_INPUT_LOADED)
+                else:
+                    slb_events.put(common.SLB_EVENT_QC71_INPUT_UNLOADED)
+                
 def zmq_worker():
     
     while True: 
@@ -172,17 +173,21 @@ def keyboard_worker():
                 slb_events.put(common.SLB_EVENT_PERFORMANCE_MODE)
 
 def qc71_module_worker():
+    logger.debug("qc71 keyboard worker start")
     device = evdev.InputDevice(slimbook.info.module_device())
-    
-    for event in device.read_loop():
-        if (event.type == evdev.ecodes.EV_KEY):
-            if (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F2):
-                slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
-            elif (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F5):
-                logger.debug("qc71 performance change requested")
-                slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
-            elif (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F12):
-                slb_events.put(common.SLB_EVENT_WEBCAM_CHANGED)
+    try:
+        for event in device.read_loop():
+            if (event.type == evdev.ecodes.EV_KEY):
+                if (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F2):
+                    slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
+                elif (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F5):
+                    logger.debug("qc71 performance change requested")
+                    slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
+                elif (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F12):
+                    slb_events.put(common.SLB_EVENT_WEBCAM_CHANGED)
+    except:
+        pass
+    logger.info("qc71 keyboard thread end")
     
 def send_notify(code):
     dt = datetime.now()
@@ -230,7 +235,7 @@ def main():
     
     module_loaded = slimbook.info.is_module_loaded()
     
-    if (platform == slimbook.info.SLB_PLATFORM_QC71):        
+    if (platform == slimbook.info.SLB_PLATFORM_QC71):
         qc71_keyboard_thread = threading.Thread(
             name='slimbook.service.qc71.keyboard', target=keyboard_worker)
         qc71_keyboard_thread.start()
@@ -239,9 +244,9 @@ def main():
             logger.info("Setting qc71 manual mode")
             slimbook.qc71.manual_control_set(True)
             
-            qc71_module_thread = threading.Thread(
-                name='slimbook.service.qc71.module', target=qc71_module_worker)
-            qc71_module_thread.start()
+            #qc71_module_thread = threading.Thread(
+                #name='slimbook.service.qc71.module', target=qc71_module_worker)
+            #qc71_module_thread.start()
         
         else:
             logger.warning("QC71 kernel module is not available!")
@@ -288,7 +293,18 @@ def main():
                 set_power_profile(common.POWER_PROFILE_PERFORMANCE)
 
         if (platform == slimbook.info.SLB_PLATFORM_QC71):
-            
+            if (event == common.SLB_EVENT_QC71_INPUT_LOADED):
+                qc71_module_thread = threading.Thread(
+                    name='slimbook.service.qc71.module', target=qc71_module_worker)
+                qc71_module_thread.start()
+                
+                module_loaded = True
+                continue
+                
+            if (event == common.SLB_EVENT_QC71_INPUT_UNLOADED):
+                module_loaded = False
+                continue
+                
             if (module_loaded):
                 if (event == common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED):
                     value = slimbook.qc71.super_lock_get()
@@ -339,16 +355,6 @@ def main():
                     if (family == slimbook.info.SLB_MODEL_CREATIVE):
                         slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
                         event = common.SLB_EVENT_QC71_DYNAMIC_MODE
-
-                if (family == slimbook.info.SLB_MODEL_HERO or
-                    family == slimbook.info.SLB_MODEL_TITAN):
-
-                    if (event == common.SLB_EVENT_QC71_SILENT_MODE):
-                        set_power_profile(common.POWER_PROFILE_POWER_SAVER)
-                    elif (event == common.SLB_EVENT_QC71_NORMAL_MODE):
-                        set_power_profile(common.POWER_PROFILE_BALANCED)
-                    elif (event == common.SLB_EVENT_QC71_PERFORMANCE_MODE):
-                        set_power_profile(common.POWER_PROFILE_PERFORMANCE)
 
         if (event == common.SLB_EVENT_TOUCHPAD_CHANGED):
             if (not settings[common.OPT_TRACKPAD_LOCK]):

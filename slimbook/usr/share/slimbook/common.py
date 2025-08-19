@@ -65,6 +65,9 @@ SLB_EVENT_PERFORMANCE_MODE = 0x0900
 SLB_EVENT_AC_OFFLINE = 0x1000
 SLB_EVENT_AC_ONLINE = 0x1100
 
+SLB_EVENT_QC71_INPUT_LOADED = 0x2000
+SLB_EVENT_QC71_INPUT_UNLOADED = 0x2001
+
 SLB_EVENT_DATA = {
     SLB_EVENT_QC71_SILENT_MODE_ON : [_("Silent Mode enabled"),"power-profile-power-saver-symbolic"],
     SLB_EVENT_QC71_SILENT_MODE_OFF : [_("Silent Mode disabled"),"power-profile-balanced-symbolic"],
