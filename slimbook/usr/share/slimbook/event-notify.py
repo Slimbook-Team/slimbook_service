@@ -24,6 +24,8 @@ import touchpad
 import slimbook.info
 import slimbook.qc71
 
+from gi.repository import GLib, Gio
+
 import zmq
 import evdev
 import pyudev
@@ -78,7 +80,29 @@ def get_udev_ac_status(device):
         pass
     
     return -1
+
+def upower_hndlr(dbus_proxy, properties_changed, properties_removed):
+    props = properties_changed.unpack()
+    print(props)
     
+def upower_worker():
+    upower_proxy = Gio.DBusProxy.new_for_bus_sync(
+            bus_type = Gio.BusType.SYSTEM,
+            flags = Gio.DBusProxyFlags.NONE,
+            info = None,
+            name = 'org.freedesktop.UPower.PowerProfiles',
+            object_path = '/org/freedesktop/UPower/PowerProfiles',
+            interface_name = 'org.freedesktop.UPower.PowerProfiles',
+            cancellable = None)
+
+    upower_proxy.connect('g-properties-changed', upower_hndlr)
+    print(upower_proxy.get_cached_property("ActiveProfile"))
+
+    ctx = GLib.MainContext.default()
+    
+    while (ctx.iteration(True)):
+        pass
+
 def udev_worker():
     context = pyudev.Context()
     
@@ -205,6 +229,11 @@ def main():
     udev_thread = threading.Thread(
             name='slimbook.service.udev', target=udev_worker)
     udev_thread.start()
+    
+    upower_thread = threading.Thread(
+            name='slimbook.service.upower', target=upower_worker)
+    upower_thread.start()
+    
         
     tpad = touchpad.Touchpad()
     if (tpad.valid()):
