@@ -423,10 +423,6 @@ class ServiceIndicator(Gio.Application):
         """Create and populate the menu."""
         menu = Gtk.Menu()
 
-        separator1 = Gtk.SeparatorMenuItem()
-        separator1.show()
-        menu.append(separator1)
-
         self.menu_news = Gtk.MenuItem.new_with_label(_('Notifications'))
         self.menu_news.connect('activate', self.on_news_item)
         self.menu_news.show()
@@ -441,13 +437,14 @@ class ServiceIndicator(Gio.Application):
         self.menu_preferences.connect('activate', self.on_preferences_item)
         self.menu_preferences.show()
         menu.append(self.menu_preferences)
+
+        separator = Gtk.SeparatorMenuItem()
+        separator.show()
+        menu.append(separator)
         
         about_item = Gtk.MenuItem.new_with_label(_('About'))
         about_item.connect('activate', self.on_about_item)
         about_item.show()
-        separator = Gtk.SeparatorMenuItem()
-        separator.show()
-        menu.append(separator)
         menu.append(about_item)
 
         self.report = Gtk.MenuItem.new_with_label(_('Generate report'))
@@ -455,8 +452,7 @@ class ServiceIndicator(Gio.Application):
         self.report.show()
         menu.append(self.report)
 
-        bug_item = Gtk.MenuItem(label=_(
-            'Report a bug...'))
+        bug_item = Gtk.MenuItem(label=_('Report a bug...'))
         bug_item.connect(
             'activate', lambda x: webbrowser.open(
                 'https://github.com/slimbook/slimbook_service/issues/new'))
