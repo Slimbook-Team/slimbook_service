@@ -2,6 +2,14 @@
 
 PKGDIR=debian/tmp
 
+override_dh_auto_build:
+	for locale in es ca ; do \
+        	msgfmt slimbook/usr/share/slimbook/locale-langpack/$$locale/LC_MESSAGES/slimbook.po -o slimbook/usr/share/slimbook/locale-langpack/$$locale/LC_MESSAGES/slimbook.mo ; \
+	done
+	
+override_dh_auto_clean:
+	find slimbook/ -iname *.mo -delete
+
 %:
 	dh $@
 
