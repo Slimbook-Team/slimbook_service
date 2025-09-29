@@ -1,0 +1,333 @@
+# Catalan translation.
+# Copyright (C) 2025 Slimbook
+# This file is distributed under the same license.
+# Slimbook, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-18 15:11+0200\n"
+"PO-Revision-Date: 2025-09-25 14:18+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_ES\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.6\n"
+
+#: client.py:76
+msgid "Slimbok Client Notifications"
+msgstr "Notificaciones del cliente Slimbook"
+
+#: client.py:426
+msgid "Notifications"
+msgstr "Notificaciones"
+
+#: client.py:431
+msgid "System information"
+msgstr "Información del sistema"
+
+#: client.py:436
+msgid "Preferences"
+msgstr "Parámetros"
+
+#: client.py:445
+msgid "About"
+msgstr "Acerca de"
+
+#: client.py:450 client.py:590
+msgid "Generate report"
+msgstr "Generar un informe"
+
+#: client.py:456
+msgid "Report a bug..."
+msgstr "Informar de un error…"
+
+#: client.py:467
+msgid "Exit"
+msgstr "Salir"
+
+#: client.py:483 common.py:129
+msgid "Slimbook Service"
+msgstr "Servicio Slimbook"
+
+#: client.py:496
+msgid "Visit Website"
+msgstr "Visita la página web"
+
+#: client.py:498
+msgid "Report issue"
+msgstr "Informar de un problema"
+
+#: client.py:505
+msgid "translation-credits"
+msgstr "Slimbook"
+
+#: client.py:612
+msgid ""
+"This is a report of several hardware and software stats.\n"
+"Full report generates a report with sensitive information,\n"
+"beware of sharing it online!"
+msgstr ""
+"Esto es un informe que contiene información y estadísticas del equipo.\n"
+"El informe completo genera un informe con datos sensibles,\n"
+"id con cuidado a la hora de compartirlo en linea"
+
+#: client.py:622
+msgid "Report"
+msgstr "Informar"
+
+#: client.py:625
+msgid "Full report"
+msgstr "Informe completo"
+
+#: client.py:649
+msgid "Open"
+msgstr "Abrir"
+
+#: client.py:652 client.py:679
+msgid "Close"
+msgstr "Cerrar"
+
+#: client.py:698
+msgid "Succesful! Dumped at "
+msgstr "¡Éxito! Se ha generado:"
+
+#: client.py:706
+msgid ""
+"Error! Report wasn't able to be generated\n"
+"Error: "
+msgstr ""
+"Se ha producido un error y el informe no se ha generado\n"
+"Error: "
+
+#: client.py:762
+msgid "Slimbook Preferences"
+msgstr "Parámetros de Slimbook"
+
+#: client.py:765
+msgid "Save"
+msgstr "Guardar"
+
+#: client.py:777
+msgid "Show indicator"
+msgstr "Mostra el indicador"
+
+#: client.py:784
+msgid "Autostart"
+msgstr "Inicio automático"
+
+#: client.py:791
+msgid "Light-mode Icon"
+msgstr "Icono en modo claro"
+
+#: client.py:798
+msgid "Check Notifications"
+msgstr "Comprueba las notificaciones"
+
+#: client.py:805
+msgid "Trackpad lock"
+msgstr "Bloqueo del trackpad"
+
+#: client.py:812
+msgid "Set power profile"
+msgstr "Establece el perfil de rendimiento"
+
+#: client.py:887
+msgid "Slimbook System information"
+msgstr "Información del sistema de Slimbook"
+
+#: client.py:1003
+msgid "Slimbook Notifications"
+msgstr "Notificaciones de Slimbook"
+
+#: client.py:1006
+msgid "Refresh"
+msgstr "Actualizar"
+
+#: client.py:1069
+msgid "Nothing to show"
+msgstr "Nada que mostrar"
+
+#: client.py:1105
+msgid "Fetching..."
+msgstr "Cargando…"
+
+#: common.py:69
+msgid "Silent Mode enabled"
+msgstr "Modo Silencioso activado"
+
+#: common.py:70
+msgid "Silent Mode disabled"
+msgstr "Modo Silencioso desactivado"
+
+#: common.py:71
+msgid "Silent Mode changed"
+msgstr "Modo Silencioso ha cambiado"
+
+#: common.py:73
+msgid "Super Key Lock enabled"
+msgstr "Bloqueo de la tecla «Super» activado"
+
+#: common.py:74
+msgid "Super Key Lock disabled"
+msgstr "Bloqueo de la tecla «Super» desactivado"
+
+#: common.py:75
+msgid "Super Key Lock changed"
+msgstr "Bloqueo de la tecla «Super» ha cambiado"
+
+#: common.py:77 common.py:188
+msgid "Silent Mode"
+msgstr "Modo Silencioso"
+
+#: common.py:78
+msgid "Normal Mode"
+msgstr "Mode Normal"
+
+#: common.py:79
+msgid "Performance Mode"
+msgstr "Modo de Alto Rendimiento"
+
+#: common.py:80
+msgid "Dynamic Mode"
+msgstr "Mode Dinámico"
+
+#: common.py:82
+msgid "Touchpad enabled"
+msgstr "Touchpad activado"
+
+#: common.py:83
+msgid "Touchpad disabled"
+msgstr "Touchpad desactivado"
+
+#: common.py:84
+msgid "Touchpad changed"
+msgstr "El Touchpad ha cambiado"
+
+#: common.py:85
+msgid "Webcam changed"
+msgstr "La cámara web ha cambiado"
+
+#: common.py:86
+msgid "Webcam enabled"
+msgstr "Cámara web activada"
+
+#: common.py:87
+msgid "Webcam disabled"
+msgstr "Cámara web desactivada"
+
+#: common.py:89
+msgid "Energy Saver"
+msgstr "Ahorro de energía"
+
+#: common.py:90
+msgid "Balanced"
+msgstr "Equilibrado"
+
+#: common.py:91
+msgid "Performance"
+msgstr "Rendimiento"
+
+#: common.py:167
+msgid "Uptime"
+msgstr "Tiempo en funcionamiento"
+
+#: common.py:168
+msgid "Memory Free/Total"
+msgstr "Memoria libre/total"
+
+#: common.py:169
+msgid "Memory device"
+msgstr "Dispositivo de memoria"
+
+#: common.py:170
+msgid "UMA"
+msgstr "UMA"
+
+#: common.py:171
+msgid "Disk Free/Total"
+msgstr "Espacio en disco libre/total"
+
+#: common.py:172
+msgid "Kernel"
+msgstr "Núcleo"
+
+#: common.py:173
+msgid "OS"
+msgstr "Sistema operativo"
+
+#: common.py:174
+msgid "Desktop"
+msgstr "Escritorio"
+
+#: common.py:175
+msgid "Session"
+msgstr "Sesión"
+
+#: common.py:176
+msgid "Product"
+msgstr "Producto"
+
+#: common.py:177
+msgid "Serial"
+msgstr "Número de serie"
+
+#: common.py:178
+msgid "Bios Version"
+msgstr "Versión de la Bios"
+
+#: common.py:179
+msgid "EC Version"
+msgstr "Versión del EC"
+
+#: common.py:180
+msgid "Boot Mode"
+msgstr "Modo de arranque"
+
+#: common.py:181
+msgid "Secure Boot"
+msgstr "Arranque seguro"
+
+#: common.py:182
+msgid "CPU"
+msgstr "CPU"
+
+#: common.py:183
+msgid "TDP"
+msgstr "TDP"
+
+#: common.py:184
+msgid "GPU"
+msgstr "GPU"
+
+#: common.py:185
+msgid "Module loaded"
+msgstr "Módulo cargado"
+
+#: common.py:186
+msgid "Fn Lock"
+msgstr "Bloqueo tecla «Fn»"
+
+#: common.py:187
+msgid "Super Lock"
+msgstr "Bloqueo tecla «Super»"
+
+#: common.py:189
+msgid "Turbo Mode"
+msgstr "Modo Turbo"
+
+#: common.py:190
+msgid "Profile"
+msgstr "Perfil"
+
+#: common.py:192
+msgid "Yes"
+msgstr "Si"
+
+#: common.py:193
+msgid "No"
+msgstr "No"

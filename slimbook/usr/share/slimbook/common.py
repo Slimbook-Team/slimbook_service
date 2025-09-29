@@ -28,13 +28,18 @@ import gettext
 import requests
 import re
 import signal
+import sys
+
+LANGDOMAIN = "slimbook"
+LANGDIR = "locale-langpack"
 
 try:
     current_locale, encoding = locale.getdefaultlocale()
-    language = gettext.translation(APP, LANGDIR, [current_locale])
+    language = gettext.translation(LANGDOMAIN, LANGDIR, [current_locale])
     language.install()
     _ = language.gettext
 except Exception as e:
+    print(e, file = sys.stderr)
     _ = str
 
 SLB_EVENT_QC71_SILENT_MODE_CHANGED = 0x00
@@ -126,7 +131,7 @@ APP = 'slimbook'
 VERSION = '0.8.2'
 APPCONF = APP + '.conf'
 APPDATA = APP + '.data'
-APPNAME = 'Slimbook Service'
+APPNAME = _('Slimbook Service')
 CONFIG_DIR = os.path.join(os.path.expanduser('~'), '.config')
 CONFIG_APP_DIR = os.path.join(CONFIG_DIR, APP)
 CONFIG_FILE = os.path.join(CONFIG_APP_DIR, APPCONF)
