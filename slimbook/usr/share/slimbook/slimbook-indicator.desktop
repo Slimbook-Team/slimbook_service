@@ -7,5 +7,6 @@ Hidden=false
 NoDisplay=false
 StartupNotify=true
 Encoding=UTF-8
+Name[ca_ES]=Servei Slimbook
 Name[es_ES]=Slimbook Service
 Name=Slimbook Service

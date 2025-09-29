@@ -1,0 +1,327 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-18 15:11+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: client.py:76
+msgid "Slimbok Client Notifications"
+msgstr ""
+
+#: client.py:426
+msgid "Notifications"
+msgstr ""
+
+#: client.py:431
+msgid "System information"
+msgstr ""
+
+#: client.py:436
+msgid "Preferences"
+msgstr ""
+
+#: client.py:445
+msgid "About"
+msgstr ""
+
+#: client.py:450 client.py:590
+msgid "Generate report"
+msgstr ""
+
+#: client.py:456
+msgid "Report a bug..."
+msgstr ""
+
+#: client.py:467
+msgid "Exit"
+msgstr ""
+
+#: client.py:483 common.py:129
+msgid "Slimbook Service"
+msgstr ""
+
+#: client.py:496
+msgid "Visit Website"
+msgstr ""
+
+#: client.py:498
+msgid "Report issue"
+msgstr ""
+
+#: client.py:505
+msgid "translation-credits"
+msgstr ""
+
+#: client.py:612
+msgid ""
+"This is a report of several hardware and software stats.\n"
+"Full report generates a report with sensitive information,\n"
+"beware of sharing it online!"
+msgstr ""
+
+#: client.py:622
+msgid "Report"
+msgstr ""
+
+#: client.py:625
+msgid "Full report"
+msgstr ""
+
+#: client.py:649
+msgid "Open"
+msgstr ""
+
+#: client.py:652 client.py:679
+msgid "Close"
+msgstr ""
+
+#: client.py:698
+msgid "Succesful! Dumped at "
+msgstr ""
+
+#: client.py:706
+msgid ""
+"Error! Report wasn't able to be generated\n"
+"Error: "
+msgstr ""
+
+#: client.py:762
+msgid "Slimbook Preferences"
+msgstr ""
+
+#: client.py:765
+msgid "Save"
+msgstr ""
+
+#: client.py:777
+msgid "Show indicator"
+msgstr ""
+
+#: client.py:784
+msgid "Autostart"
+msgstr ""
+
+#: client.py:791
+msgid "Light-mode Icon"
+msgstr ""
+
+#: client.py:798
+msgid "Check Notifications"
+msgstr ""
+
+#: client.py:805
+msgid "Trackpad lock"
+msgstr ""
+
+#: client.py:812
+msgid "Set power profile"
+msgstr ""
+
+#: client.py:887
+msgid "Slimbook System information"
+msgstr ""
+
+#: client.py:1003
+msgid "Slimbook Notifications"
+msgstr ""
+
+#: client.py:1006
+msgid "Refresh"
+msgstr ""
+
+#: client.py:1069
+msgid "Nothing to show"
+msgstr ""
+
+#: client.py:1105
+msgid "Fetching..."
+msgstr ""
+
+#: common.py:69
+msgid "Silent Mode enabled"
+msgstr ""
+
+#: common.py:70
+msgid "Silent Mode disabled"
+msgstr ""
+
+#: common.py:71
+msgid "Silent Mode changed"
+msgstr ""
+
+#: common.py:73
+msgid "Super Key Lock enabled"
+msgstr ""
+
+#: common.py:74
+msgid "Super Key Lock disabled"
+msgstr ""
+
+#: common.py:75
+msgid "Super Key Lock changed"
+msgstr ""
+
+#: common.py:77 common.py:188
+msgid "Silent Mode"
+msgstr ""
+
+#: common.py:78
+msgid "Normal Mode"
+msgstr ""
+
+#: common.py:79
+msgid "Performance Mode"
+msgstr ""
+
+#: common.py:80
+msgid "Dynamic Mode"
+msgstr ""
+
+#: common.py:82
+msgid "Touchpad enabled"
+msgstr ""
+
+#: common.py:83
+msgid "Touchpad disabled"
+msgstr ""
+
+#: common.py:84
+msgid "Touchpad changed"
+msgstr ""
+
+#: common.py:85
+msgid "Webcam changed"
+msgstr ""
+
+#: common.py:86
+msgid "Webcam enabled"
+msgstr ""
+
+#: common.py:87
+msgid "Webcam disabled"
+msgstr ""
+
+#: common.py:89
+msgid "Energy Saver"
+msgstr ""
+
+#: common.py:90
+msgid "Balanced"
+msgstr ""
+
+#: common.py:91
+msgid "Performance"
+msgstr ""
+
+#: common.py:167
+msgid "Uptime"
+msgstr ""
+
+#: common.py:168
+msgid "Memory Free/Total"
+msgstr ""
+
+#: common.py:169
+msgid "Memory device"
+msgstr ""
+
+#: common.py:170
+msgid "UMA"
+msgstr ""
+
+#: common.py:171
+msgid "Disk Free/Total"
+msgstr ""
+
+#: common.py:172
+msgid "Kernel"
+msgstr ""
+
+#: common.py:173
+msgid "OS"
+msgstr ""
+
+#: common.py:174
+msgid "Desktop"
+msgstr ""
+
+#: common.py:175
+msgid "Session"
+msgstr ""
+
+#: common.py:176
+msgid "Product"
+msgstr ""
+
+#: common.py:177
+msgid "Serial"
+msgstr ""
+
+#: common.py:178
+msgid "Bios Version"
+msgstr ""
+
+#: common.py:179
+msgid "EC Version"
+msgstr ""
+
+#: common.py:180
+msgid "Boot Mode"
+msgstr ""
+
+#: common.py:181
+msgid "Secure Boot"
+msgstr ""
+
+#: common.py:182
+msgid "CPU"
+msgstr ""
+
+#: common.py:183
+msgid "TDP"
+msgstr ""
+
+#: common.py:184
+msgid "GPU"
+msgstr ""
+
+#: common.py:185
+msgid "Module loaded"
+msgstr ""
+
+#: common.py:186
+msgid "Fn Lock"
+msgstr ""
+
+#: common.py:187
+msgid "Super Lock"
+msgstr ""
+
+#: common.py:189
+msgid "Turbo Mode"
+msgstr ""
+
+#: common.py:190
+msgid "Profile"
+msgstr ""
+
+#: common.py:192
+msgid "Yes"
+msgstr ""
+
+#: common.py:193
+msgid "No"
+msgstr ""
