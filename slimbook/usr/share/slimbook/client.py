@@ -423,10 +423,6 @@ class ServiceIndicator(Gio.Application):
         """Create and populate the menu."""
         menu = Gtk.Menu()
 
-        separator1 = Gtk.SeparatorMenuItem()
-        separator1.show()
-        menu.append(separator1)
-
         self.menu_news = Gtk.MenuItem.new_with_label(_('Notifications'))
         self.menu_news.connect('activate', self.on_news_item)
         self.menu_news.show()
@@ -441,13 +437,14 @@ class ServiceIndicator(Gio.Application):
         self.menu_preferences.connect('activate', self.on_preferences_item)
         self.menu_preferences.show()
         menu.append(self.menu_preferences)
+
+        separator = Gtk.SeparatorMenuItem()
+        separator.show()
+        menu.append(separator)
         
         about_item = Gtk.MenuItem.new_with_label(_('About'))
         about_item.connect('activate', self.on_about_item)
         about_item.show()
-        separator = Gtk.SeparatorMenuItem()
-        separator.show()
-        menu.append(separator)
         menu.append(about_item)
 
         self.report = Gtk.MenuItem.new_with_label(_('Generate report'))
@@ -455,8 +452,7 @@ class ServiceIndicator(Gio.Application):
         self.report.show()
         menu.append(self.report)
 
-        bug_item = Gtk.MenuItem(label=_(
-            'Report a bug...'))
+        bug_item = Gtk.MenuItem(label=_('Report a bug...'))
         bug_item.connect(
             'activate', lambda x: webbrowser.open(
                 'https://github.com/slimbook/slimbook_service/issues/new'))
@@ -496,7 +492,7 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 ''')
         about_dialog.set_website('http://www.slimbook.es')
-        about_dialog.set_website_label('Visit Website')
+        about_dialog.set_website_label(_('Visit Website'))
         link = Gtk.LinkButton(uri=(
             'https://github.com/slimbook/slimbook_service/issues/new'), label=(_('Report issue')))
         link.set_name('link')
@@ -505,7 +501,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
             'Slimbook <dev@slimbook.es>'])
         about_dialog.set_documenters([
             'Slimbook <dev@slimbook.es>'])
-        about_dialog.set_translator_credits('Slimbook <dev@slimbook.es>')
+        about_dialog.set_translator_credits(_('translator-credits'))
         size = 125
         about_dialog.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(
             common.ICON, size, size, True))
@@ -612,7 +608,7 @@ class ReportDialog(Gtk.Window):
         hboxrv.set_margin_start(5)
         hboxrv.set_margin_end(5)
 
-        report_desc = Gtk.Label.new("This is a report of several hardware and software stats.\nFull report generates a report with sensitive information,\nbeware of sharing it online!")
+        report_desc = Gtk.Label.new(_("This is a report of several hardware and software stats.\nFull report generates a report with sensitive information,\nbeware of sharing it online!"))
 
         vboxrv.pack_start(report_desc, True, True, 4)
 
@@ -698,7 +694,7 @@ class ReportDialog(Gtk.Window):
 
     def prog_bar_proc(self, args):
         if args[0] == True:
-            self.path_label.set_label("Succesful! Dumped at " + self.path)
+            self.path_label.set_label(_("Succesful! Dumped at ") + self.path)
             self.resize(200, 100)
             self.stack.set_visible_child_name("Message view")
             self.progress_bar.set_fraction(1.0)
@@ -706,7 +702,7 @@ class ReportDialog(Gtk.Window):
             self.progress_bar.pulse()
         
         if args[1] != "":
-            self.err_code_label.set_label("Error! Report wasn't able to be generated\nError : " + self.err_code)
+            self.err_code_label.set_label(_("Error! Report wasn't able to be generated\nError: ") + self.err_code)
             self.stack.set_visible_child_name("Error view")
             self.resize(200, 100)
             self.err_code = args[1]
@@ -762,7 +758,7 @@ class PreferencesDialog(Gtk.Window):
             common.ICON, 64, 64, True))
 
         header = Gtk.HeaderBar()
-        header.set_title('Slimbook ' + _('Preferences'))
+        header.set_title(_('Slimbook Preferences'))
         header.set_show_close_button(True)
         
         self.btn_save = Gtk.Button.new_with_label(_("Save"))
@@ -887,7 +883,7 @@ class PreferencesDialog(Gtk.Window):
 class SystemInfoDialog(Gtk.Dialog):
 
     def __init__(self,info):
-        Gtk.Dialog.__init__(self, 'Slimbook ' + _('System information'),
+        Gtk.Dialog.__init__(self, _('Slimbook System information'),
                             None,
                             modal=True,
                             destroy_with_parent=True,
@@ -1003,7 +999,7 @@ class NotificationsDialog(Gtk.Window):
         parent.connect("feed-update-complete", self.on_feed_update_complete)
         
         header = Gtk.HeaderBar()
-        header.set_title('Slimbook ' + _('Notifications'))
+        header.set_title(_('Slimbook Notifications'))
         header.set_show_close_button(True)
 
         self.btn_refresh = Gtk.Button.new_with_label(_("Refresh"))
