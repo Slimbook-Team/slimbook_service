@@ -1,3 +1,12 @@
+slimbook (1.0.0~fallsupdate0) noble; urgency=medium
+
+  * Performance profile is now handled from service
+  * Matchs system profile with laptop profile
+  * Added es and ca localization
+  * Service hooks to driver when reloaded (ie: after dkms)
+
+ -- slimbook <dev@slimbook.es>  Thu, 02 Oct 2025 23:43:27 +0200
+
 slimbook (0.8.5) noble; urgency=medium
 
   * Added a scrollbar to system info dialog in order to fit on all screens
