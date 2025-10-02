@@ -24,6 +24,8 @@ import touchpad
 import slimbook.info
 import slimbook.qc71
 
+from gi.repository import GLib, Gio
+
 import zmq
 import evdev
 import pyudev
@@ -39,7 +41,7 @@ import time
 
 logger = logging.getLogger("slimbook.service")
 logging.basicConfig(format='%(levelname)s-%(message)s')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 context = zmq.Context()
 socket_out = context.socket(zmq.PUB)
@@ -78,7 +80,34 @@ def get_udev_ac_status(device):
         pass
     
     return -1
+
+def upower_change(mode):
+    if mode:
+        event = common.POWER_NAME_TO_EVENT[mode]
+        slb_events.put(event)
     
+def upower_hndlr(dbus_proxy, properties_changed, properties_removed):
+    props = properties_changed.unpack()
+    upower_change(props.get("ActiveProfile"))
+    
+def upower_worker():
+    upower_proxy = Gio.DBusProxy.new_for_bus_sync(
+            bus_type = Gio.BusType.SYSTEM,
+            flags = Gio.DBusProxyFlags.NONE,
+            info = None,
+            name = 'org.freedesktop.UPower.PowerProfiles',
+            object_path = '/org/freedesktop/UPower/PowerProfiles',
+            interface_name = 'org.freedesktop.UPower.PowerProfiles',
+            cancellable = None)
+
+    upower_proxy.connect('g-properties-changed', upower_hndlr)
+    upower_change(upower_proxy.get_cached_property("ActiveProfile").unpack())
+
+    ctx = GLib.MainContext.default()
+    
+    while (ctx.iteration(True)):
+        pass
+
 def udev_worker():
     context = pyudev.Context()
     
@@ -88,14 +117,26 @@ def udev_worker():
             logger.info("AC status:{0}".format(status))
             slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
     
+    for device in context.list_devices(subsystem="input"):
+        if device.get("ID_PATH") == "platform-qc71_laptop":
+            if (device.get("DEVNAME")):
+                slb_events.put(common.SLB_EVENT_QC71_INPUT_LOADED)
+            
     monitor = pyudev.Monitor.from_netlink(context)
-    monitor.filter_by('power_supply')
+    #monitor.filter_by('power_supply')
     for device in iter(monitor.poll, None):
-        status = get_udev_ac_status(device)
-        if (status >=0):
-            logger.info("AC status:{0}".format(status))
-            slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
-
+        if device.subsystem == "power_supply":
+            status = get_udev_ac_status(device)
+            if (status >=0):
+                logger.info("AC status:{0}".format(status))
+                slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
+        elif device.subsystem == "input":
+            if (device.get("ID_PATH") == "platform-qc71_laptop" and device.get("DEVNAME")):
+                if (device.action == "add"):
+                    slb_events.put(common.SLB_EVENT_QC71_INPUT_LOADED)
+                else:
+                    slb_events.put(common.SLB_EVENT_QC71_INPUT_UNLOADED)
+                
 def zmq_worker():
     
     while True: 
@@ -145,6 +186,7 @@ def keyboard_worker():
                 slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
             
             elif (event.value == slimbook.info.SLB_SCAN_QC71_SILENT_MODE):
+                logger.debug("qc71 performance change requested (i8042)")
                 slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
             
             elif (event.value == slimbook.info.SLB_SCAN_TOUCHPAD_SWITCH):
@@ -160,34 +202,21 @@ def keyboard_worker():
                 slb_events.put(common.SLB_EVENT_PERFORMANCE_MODE)
 
 def qc71_module_worker():
+    logger.debug("qc71 keyboard worker start")
     device = evdev.InputDevice(slimbook.info.module_device())
-    
-    for event in device.read_loop():
-        if (event.type == evdev.ecodes.EV_KEY):
-            if (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F2):
-                slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
-            elif (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F5):
-                slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
-            elif (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F12):
-                slb_events.put(common.SLB_EVENT_WEBCAM_CHANGED)
-    
-def titan_worker():
-    silent = slimbook.qc71.silent_mode_get()
-    turbo = slimbook.qc71.turbo_mode_get()
-    
-    current_mode = int(not silent) + int(turbo)
-    
-    while True:
-        silent = slimbook.qc71.silent_mode_get()
-        turbo = slimbook.qc71.turbo_mode_get()
-        
-        mode = int(not silent) + int(turbo)
-        
-        if (mode != current_mode):
-            current_mode = mode
-            slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE + mode)
-        
-        time.sleep(1)
+    try:
+        for event in device.read_loop():
+            if (event.type == evdev.ecodes.EV_KEY):
+                if (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F2):
+                    slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
+                elif (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F5):
+                    logger.debug("qc71 performance change requested")
+                    slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
+                elif (event.value == 1 and event.code == evdev.ecodes.KEY_FN_F12):
+                    slb_events.put(common.SLB_EVENT_WEBCAM_CHANGED)
+    except:
+        pass
+    logger.info("qc71 keyboard thread end")
     
 def send_notify(code):
     dt = datetime.now()
@@ -205,6 +234,11 @@ def main():
     udev_thread = threading.Thread(
             name='slimbook.service.udev', target=udev_worker)
     udev_thread.start()
+    
+    upower_thread = threading.Thread(
+            name='slimbook.service.upower', target=upower_worker)
+    upower_thread.start()
+    
         
     tpad = touchpad.Touchpad()
     if (tpad.valid()):
@@ -235,21 +269,19 @@ def main():
     
     module_loaded = slimbook.info.is_module_loaded()
     
-    if (platform == slimbook.info.SLB_PLATFORM_QC71):        
+    if (platform == slimbook.info.SLB_PLATFORM_QC71):
         qc71_keyboard_thread = threading.Thread(
             name='slimbook.service.qc71.keyboard', target=keyboard_worker)
         qc71_keyboard_thread.start()
             
         if (module_loaded):
-            qc71_module_thread = threading.Thread(
-                name='slimbook.service.qc71.module', target=qc71_module_worker)
-            qc71_module_thread.start()
+            logger.info("Setting qc71 manual mode")
+            slimbook.qc71.manual_control_set(True)
+            
+            #qc71_module_thread = threading.Thread(
+                #name='slimbook.service.qc71.module', target=qc71_module_worker)
+            #qc71_module_thread.start()
         
-            if (family == slimbook.info.SLB_MODEL_HERO or
-                family == slimbook.info.SLB_MODEL_TITAN):
-                titan_thread = threading.Thread(
-                    name='slimbook.service.qc71.titan', target=titan_worker)
-                titan_thread.start()
         else:
             logger.warning("QC71 kernel module is not available!")
             
@@ -261,11 +293,27 @@ def main():
     else:
         logger.warning("No event handler for this model!")
         
+    cached_events = {}
+    expect_upower_event = False
+    
     while True:
        
         event = slb_events.get()
+        now = time.time()
         
         logger.debug("event {0}".format(event))
+        
+        cached = cached_events.get(event)
+        
+        if cached:
+            delta =  now - cached
+            if delta > 0.750:
+                cached_events[event] = now
+            else:
+                logger.debug("ignored duplicated event {0} ({1})".format(event,delta))
+                continue
+        else:
+            cached_events[event] = now
         
         # no need to bother user with this event as it is already notified elsewhere
         if (event == common.SLB_EVENT_AC_OFFLINE or event == common.SLB_EVENT_AC_ONLINE):
@@ -280,7 +328,18 @@ def main():
                 set_power_profile(common.POWER_PROFILE_PERFORMANCE)
 
         if (platform == slimbook.info.SLB_PLATFORM_QC71):
-            
+            if (event == common.SLB_EVENT_QC71_INPUT_LOADED):
+                qc71_module_thread = threading.Thread(
+                    name='slimbook.service.qc71.module', target=qc71_module_worker)
+                qc71_module_thread.start()
+                
+                module_loaded = True
+                continue
+                
+            if (event == common.SLB_EVENT_QC71_INPUT_UNLOADED):
+                module_loaded = False
+                continue
+                
             if (module_loaded):
                 if (event == common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED):
                     value = slimbook.qc71.super_lock_get()
@@ -292,24 +351,43 @@ def main():
                 # General Performance event on QC71
                 elif (event == common.SLB_EVENT_QC71_SILENT_MODE_CHANGED):
                     value = slimbook.qc71.profile_get()
+                    logger.debug("current performance:{0}".format(common.POWER_PROFILE_NAME[value]))
                     
-                    if (family == slimbook.info.SLB_MODEL_PROX or family == slimbook.info.SLB_MODEL_EXECUTIVE):
+                    if (family in common.QC71_DOUBLE_PROFILE):
                         if (value == slimbook.info.SLB_QC71_PROFILE_SILENT):
-                            event = common.SLB_EVENT_QC71_SILENT_MODE_ON
-                            set_power_profile(common.POWER_PROFILE_POWER_SAVER)
-                        else:
+                            slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_NORMAL)
+                            logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_NORMAL]))
                             event = common.SLB_EVENT_QC71_SILENT_MODE_OFF
+                            expect_upower_event = True
                             set_power_profile(common.POWER_PROFILE_BALANCED)
-                        
-                    if (family == slimbook.info.SLB_MODEL_EVO or family == slimbook.info.SLB_MODEL_CREATIVE):
-                        if (value == slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER):
-                            event = common.SLB_EVENT_ENERGY_SAVER_MODE
+                            
+                        elif (value == slimbook.info.SLB_QC71_PROFILE_NORMAL):
+                            slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_SILENT)
+                            logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_SILENT]))
+                            event = common.SLB_EVENT_QC71_SILENT_MODE_ON
+                            expect_upower_event = True
                             set_power_profile(common.POWER_PROFILE_POWER_SAVER)
-                        elif (value == slimbook.info.SLB_QC71_PROFILE_BALANCED):
+                        
+                    if (family in common.QC71_TRIPLE_PROFILE):
+                        if (value == slimbook.info.SLB_QC71_PROFILE_PERFORMANCE):
+                            slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
+                            logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER]))
+                            event = common.SLB_EVENT_ENERGY_SAVER_MODE
+                            expect_upower_event = True
+                            set_power_profile(common.POWER_PROFILE_POWER_SAVER)
+                            
+                        elif (value == slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER):
+                            slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_BALANCED)
+                            logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_BALANCED]))
                             event = common.SLB_EVENT_BALANCED_MODE
+                            expect_upower_event = True
                             set_power_profile(common.POWER_PROFILE_BALANCED)
-                        elif (value == slimbook.info.SLB_QC71_PROFILE_PERFORMANCE):
+                            
+                        elif (value == slimbook.info.SLB_QC71_PROFILE_BALANCED):
+                            slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_PERFORMANCE)
+                            logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_PERFORMANCE]))
                             event = common.SLB_EVENT_PERFORMANCE_MODE
+                            expect_upower_event = True
                             set_power_profile(common.POWER_PROFILE_PERFORMANCE)
 
                 elif (event == common.SLB_EVENT_AC_OFFLINE):
@@ -318,15 +396,21 @@ def main():
                         slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
                         event = common.SLB_EVENT_QC71_DYNAMIC_MODE
 
-                if (family == slimbook.info.SLB_MODEL_HERO or
-                    family == slimbook.info.SLB_MODEL_TITAN):
-
-                    if (event == common.SLB_EVENT_QC71_SILENT_MODE):
-                        set_power_profile(common.POWER_PROFILE_POWER_SAVER)
-                    elif (event == common.SLB_EVENT_QC71_NORMAL_MODE):
-                        set_power_profile(common.POWER_PROFILE_BALANCED)
-                    elif (event == common.SLB_EVENT_QC71_PERFORMANCE_MODE):
-                        set_power_profile(common.POWER_PROFILE_PERFORMANCE)
+                elif (event & 0xfff0 == common.SLB_EVENT_UPOWER_POWER_EVENT):
+                    if (expect_upower_event):
+                        logger.info("Expected UPower event, nothing to do")
+                        expect_upower_event = False
+                        continue
+                        
+                    if (family in common.QC71_TRIPLE_PROFILE):
+                        expect = common.QC71_TRIPLE_PROFILE_FROM_UPOWER[event]
+                        logger.info("external power event {0:04X}, expected {1:04X}".format(event,expect))
+                        slimbook.qc71.profile_set(expect)
+                        
+                    elif (family in common.QC71_DOUBLE_PROFILE):
+                        expect = common.QC71_DOUBLE_PROFILE_FROM_UPOWER[event]
+                        logger.info("external power event {0:04X}, expected {1:04X}".format(event,expect))
+                        slimbook.qc71.profile_set(expect)
 
         if (event == common.SLB_EVENT_TOUCHPAD_CHANGED):
             if (not settings[common.OPT_TRACKPAD_LOCK]):
