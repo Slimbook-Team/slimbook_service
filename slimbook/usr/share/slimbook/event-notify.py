@@ -41,7 +41,7 @@ import time
 
 logger = logging.getLogger("slimbook.service")
 logging.basicConfig(format='%(levelname)s-%(message)s')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 context = zmq.Context()
 socket_out = context.socket(zmq.PUB)
@@ -295,6 +295,7 @@ def main():
         
     cached_events = {}
     expect_upower_event = False
+    ac = False
     
     while True:
        
@@ -391,26 +392,36 @@ def main():
                             set_power_profile(common.POWER_PROFILE_PERFORMANCE)
 
                 elif (event == common.SLB_EVENT_AC_OFFLINE):
-                
-                    if (family == slimbook.info.SLB_MODEL_CREATIVE):
+                    ac = False
+
+                    if (family == slimbook.info.SLB_MODEL_CREATIVE or family == slimbook.info.SLB_MODEL_EVO):
                         slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
                         event = common.SLB_EVENT_QC71_DYNAMIC_MODE
 
+                elif (event == common.SLB_EVENT_AC_ONLINE):
+                    ac = True
+
                 elif (event & 0xfff0 == common.SLB_EVENT_UPOWER_POWER_EVENT):
                     if (expect_upower_event):
-                        logger.info("Expected UPower event, nothing to do")
+                        logger.debug("Expected UPower event, nothing to do")
                         expect_upower_event = False
                         continue
-                        
+
+                    # Evo and Creative doesn't change TDP without AC'
+                    if (ac == False and (family == slimbook.info.SLB_MODEL_CREATIVE or family == slimbook.info.SLB_MODEL_EVO)):
+                        continue
+
                     if (family in common.QC71_TRIPLE_PROFILE):
                         expect = common.QC71_TRIPLE_PROFILE_FROM_UPOWER[event]
-                        logger.info("external power event {0:04X}, expected {1:04X}".format(event,expect))
+                        logger.debug("external power event {0:04X}, expected {1:04X}".format(event,expect))
                         slimbook.qc71.profile_set(expect)
+                        event = expect
                         
                     elif (family in common.QC71_DOUBLE_PROFILE):
                         expect = common.QC71_DOUBLE_PROFILE_FROM_UPOWER[event]
-                        logger.info("external power event {0:04X}, expected {1:04X}".format(event,expect))
+                        logger.debug("external power event {0:04X}, expected {1:04X}".format(event,expect))
                         slimbook.qc71.profile_set(expect)
+                        event = expect
 
         if (event == common.SLB_EVENT_TOUCHPAD_CHANGED):
             if (not settings[common.OPT_TRACKPAD_LOCK]):
