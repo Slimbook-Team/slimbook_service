@@ -31,7 +31,7 @@ import signal
 import sys
 
 LANGDOMAIN = "slimbook"
-LANGDIR = "locale-langpack"
+LANGDIR = "/usr/share/slimbook/locale-langpack"
 
 try:
     current_locale, encoding = locale.getdefaultlocale()
