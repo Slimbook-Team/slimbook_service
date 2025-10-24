@@ -75,8 +75,13 @@ class Touchpad:
                 os.close(fd)
         
             if found:
-                self.get_state()
-                return
+                try:
+                    self.get_state()
+                    return
+                except:
+                    #some devices fails with a errno 22 (Invalid Argument)
+                    #better to fallback to evdev grab method
+                    found = False
     
         found = False
         # generic touchpad lookup based on evdev grabing
