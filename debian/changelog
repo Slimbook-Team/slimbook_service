@@ -1,3 +1,9 @@
+slimbook (1.0.0~fallsupdate2) noble; urgency=medium
+
+  * Ignore some touchpads crashing reading switch feature report
+
+ -- Slimbook <dev@slimbook.es>  Mon, 27 Oct 2025 14:34:28 +0100
+
 slimbook (1.0.0~fallsupdate1) noble; urgency=medium
 
   * Pushing notifications triggered from upower changes
