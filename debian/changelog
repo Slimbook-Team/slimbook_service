@@ -1,3 +1,10 @@
+slimbook (1.0.1) noble; urgency=medium
+
+  * Fixed incoming two performance events on some qc71
+  * performing a dummy performance set when AC becomes available with Creative and EVO
+
+ -- Slimbook <dev@slimbook.es>  Thu, 13 Nov 2025 23:08:12 +0100
+
 slimbook (1.0.0~fallsupdate2) noble; urgency=medium
 
   * Ignore some touchpads crashing reading switch feature report
