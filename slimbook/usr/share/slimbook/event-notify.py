@@ -56,6 +56,9 @@ os.chmod(common.SLB_IPC_CTL_PATH, 0o777)
 
 slb_events = queue.Queue()
 
+# whenever platform driver is loaded or not
+module_loaded = False
+
 settings = {
     common.OPT_TRACKPAD_LOCK: True,
     common.OPT_POWER_PROFILE: True
@@ -185,7 +188,7 @@ def keyboard_worker():
             if (event.value == slimbook.info.SLB_SCAN_QC71_SUPER_LOCK):
                 slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
             
-            elif (event.value == slimbook.info.SLB_SCAN_QC71_SILENT_MODE):
+            elif (event.value == slimbook.info.SLB_SCAN_QC71_SILENT_MODE and module_loaded):
                 logger.debug("qc71 performance change requested (i8042)")
                 slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
             
@@ -308,7 +311,7 @@ def main():
         
         if cached:
             delta =  now - cached
-            if delta > 0.750:
+            if delta > 1.250:
                 cached_events[event] = now
             else:
                 logger.debug("ignored duplicated event {0} ({1})".format(event,delta))
@@ -317,8 +320,8 @@ def main():
             cached_events[event] = now
         
         # no need to bother user with this event as it is already notified elsewhere
-        if (event == common.SLB_EVENT_AC_OFFLINE or event == common.SLB_EVENT_AC_ONLINE):
-            continue
+        #if (event == common.SLB_EVENT_AC_OFFLINE or event == common.SLB_EVENT_AC_ONLINE):
+        #   continue
         
         if (family == slimbook.info.SLB_MODEL_EXCALIBUR):
             if (event == common.SLB_EVENT_ENERGY_SAVER_MODE):
@@ -400,6 +403,10 @@ def main():
 
                 elif (event == common.SLB_EVENT_AC_ONLINE):
                     ac = True
+                    
+                    if ((family == slimbook.info.SLB_MODEL_CREATIVE or family == slimbook.info.SLB_MODEL_EVO) and module_loaded):
+                        # trigger a dummy profile set
+                        slimbook.qc71.profile_set(slimbook.qc71.profile_get())
 
                 elif (event & 0xfff0 == common.SLB_EVENT_UPOWER_POWER_EVENT):
                     if (expect_upower_event):
