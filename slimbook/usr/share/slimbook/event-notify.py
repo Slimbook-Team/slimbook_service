@@ -188,7 +188,7 @@ def keyboard_worker():
             if (event.value == slimbook.info.SLB_SCAN_QC71_SUPER_LOCK):
                 slb_events.put(common.SLB_EVENT_QC71_SUPER_LOCK_CHANGED)
             
-            elif (event.value == slimbook.info.SLB_SCAN_QC71_SILENT_MODE and module_loaded):
+            elif (event.value == slimbook.info.SLB_SCAN_QC71_SILENT_MODE and module_loaded == False):
                 logger.debug("qc71 performance change requested (i8042)")
                 slb_events.put(common.SLB_EVENT_QC71_SILENT_MODE_CHANGED)
             
@@ -299,13 +299,14 @@ def main():
     cached_events = {}
     expect_upower_event = False
     ac = False
+    restore_profile = slimbook.info.SLB_QC71_PROFILE_BALANCED
     
     while True:
        
         event = slb_events.get()
         now = time.time()
         
-        logger.debug("event {0}".format(event))
+        logger.debug("event {0:04X}".format(event))
         
         cached = cached_events.get(event)
         
@@ -314,7 +315,7 @@ def main():
             if delta > 1.250:
                 cached_events[event] = now
             else:
-                logger.debug("ignored duplicated event {0} ({1})".format(event,delta))
+                logger.debug("ignored duplicated event {0:04X} ({1})".format(event,delta))
                 continue
         else:
             cached_events[event] = now
@@ -396,39 +397,45 @@ def main():
 
                 elif (event == common.SLB_EVENT_AC_OFFLINE):
                     ac = False
-
-                    if (family == slimbook.info.SLB_MODEL_CREATIVE or family == slimbook.info.SLB_MODEL_EVO):
+                    logger.debug("AC Offline")
+                    if ((family == slimbook.info.SLB_MODEL_CREATIVE or family == slimbook.info.SLB_MODEL_EVO) and module_loaded):
+                        restore_profile = slimbook.qc71.profile_get()
+                        slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_BALANCED)
                         slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
-                        event = common.SLB_EVENT_QC71_DYNAMIC_MODE
+                        event = common.QC71_TRIPLE_PROFILE_TO_NOTIFICATION[slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER]
+                        
 
                 elif (event == common.SLB_EVENT_AC_ONLINE):
                     ac = True
                     
                     if ((family == slimbook.info.SLB_MODEL_CREATIVE or family == slimbook.info.SLB_MODEL_EVO) and module_loaded):
-                        # trigger a dummy profile set
-                        slimbook.qc71.profile_set(slimbook.qc71.profile_get())
-
+                        
+                        # restore profile
+                        logger.debug("AC Online")
+                        slimbook.qc71.profile_set(restore_profile)
+                        event = common.QC71_TRIPLE_PROFILE_TO_NOTIFICATION[restore_profile]
+                        
                 elif (event & 0xfff0 == common.SLB_EVENT_UPOWER_POWER_EVENT):
                     if (expect_upower_event):
                         logger.debug("Expected UPower event, nothing to do")
                         expect_upower_event = False
                         continue
 
-                    # Evo and Creative doesn't change TDP without AC'
-                    if (ac == False and (family == slimbook.info.SLB_MODEL_CREATIVE or family == slimbook.info.SLB_MODEL_EVO)):
+                    # Creative doesn't change TDP without AC'
+                    if (ac == False and (family == slimbook.info.SLB_MODEL_CREATIVE)):
                         continue
 
                     if (family in common.QC71_TRIPLE_PROFILE):
                         expect = common.QC71_TRIPLE_PROFILE_FROM_UPOWER[event]
                         logger.debug("external power event {0:04X}, expected {1:04X}".format(event,expect))
                         slimbook.qc71.profile_set(expect)
-                        event = expect
+                        event = common.QC71_TRIPLE_PROFILE_TO_NOTIFICATION[expect]
                         
                     elif (family in common.QC71_DOUBLE_PROFILE):
                         expect = common.QC71_DOUBLE_PROFILE_FROM_UPOWER[event]
                         logger.debug("external power event {0:04X}, expected {1:04X}".format(event,expect))
                         slimbook.qc71.profile_set(expect)
-                        event = expect
+                        event = common.QC71_DOUBLE_PROFILE_TO_NOTIFICATION[expect]
 
         if (event == common.SLB_EVENT_TOUCHPAD_CHANGED):
             if (not settings[common.OPT_TRACKPAD_LOCK]):
@@ -449,7 +456,7 @@ def main():
                 #discard event
                 continue
                     
-        logger.debug("out event {0}".format(event))
+        logger.debug("out event {0:04X}".format(event))
         send_notify(event)
         
 if __name__=="__main__":
