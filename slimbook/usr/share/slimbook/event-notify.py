@@ -113,10 +113,13 @@ def upower_worker():
 
 def udev_worker():
     context = pyudev.Context()
-    
+    last_ac_status = -1
+
     for device in context.list_devices(subsystem="power_supply"):
         status = get_udev_ac_status(device)
+
         if (status >=0):
+            last_ac_status = status
             logger.info("AC status:{0}".format(status))
             slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
     
@@ -124,13 +127,14 @@ def udev_worker():
         if device.get("ID_PATH") == "platform-qc71_laptop":
             if (device.get("DEVNAME")):
                 slb_events.put(common.SLB_EVENT_QC71_INPUT_LOADED)
-            
+
     monitor = pyudev.Monitor.from_netlink(context)
     #monitor.filter_by('power_supply')
     for device in iter(monitor.poll, None):
         if device.subsystem == "power_supply":
             status = get_udev_ac_status(device)
-            if (status >=0):
+            if (status >=0 and status != last_ac_status):
+                last_ac_status = status
                 logger.info("AC status:{0}".format(status))
                 slb_events.put(common.SLB_EVENT_AC_OFFLINE + status)
         elif device.subsystem == "input":
