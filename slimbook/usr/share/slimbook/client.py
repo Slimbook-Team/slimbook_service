@@ -815,6 +815,13 @@ class PreferencesDialog(Gtk.Window):
         table1.attach(self.switch5, 1, 2, 11, 12, xpadding=15, ypadding=15,
                       xoptions=Gtk.AttachOptions.SHRINK)
         
+        label6 = Gtk.Label(label=_('AC Notifications') + ':')
+        label6.set_halign(Gtk.Align.CENTER)
+        table1.attach(label6, 0, 1, 12, 13, xpadding=15, ypadding=15)
+        self.switch6 = Gtk.Switch()
+        table1.attach(self.switch6, 1, 2, 12, 13, xpadding=15, ypadding=15,
+                      xoptions=Gtk.AttachOptions.SHRINK)
+
         self.load_preferences()
         
         self.changes = False
@@ -824,6 +831,7 @@ class PreferencesDialog(Gtk.Window):
         self.switch3.connect('state-set',self.on_switch_state_set)
         self.switch4.connect('state-set',self.on_switch_state_set)
         self.switch5.connect('state-set',self.on_switch_state_set)
+        self.switch6.connect('state-set',self.on_switch_state_set)
         
         self.show_all()
 
@@ -856,6 +864,7 @@ class PreferencesDialog(Gtk.Window):
         self.switch3.set_active(configuration.get('notifications') == True)
         self.switch4.set_active(configuration.get('trackpad-lock') == True)
         self.switch5.set_active(configuration.get('power-profile') == True)
+        self.switch6.set_active(configuration.get('ac-notifications') == True)
     
     def save_preferences(self):
 
@@ -873,11 +882,13 @@ class PreferencesDialog(Gtk.Window):
         configuration.set('notifications', self.switch3.get_active())
         configuration.set('trackpad-lock', self.switch4.get_active())
         configuration.set('power-profile', self.switch5.get_active())
+        configuration.set('ac-notifications', self.switch6.get_active())
         configuration.save()
         
         settings = {}
         settings[common.OPT_TRACKPAD_LOCK] = self.switch4.get_active()
         settings[common.OPT_POWER_PROFILE] = self.switch5.get_active()
+        settings[common.OPT_AC_NOTIFICATIONS] = self.switch6.get_active()
         update_server_settings(settings)
         
 class SystemInfoDialog(Gtk.Dialog):
