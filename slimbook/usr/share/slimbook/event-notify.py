@@ -61,10 +61,12 @@ module_loaded = False
 
 settings = {
     common.OPT_TRACKPAD_LOCK: True,
-    common.OPT_POWER_PROFILE: True
+    common.OPT_POWER_PROFILE: True,
+    common.OPT_AC_NOTIFICATIONS: True
 }
 
 def set_power_profile(profile):
+    #ToDo: refactor this using Dbus instead
     if (settings[common.OPT_POWER_PROFILE]):
         if (os.path.exists("/usr/bin/powerprofilesctl")):
             subprocess.run(["/usr/bin/powerprofilesctl","set",profile])
@@ -406,6 +408,10 @@ def main():
                         restore_profile = slimbook.qc71.profile_get()
                         slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_BALANCED)
                         slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
+
+                        if (settings[common.OPT_AC_NOTIFICATIONS] == False):
+                            continue
+
                         event = common.QC71_TRIPLE_PROFILE_TO_NOTIFICATION[slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER]
                         
 
@@ -417,6 +423,10 @@ def main():
                         # restore profile
                         logger.debug("AC Online")
                         slimbook.qc71.profile_set(restore_profile)
+
+                        if (settings[common.OPT_AC_NOTIFICATIONS] == False):
+                            continue
+
                         event = common.QC71_TRIPLE_PROFILE_TO_NOTIFICATION[restore_profile]
                         
                 elif (event & 0xfff0 == common.SLB_EVENT_UPOWER_POWER_EVENT):
