@@ -772,149 +772,51 @@ class ReportThread(threading.Thread):
 
 class PreferencesDialog(Gtk.Window):
     def __init__(self):
-        Gtk.Window.__init__(self)
-        self.set_modal(True)
+        super().__init__(modal=True, window_position=Gtk.WindowPosition.CENTER_ALWAYS)
+        self.connect('delete-event', self.on_delete_event)
 
-        self.connect("delete-event", self.on_delete_event)
+        self.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(common.ICON, 64, 64, True))
 
-        self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
-        theme = Gtk.IconTheme()
-        pix = theme.load_icon(
-            icon_name=common.ICON, size=64, flags=Gtk.IconLookupFlags.FORCE_SYMBOLIC
-        )
-        self.set_icon(pix)
-
-        header = Gtk.HeaderBar()
-        header.set_title(_("Slimbook Preferences"))
-        header.set_show_close_button(True)
-
-        self.btn_save = Gtk.Button.new_with_label(_("Save"))
-        self.btn_save.set_sensitive(False)
-        self.btn_save.connect("clicked", self.on_btn_save_clicked)
-        header.pack_end(self.btn_save)
+        header = Gtk.HeaderBar(title=_('Slimbook Preferences'), show_close_button=True)
         self.set_titlebar(header)
+        
+        self.btn_save = Gtk.Button(label=_('Save'), sensitive=False)
+        self.btn_save.connect('clicked', self.on_btn_save_clicked)
+        header.pack_end(self.btn_save)
 
-        vbox0 = Gtk.Box.new(Gtk.Orientation.VERTICAL, 5)
-        vbox0.set_border_width(20)
-        self.add(vbox0)
-        table1 = Gtk.Table(n_rows=10, n_columns=2, homogeneous=False)
-        vbox0.pack_start(table1, False, True, 1)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5, border_width=20)
+        self.add(vbox)
 
-        label0 = Gtk.Label(label=_("Show indicator") + ":")
-        label0.set_halign(Gtk.Align.CENTER)
-        table1.attach(label0, 0, 1, 6, 7, xpadding=15, ypadding=15)
-        self.switch0 = Gtk.Switch()
-        table1.attach(
-            self.switch0,
-            1,
-            2,
-            6,
-            7,
-            xpadding=15,
-            ypadding=15,
-            xoptions=Gtk.AttachOptions.SHRINK,
-        )
+        list_box = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
+        vbox.add(list_box)
 
-        label1 = Gtk.Label(label=_("Autostart") + ":")
-        label1.set_halign(Gtk.Align.CENTER)
-        table1.attach(label1, 0, 1, 7, 8, xpadding=15, ypadding=15)
-        self.switch1 = Gtk.Switch()
-        table1.attach(
-            self.switch1,
-            1,
-            2,
-            7,
-            8,
-            xpadding=15,
-            ypadding=15,
-            xoptions=Gtk.AttachOptions.SHRINK,
-        )
+        preferences = [
+            ('switch0', _('Show indicator')),
+            ('switch1', _('Autostart')),
+            ('switch2', _('Light-mode Icon')),
+            ('switch3', _('Check Notifications')),
+            ('switch4', _('Trackpad lock')),
+            ('switch5', _('Set power profile')),
+            ('switch6', _('AC Notifications')),
+        ]
 
-        label2 = Gtk.Label(label=_("Light-mode Icon") + ":")
-        label2.set_halign(Gtk.Align.CENTER)
-        table1.attach(label2, 0, 1, 8, 9, xpadding=15, ypadding=15)
-        self.switch2 = Gtk.Switch()
-        table1.attach(
-            self.switch2,
-            1,
-            2,
-            8,
-            9,
-            xpadding=15,
-            ypadding=15,
-            xoptions=Gtk.AttachOptions.SHRINK,
-        )
+        for attr, label_text in preferences:
+            row = Gtk.ListBoxRow(activatable=False, selectable=False)
+            box = Gtk.Box()
+            row.add(box)
 
-        label3 = Gtk.Label(label=_("Check Notifications") + ":")
-        label3.set_halign(Gtk.Align.CENTER)
-        table1.attach(label3, 0, 1, 9, 10, xpadding=15, ypadding=15)
-        self.switch3 = Gtk.Switch()
-        table1.attach(
-            self.switch3,
-            1,
-            2,
-            9,
-            10,
-            xpadding=15,
-            ypadding=15,
-            xoptions=Gtk.AttachOptions.SHRINK,
-        )
+            label = Gtk.Label(label=label_text, halign=Gtk.Align.START, valign=Gtk.Align.CENTER, hexpand=True)
+            switch = Gtk.Switch(halign=Gtk.Align.END, valign=Gtk.Align.CENTER)
 
-        label4 = Gtk.Label(label=_("Trackpad lock") + ":")
-        label4.set_halign(Gtk.Align.CENTER)
-        table1.attach(label4, 0, 1, 10, 11, xpadding=15, ypadding=15)
-        self.switch4 = Gtk.Switch()
-        table1.attach(
-            self.switch4,
-            1,
-            2,
-            10,
-            11,
-            xpadding=15,
-            ypadding=15,
-            xoptions=Gtk.AttachOptions.SHRINK,
-        )
+            box.add(label)
+            box.add(switch)
+            list_box.add(row)
 
-        label5 = Gtk.Label(label=_("Set power profile") + ":")
-        label5.set_halign(Gtk.Align.CENTER)
-        table1.attach(label5, 0, 1, 11, 12, xpadding=15, ypadding=15)
-        self.switch5 = Gtk.Switch()
-        table1.attach(
-            self.switch5,
-            1,
-            2,
-            11,
-            12,
-            xpadding=15,
-            ypadding=15,
-            xoptions=Gtk.AttachOptions.SHRINK,
-        )
-
-        label6 = Gtk.Label(label=_("AC Notifications") + ":")
-        label6.set_halign(Gtk.Align.CENTER)
-        table1.attach(label6, 0, 1, 12, 13, xpadding=15, ypadding=15)
-        self.switch6 = Gtk.Switch()
-        table1.attach(
-            self.switch6,
-            1,
-            2,
-            12,
-            13,
-            xpadding=15,
-            ypadding=15,
-            xoptions=Gtk.AttachOptions.SHRINK,
-        )
+            setattr(self, attr, switch)
+            switch.connect('state-set', self.on_switch_state_set)
 
         self.load_preferences()
-
         self.changes = False
-        self.switch0.connect("state-set", self.on_switch_state_set)
-        self.switch1.connect("state-set", self.on_switch_state_set)
-        self.switch2.connect("state-set", self.on_switch_state_set)
-        self.switch3.connect("state-set", self.on_switch_state_set)
-        self.switch4.connect("state-set", self.on_switch_state_set)
-        self.switch5.connect("state-set", self.on_switch_state_set)
-        self.switch6.connect("state-set", self.on_switch_state_set)
 
         self.show_all()
 
