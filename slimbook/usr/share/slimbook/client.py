@@ -612,9 +612,9 @@ class ReportDialog(Gtk.Window):
 
         self.stack = Gtk.Stack()
 
-        vboxrv = Gtk.VBox()
-        vboxmv = Gtk.VBox()
-        vboxev = Gtk.VBox()
+        vboxrv = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vboxmv = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        vboxev = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
         # Report View
 
@@ -623,7 +623,7 @@ class ReportDialog(Gtk.Window):
         vboxrv.set_margin_top(10)
         vboxrv.set_margin_bottom(10)
 
-        hboxrv = Gtk.HBox()
+        hboxrv = Gtk.Box()
         hboxrv.set_margin_start(5)
         hboxrv.set_margin_end(5)
 
@@ -659,7 +659,7 @@ class ReportDialog(Gtk.Window):
         vboxmv.set_margin_top(10)
         vboxmv.set_margin_bottom(10)
 
-        hboxmv = Gtk.HBox()
+        hboxmv = Gtk.Box()
         hboxmv.set_margin_start(10)
         hboxmv.set_margin_end(10)
         hboxmv.set_margin_top(15)
@@ -686,7 +686,7 @@ class ReportDialog(Gtk.Window):
         vboxev.set_margin_top(10)
         vboxev.set_margin_bottom(10)
 
-        hboxev = Gtk.HBox()
+        hboxev = Gtk.Box()
         hboxev.set_margin_start(10)
         hboxev.set_margin_end(10)
         hboxev.set_margin_top(15)
@@ -794,7 +794,7 @@ class PreferencesDialog(Gtk.Window):
         header.pack_end(self.btn_save)
         self.set_titlebar(header)
 
-        vbox0 = Gtk.VBox(spacing=5)
+        vbox0 = Gtk.Box.new(Gtk.Orientation.VERTICAL, 5)
         vbox0.set_border_width(20)
         self.add(vbox0)
         table1 = Gtk.Table(n_rows=10, n_columns=2, homogeneous=False)
@@ -1035,6 +1035,7 @@ class SystemInfoDialog(Gtk.Dialog):
 
             hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 0)
 
+
             hbox.pack_start(label_key, False, False, 1)
             hbox.pack_end(label_value, False, False, 1)
 
@@ -1101,7 +1102,7 @@ class NotificationsDialog(Gtk.Window):
 
         self.set_titlebar(header)
 
-        vbox = Gtk.VBox(spacing=12)
+        vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 12)
         sw = Gtk.ScrolledWindow()
         self.listbox = Gtk.ListBox()
 
