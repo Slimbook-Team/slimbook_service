@@ -112,7 +112,8 @@ PARAMS = {
             'show': True,
             'notifications' : True,
             'trackpad-lock' : True,
-            'power-profile' : True
+            'power-profile' : True,
+            'ac-notifications' : True
             }
 
 POWER_PROFILE_POWER_SAVER = "power-saver"
@@ -143,8 +144,9 @@ POWER_NAME_TO_EVENT = {
     TUNED_PROFILE[POWER_PROFILE_PERFORMANCE] : SLB_EVENT_UPOWER_PERFORMANCE
 }
 
-OPT_TRACKPAD_LOCK = "trackpad-lock"
-OPT_POWER_PROFILE = "power-profile"
+OPT_TRACKPAD_LOCK    = "trackpad-lock"
+OPT_POWER_PROFILE    = "power-profile"
+OPT_AC_NOTIFICATIONS = "ac-notifications"
 
 CMD_LOAD_SETTINGS = "cmd-load"
 

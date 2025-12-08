@@ -1,7 +1,7 @@
-# Catalan translation.
-# Copyright (C) 2025 Slimbook
-# This file is distributed under the same license.
-# Víctor Rodríguez, 2025.
+# Asturian translation for Slimbook.
+# Copyright (C) 2025
+# This file is distributed under the same license as the Slimbook package.
+# Mikel González (Softastur) <mikelglez@softastur.org>, 2025.
 #
 #, fuzzy
 msgid ""
@@ -9,10 +9,10 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-09-18 15:11+0200\n"
-"PO-Revision-Date: 2025-09-25 14:18+0200\n"
-"Last-Translator: \n"
+"PO-Revision-Date: 2025-11-17 23:04+0100\n"
+"Last-Translator: Mikel González (Softastur) <mikelglez@softastur.org>\n"
 "Language-Team: \n"
-"Language: ca_ES\n"
+"Language: ast\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,51 +20,51 @@ msgstr ""
 
 #: client.py:76
 msgid "Slimbok Client Notifications"
-msgstr "Notificacions del client Slimbook"
+msgstr "Avisos pal veceru/a de Slimbook"
 
 #: client.py:426
 msgid "Notifications"
-msgstr "Notificacions"
+msgstr "Avisos"
 
 #: client.py:431
 msgid "System information"
-msgstr "Informació del sistema"
+msgstr "Información del sistema"
 
 #: client.py:436
 msgid "Preferences"
-msgstr "Paràmetres"
+msgstr "Preferencies"
 
 #: client.py:445
 msgid "About"
-msgstr "Quant a"
+msgstr "Tocante a"
 
 #: client.py:450 client.py:590
 msgid "Generate report"
-msgstr "Genera un informe"
+msgstr "Xenerar un informe"
 
 #: client.py:456
 msgid "Report a bug..."
-msgstr "Informa d'un error…"
+msgstr "Avisar d'un fallu..."
 
 #: client.py:467
 msgid "Exit"
-msgstr "Surt"
+msgstr "Colar"
 
 #: client.py:483 common.py:129
 msgid "Slimbook Service"
-msgstr "Servei Slimbook"
+msgstr "Seviciu de Slimbook"
 
 #: client.py:496
 msgid "Visit Website"
-msgstr "Visita el lloc web"
+msgstr "Visitar el sitiu web"
 
 #: client.py:498
 msgid "Report issue"
-msgstr "Informa d'un problema"
+msgstr "Avisar d'un problema"
 
 #: client.py:505
 msgid "translation-credits"
-msgstr "Víctor Rodríguez"
+msgstr "Softastur.org"
 
 #: client.py:612
 msgid ""
@@ -72,181 +72,181 @@ msgid ""
 "Full report generates a report with sensitive information,\n"
 "beware of sharing it online!"
 msgstr ""
-"Això és un informe amb diverses estadístiques de maquinari i programari.\n"
-"L'informe complet genera un informe amb informació sensible,\n"
-"aneu amb compte a l'hora de compartir-lo en línia!"
+"Esto ye un informe que contién información y estadístiques del equipu.\n"
+"L'informe complentu inclúi datos delicaos,\n"
+"pon procuru si pienses compartilu en llínia!"
 
 #: client.py:622
 msgid "Report"
-msgstr "Informa"
+msgstr "Informe"
 
 #: client.py:625
 msgid "Full report"
-msgstr "Informe complet"
+msgstr "Informe completu"
 
 #: client.py:649
 msgid "Open"
-msgstr "Obre"
+msgstr "Abrir"
 
 #: client.py:652 client.py:679
 msgid "Close"
-msgstr "Tanca"
+msgstr "Zarrar"
 
 #: client.py:698
 msgid "Succesful! Dumped at "
-msgstr "Èxit! S'ha generat a "
+msgstr "Xeneróse correutamente en "
 
 #: client.py:706
 msgid ""
 "Error! Report wasn't able to be generated\n"
 "Error: "
 msgstr ""
-"S'ha produït un error! No s'ha pogut generar l'informe\n"
-"Error: "
+"Hebo un fallu al xenerar l'informe\n"
+"Fallu: "
 
 #: client.py:762
 msgid "Slimbook Preferences"
-msgstr "Paràmetres de Slimbook"
+msgstr "Preferencies de Slimbook"
 
 #: client.py:765
 msgid "Save"
-msgstr "Desa"
+msgstr "Guardar"
 
 #: client.py:777
 msgid "Show indicator"
-msgstr "Mostra l'indicador"
+msgstr "Amosar un indicador"
 
 #: client.py:784
 msgid "Autostart"
-msgstr "Inici automàtic"
+msgstr "Aniciar automáticamente"
 
 #: client.py:791
 msgid "Light-mode Icon"
-msgstr "Icona en mode clar"
+msgstr "Iconu claru"
 
 #: client.py:798
 msgid "Check Notifications"
-msgstr "Comprova les notificacions"
+msgstr "Comprobar avisos"
 
 #: client.py:805
 msgid "Trackpad lock"
-msgstr "Bloqueig del trackpad"
+msgstr "Torgar el trackpad"
 
 #: client.py:812
 msgid "Set power profile"
-msgstr "Estableix el perfil de rendiment"
+msgstr "Afitar el perfil de rindimientu"
 
 #: client.py:818
 msgid "AC Notifications"
-msgstr "Notificacions AC"
+msgstr "Notificaciones AC"
 
 #: client.py:887
 msgid "Slimbook System information"
-msgstr "Informació del sistema de Slimbook"
+msgstr "Información del sistema de Slimbook"
 
 #: client.py:1003
 msgid "Slimbook Notifications"
-msgstr "Notificacions de Slimbook"
+msgstr "Avisos de Slimbook"
 
 #: client.py:1006
 msgid "Refresh"
-msgstr "Actualitza"
+msgstr "Volver a cargar"
 
 #: client.py:1069
 msgid "Nothing to show"
-msgstr "Res a mostrar"
+msgstr "Nun hai nada"
 
 #: client.py:1105
 msgid "Fetching..."
-msgstr "S'està carregant…"
+msgstr "Cargando..."
 
 #: common.py:69
 msgid "Silent Mode enabled"
-msgstr "S'ha activat el mode silenciós"
+msgstr "Habilitóse'l mou silenciosu"
 
 #: common.py:70
 msgid "Silent Mode disabled"
-msgstr "S'ha desactivat el mode silenciós"
+msgstr "Deshabilitóse'l mou silenciosu"
 
 #: common.py:71
 msgid "Silent Mode changed"
-msgstr "Ha canviat el mode silenciós"
+msgstr "El mou silenciosu cambió"
 
 #: common.py:73
 msgid "Super Key Lock enabled"
-msgstr "S'ha activat el bloqueig amb la tecla «Super»"
+msgstr "Habilitose la torga de la tecla \"super\""
 
 #: common.py:74
 msgid "Super Key Lock disabled"
-msgstr "S'ha desactivat el bloqueig amb la tecla «Super»"
+msgstr "Deshabilitóse la torga de la tecla \"super\""
 
 #: common.py:75
 msgid "Super Key Lock changed"
-msgstr "El bloqueig amb la tecla «Super» ha canviat"
+msgstr "La torga de la tecla \"super\" cambió"
 
 #: common.py:77 common.py:188
 msgid "Silent Mode"
-msgstr "Mode silenciós"
+msgstr "Mou silenciosu"
 
 #: common.py:78
 msgid "Normal Mode"
-msgstr "Mode normal"
+msgstr "Mou normal"
 
 #: common.py:79
 msgid "Performance Mode"
-msgstr "Mode d'alt rendiment"
+msgstr "Mou de rindimientu altu"
 
 #: common.py:80
 msgid "Dynamic Mode"
-msgstr "Mode dinàmic"
+msgstr "Mou dinámicu"
 
 #: common.py:82
 msgid "Touchpad enabled"
-msgstr "S'ha activat el touchpad"
+msgstr "Habilitóse'l panel táctil"
 
 #: common.py:83
 msgid "Touchpad disabled"
-msgstr "S'ha desactivat el touchpad"
+msgstr "Deshabilitóse'l panel táctil"
 
 #: common.py:84
 msgid "Touchpad changed"
-msgstr "El touchpad ha canviat"
+msgstr "El panel táctil cambió"
 
 #: common.py:85
 msgid "Webcam changed"
-msgstr "La càmera web ha canviat"
+msgstr "La cámara web cambió"
 
 #: common.py:86
 msgid "Webcam enabled"
-msgstr "S'ha activat la càmera web"
+msgstr "Habilitóse la cámara web"
 
 #: common.py:87
 msgid "Webcam disabled"
-msgstr "S'ha desactivat la càmera web"
+msgstr "Deshabilitóse la cámara web"
 
 #: common.py:89
 msgid "Energy Saver"
-msgstr "Estalvi d'energia"
+msgstr "Aforrador d'enerxía"
 
 #: common.py:90
 msgid "Balanced"
-msgstr "Equilibrat"
+msgstr "Equilibráu"
 
 #: common.py:91
 msgid "Performance"
-msgstr "Rendiment"
+msgstr "Rindimientu"
 
 #: common.py:167
 msgid "Uptime"
-msgstr "Temps en funcionament"
+msgstr "Tiempu enceso"
 
 #: common.py:168
 msgid "Memory Free/Total"
-msgstr "Memòria lliure/total"
+msgstr "Memoria llibre/total"
 
 #: common.py:169
 msgid "Memory device"
-msgstr "Dispositiu de memòria"
+msgstr "Preséu de memoria"
 
 #: common.py:170
 msgid "UMA"
@@ -254,47 +254,47 @@ msgstr "UMA"
 
 #: common.py:171
 msgid "Disk Free/Total"
-msgstr "Espai de disc lliure/total"
+msgstr "Espaciu en discu llibre / total"
 
 #: common.py:172
 msgid "Kernel"
-msgstr "Nucli"
+msgstr "Nucleu"
 
 #: common.py:173
 msgid "OS"
-msgstr "Sistema operatiu"
+msgstr "Sistema operativu"
 
 #: common.py:174
 msgid "Desktop"
-msgstr "Escriptori"
+msgstr "Escritoriu"
 
 #: common.py:175
 msgid "Session"
-msgstr "Sessió"
+msgstr "Sesión"
 
 #: common.py:176
 msgid "Product"
-msgstr "Producte"
+msgstr "Productu"
 
 #: common.py:177
 msgid "Serial"
-msgstr "Número de sèrie"
+msgstr "Númberu de serie"
 
 #: common.py:178
 msgid "Bios Version"
-msgstr "Versió de la Bios"
+msgstr "Versión de la bios"
 
 #: common.py:179
 msgid "EC Version"
-msgstr "Versió de l'EC"
+msgstr "Versión de la EC"
 
 #: common.py:180
 msgid "Boot Mode"
-msgstr "Mode d'arrancada"
+msgstr "Mou d'arranque"
 
 #: common.py:181
 msgid "Secure Boot"
-msgstr "Arrencada segura"
+msgstr "Arranque seguru"
 
 #: common.py:182
 msgid "CPU"
@@ -310,19 +310,19 @@ msgstr "GPU"
 
 #: common.py:185
 msgid "Module loaded"
-msgstr "S'ha carregat el mòdul"
+msgstr "Módulu cargáu"
 
 #: common.py:186
 msgid "Fn Lock"
-msgstr "Bloqueja amb «Fn»"
+msgstr "Torga de la tecla \"fn\""
 
 #: common.py:187
 msgid "Super Lock"
-msgstr "Bloqueja amb «Super»"
+msgstr "Torga de la tecla \"super\""
 
 #: common.py:189
 msgid "Turbo Mode"
-msgstr "Mode turbo"
+msgstr "Mou turbu"
 
 #: common.py:190
 msgid "Profile"
@@ -334,4 +334,4 @@ msgstr "Sí"
 
 #: common.py:193
 msgid "No"
-msgstr "No"
+msgstr "Non"
