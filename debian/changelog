@@ -1,3 +1,10 @@
+slimbook (1.0.4) noble; urgency=medium
+
+  * Added asturian translation
+  * Added option to turn off AC notifications
+
+ -- Slimbook <dev@slimbook.es>  Mon, 08 Dec 2025 22:55:00 +0100
+
 slimbook (1.0.3) noble; urgency=medium
 
   * Avoid udev AC spamming
