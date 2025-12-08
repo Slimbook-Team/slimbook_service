@@ -136,6 +136,10 @@ msgstr "Torgar el trackpad"
 msgid "Set power profile"
 msgstr "Afitar el perfil de rindimientu"
 
+#: client.py:818
+msgid "AC Notifications"
+msgstr "Notificaciones AC"
+
 #: client.py:887
 msgid "Slimbook System information"
 msgstr "Información del sistema de Slimbook"

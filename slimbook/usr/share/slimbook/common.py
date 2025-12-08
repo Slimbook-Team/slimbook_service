@@ -112,7 +112,8 @@ PARAMS = {
             'show': True,
             'notifications' : True,
             'trackpad-lock' : True,
-            'power-profile' : True
+            'power-profile' : True,
+            'ac-notifications' : True
             }
 
 POWER_PROFILE_POWER_SAVER = "power-saver"

@@ -136,6 +136,10 @@ msgstr "Bloqueig del trackpad"
 msgid "Set power profile"
 msgstr "Estableix el perfil de rendiment"
 
+#: client.py:818
+msgid "AC Notifications"
+msgstr "Notificacions AC"
+
 #: client.py:887
 msgid "Slimbook System information"
 msgstr "Informació del sistema de Slimbook"
