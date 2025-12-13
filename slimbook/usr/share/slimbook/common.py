@@ -213,14 +213,13 @@ ICONDIR = os.path.join(APPDIR, 'icons')
 FILE_AUTO_START_ORIG = os.path.join(APPDIR,
                                     'slimbook-client-autostart.desktop')
 
-ICONDIR = os.path.join(APPDIR, 'icons')
-ICON = os.path.join(ICONDIR, 'slimbook_be1ofus_light.svg')
+ICON = 'slimbook-be1ofus-light'
 
 STATUS_ICON = {}
-STATUS_ICON['light'] = (os.path.join(ICONDIR, 'slimbook-status-active-light.svg'))
-STATUS_ICON['light-attention'] = (os.path.join(ICONDIR, 'slimbook-status-attention-light.svg'))
-STATUS_ICON['dark'] = (os.path.join(ICONDIR, 'slimbook-status-active-dark.svg'))
-STATUS_ICON['dark-attention'] = (os.path.join(ICONDIR, 'slimbook-status-attention-dark.svg'))
+STATUS_ICON['light'] = 'slimbook-status-active-light'
+STATUS_ICON['light-attention'] = 'slimbook-status-attention-light'
+STATUS_ICON['dark'] = 'slimbook-status-active-dark'
+STATUS_ICON['dark-attention'] = 'slimbook-status-attention-dark'
 
 INFO_UPTIME = _("Uptime")
 INFO_MEM = _("Memory Free/Total")
