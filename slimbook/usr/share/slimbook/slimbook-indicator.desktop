@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Exec=/usr/bin/python3 /usr/share/slimbook/client.py --preferences
-Icon=/usr/share/pixmaps/slimbook_be1ofus_light.svg
+Icon=slimbook-be1ofus-light
 Terminal=false
 Hidden=false
 NoDisplay=false
