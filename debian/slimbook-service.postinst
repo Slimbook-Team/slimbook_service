@@ -2,11 +2,14 @@
 
 set -e
 
-
 case "$1" in
     configure)
         mkdir -p /etc/skel/.config/autostart
         cp /usr/share/slimbook/slimbook-client-autostart.desktop /etc/skel/.config/autostart/
+
+        if [ -f /usr/bin/gtk-update-icon-cache ]; then
+            gtk-update-icon-cache /usr/share/icons/hicolor
+        fi
     ;;
 
     abort-upgrade|abort-deconfigure|abort-remove)
