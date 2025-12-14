@@ -403,8 +403,7 @@ class ServiceIndicator(Gio.Application):
         self.autostart = configuration.get('autostart')
         self.version = configuration.get('version')
         self.theme = configuration.get('theme')
-        self.active_icon = os.path.abspath(
-            common.STATUS_ICON[configuration.get('theme')])
+        self.active_icon = common.STATUS_ICON[configuration.get('theme')]
         self.attention_icon = common.STATUS_ICON[self.theme+"-attention"]
         self.show = configuration.get('show')
         self.notifications_enabled = configuration.get('notifications')
