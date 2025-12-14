@@ -2,6 +2,7 @@
 Type=Application
 Exec=/usr/bin/python3 /usr/share/slimbook/client.py --preferences
 Icon=slimbook-be1ofus-light
+Categories=Utility
 Terminal=false
 Hidden=false
 NoDisplay=false
