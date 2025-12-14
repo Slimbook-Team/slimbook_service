@@ -1,3 +1,9 @@
+slimbook (1.0.7) noble; urgency=medium
+
+  * Fixed other dialogs still expecting a file path
+
+ -- Slimbook <dev@slimbook.es>  Sun, 14 Dec 2025 23:59:29 +0100
+
 slimbook (1.0.6) noble; urgency=medium
 
   * Fixed broken status icon path
