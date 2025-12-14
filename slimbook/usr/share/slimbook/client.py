@@ -501,11 +501,11 @@ this program. If not, see <http://www.gnu.org/licenses/>.
         about_dialog.set_documenters([
             'Slimbook <dev@slimbook.es>'])
         about_dialog.set_translator_credits(_('translator-credits'))
-        size = 125
-        about_dialog.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(
-            common.ICON, size, size, True))
-        about_dialog.set_logo(GdkPixbuf.Pixbuf.new_from_file_at_scale(
-            common.ICON, size, size, True))
+
+        theme = Gtk.IconTheme()
+        pix = theme.load_icon(icon_name = common.ICON, size = 125, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
+        about_dialog.set_icon(pix)
+        about_dialog.set_logo(pix)
         about_dialog.set_program_name(common.APPNAME)
         return about_dialog
 
@@ -581,8 +581,9 @@ class ReportDialog(Gtk.Window):
         self.connect('delete-event',self.on_report_delete_event)
                 
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
-        self.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(
-            common.ICON, 64, 64, True))
+        theme = Gtk.IconTheme()
+        pix = theme.load_icon(icon_name = common.ICON, size = 64, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
+        self.set_icon(pix)
 
         header = Gtk.HeaderBar()
         header.set_title(_('Generate report'))
@@ -753,8 +754,9 @@ class PreferencesDialog(Gtk.Window):
         self.connect('delete-event',self.on_delete_event)
         
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
-        self.set_icon(GdkPixbuf.Pixbuf.new_from_file_at_scale(
-            common.ICON, 64, 64, True))
+        theme = Gtk.IconTheme()
+        pix = theme.load_icon(icon_name = common.ICON, size = 64, flags = Gtk.IconLookupFlags.FORCE_SYMBOLIC)
+        self.set_icon(pix)
 
         header = Gtk.HeaderBar()
         header.set_title(_('Slimbook Preferences'))
