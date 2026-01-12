@@ -1,3 +1,10 @@
+slimbook (1.0.8) noble; urgency=medium
+
+  * Power profile count is gathered from libslimbook
+  * Upower to Slimbook profile synchronization is disabled also, when switched off from preferences
+
+ -- Slimbook <dev@slimbook.es>  Mon, 12 Jan 2026 17:45:13 +0100
+
 slimbook (1.0.7) noble; urgency=medium
 
   * Fixed other dialogs still expecting a file path

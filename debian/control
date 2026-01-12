@@ -15,7 +15,7 @@ Description: Dummy transitional package
 Package: slimbook-service
 Architecture: all
 Pre-Depends: adwaita-icon-theme-full
-Depends: ${misc:Depends}, python3-evdev, libnotify-bin, python3-zmq, python3-requests, python3-feedparser, python3-slimbook (>=1.18), libslimbook1 (>=1.18), gir1.2-ayatanaappindicator3-0.1, gir1.2-notify-0.7, python3-pyudev, python3-dateutil
+Depends: ${misc:Depends}, python3-evdev, libnotify-bin, python3-zmq, python3-requests, python3-feedparser, python3-slimbook (>=1.20), libslimbook1 (>=1.20), gir1.2-ayatanaappindicator3-0.1, gir1.2-notify-0.7, python3-pyudev, python3-dateutil
 Provides: slimbook
 Conflicts: neon-adwaita
 Replaces: slimbook
