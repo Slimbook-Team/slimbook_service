@@ -259,9 +259,12 @@ def main():
     model = slimbook.info.get_model()
     platform = slimbook.info.get_platform()
     family = slimbook.info.get_family()
+    
+    power_profiles = slimbook.info.get_performance_profiles()
 
     logger.info("platform:{0:04x}".format(platform))
     logger.info("model:{0:04x}".format(model))
+    logger.info("power profiles:{0}".format(power_profiles))
     
     if (model == slimbook.info.SLB_MODEL_UNKNOWN):
         product = slimbook.info.product_name().lower()
@@ -364,7 +367,7 @@ def main():
                     value = slimbook.qc71.profile_get()
                     logger.debug("current performance:{0}".format(common.POWER_PROFILE_NAME[value]))
                     
-                    if (family in common.QC71_DOUBLE_PROFILE):
+                    if (power_profiles == 2):
                         if (value == slimbook.info.SLB_QC71_PROFILE_SILENT):
                             slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_NORMAL)
                             logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_NORMAL]))
@@ -379,7 +382,7 @@ def main():
                             expect_upower_event = True
                             set_power_profile(common.POWER_PROFILE_POWER_SAVER)
                         
-                    if (family in common.QC71_TRIPLE_PROFILE):
+                    if (power_profiles == 3):
                         if (value == slimbook.info.SLB_QC71_PROFILE_PERFORMANCE):
                             slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
                             logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER]))
@@ -430,6 +433,10 @@ def main():
                         event = common.QC71_TRIPLE_PROFILE_TO_NOTIFICATION[restore_profile]
                         
                 elif (event & 0xfff0 == common.SLB_EVENT_UPOWER_POWER_EVENT):
+                    # power profile matching is disabled
+                    if (settings[common.OPT_POWER_PROFILE] == False):
+                        continue
+                        
                     if (expect_upower_event):
                         logger.debug("Expected UPower event, nothing to do")
                         expect_upower_event = False
@@ -439,13 +446,13 @@ def main():
                     if (ac == False and (family == slimbook.info.SLB_MODEL_CREATIVE)):
                         continue
 
-                    if (family in common.QC71_TRIPLE_PROFILE):
+                    if (power_profiles == 3):
                         expect = common.QC71_TRIPLE_PROFILE_FROM_UPOWER[event]
                         logger.debug("external power event {0:04X}, expected {1:04X}".format(event,expect))
                         slimbook.qc71.profile_set(expect)
                         event = common.QC71_TRIPLE_PROFILE_TO_NOTIFICATION[expect]
                         
-                    elif (family in common.QC71_DOUBLE_PROFILE):
+                    elif (power_profiles == 2):
                         expect = common.QC71_DOUBLE_PROFILE_FROM_UPOWER[event]
                         logger.debug("external power event {0:04X}, expected {1:04X}".format(event,expect))
                         slimbook.qc71.profile_set(expect)
