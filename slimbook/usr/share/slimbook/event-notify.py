@@ -383,6 +383,10 @@ def main():
                             set_power_profile(common.POWER_PROFILE_POWER_SAVER)
                         
                     if (power_profiles == 3):
+                        # Creative doesn't change TDP without AC'
+                        if (ac == False and (family == slimbook.info.SLB_MODEL_CREATIVE)):
+                            continue
+                        
                         if (value == slimbook.info.SLB_QC71_PROFILE_PERFORMANCE):
                             slimbook.qc71.profile_set(slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER)
                             logger.debug("switching to {0}".format(common.POWER_PROFILE_NAME[slimbook.info.SLB_QC71_PROFILE_ENERGY_SAVER]))
