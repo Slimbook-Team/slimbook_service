@@ -1,3 +1,9 @@
+slimbook (1.0.9) noble; urgency=medium
+
+  * Ignoring performance events on creative when ac is not available
+
+ -- Slimbook <dev@slimbook.es>  Thu, 05 Feb 2026 19:04:36 +0100
+
 slimbook (1.0.8) noble; urgency=medium
 
   * Power profile count is gathered from libslimbook
