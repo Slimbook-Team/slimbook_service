@@ -180,9 +180,9 @@ def check_time_feeds():
         return False
 
 
-class ServiceIndicator(Gio.Application):
+class ServiceIndicator(GObject.Object):
     def __init__(self):
-        super().__init__(application_id="slimbook.service", flags=Gio.ApplicationFlags.IS_SERVICE)
+        super().__init__()
         xml = f"""
             <node>
               <interface name='es.slimbook.ServiceIndicator'>
