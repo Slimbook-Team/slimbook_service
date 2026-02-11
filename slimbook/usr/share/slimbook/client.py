@@ -1260,6 +1260,38 @@ def manage_autostart(create):
             os.remove(common.FILE_AUTO_START)
 
 
+PID_FILE = os.path.join(
+    os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "slimbook-service-indicator.pid"
+)
+
+_indicator_instance = None
+
+
+def _on_sigusr1(*args):
+    if _indicator_instance:
+        GLib.idle_add(_indicator_instance.show_preferences)
+
+
+def is_running():
+    try:
+        with open(PID_FILE, "r") as f:
+            pid = int(f.read().strip())
+        os.kill(pid, 0)
+        return True
+    except (FileNotFoundError, ValueError, ProcessLookupError, PermissionError):
+        return False
+
+
+def send_preferences_signal():
+    try:
+        with open(PID_FILE, "r") as f:
+            pid = int(f.read().strip())
+        os.kill(pid, signal.SIGUSR1)
+        return True
+    except (FileNotFoundError, ValueError, ProcessLookupError, PermissionError):
+        return False
+
+
 def preferences():
     connection = Gio.bus_get_sync(Gio.BusType.SESSION, None)
     value = connection.call_sync(
@@ -1275,12 +1307,22 @@ def preferences():
 
 
 def init_indicator():
+    global _indicator_instance
     try:
-        service = ServiceIndicator()
+        _indicator_instance = ServiceIndicator()
+
+        with open(PID_FILE, "w") as f:
+            f.write(str(os.getpid()))
+
+        signal.signal(signal.SIGUSR1, _on_sigusr1)
         GLib.MainLoop().run()
-    except KeyboardInterrupt as ke:
-        GLib.MainLoop().quit()
+    except KeyboardInterrupt:
         logging.info("out of main loop")
+    finally:
+        try:
+            os.remove(PID_FILE)
+        except OSError:
+            pass
         exit(0)
 
 
