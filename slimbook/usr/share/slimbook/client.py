@@ -41,7 +41,6 @@ import signal
 import fnmatch
 import datetime
 from dateutil import parser
-from optparse import OptionParser
 
 
 try:
@@ -1292,20 +1291,6 @@ def send_preferences_signal():
         return False
 
 
-def preferences():
-    connection = Gio.bus_get_sync(Gio.BusType.SESSION, None)
-    value = connection.call_sync(
-        BUS_NAME,
-        BUS_PATH,
-        BUS_NAME,
-        "ShowPreferences",
-        None,
-        None,
-        Gio.DBusCallFlags.NONE,
-        10000,
-        None)
-
-
 def init_indicator():
     global _indicator_instance
     try:
@@ -1327,33 +1312,12 @@ def init_indicator():
 
 
 def main():
-    if len(sys.argv) > 1:
-        usage_msg = ("usage: %prog [options]")
-        parser = OptionParser(usage=usage_msg, add_help_option=False)
-        parser.add_option("-h", "--help",
-                          action="store_true",
-                          dest="help",
-                          default=False,
-                          help=("show this help and exit."))
-        parser.add_option("-p", "--preferences",
-                          action="store_true",
-                          dest="preferences",
-                          default=False,
-                          help=("show preferences."))
-        (options, args) = parser.parse_args()
-        if options.help:
-            parser.print_help()
-        elif options.preferences:
-            try:
-                preferences()
-            except Exception as e:
-                logging.warning("slimbook-service dbus not available. Not running?")
-                init_indicator()
-
-        exit(0)
-    else:
-        logging.debug("Try Indicator init")
-        init_indicator()
+    if "--preferences" in sys.argv or "-p" in sys.argv:
+        if send_preferences_signal():
+            return
+    elif is_running():
+        return
+    init_indicator()
 
 
 if __name__ == "__main__":
