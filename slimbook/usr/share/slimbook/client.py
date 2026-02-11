@@ -67,16 +67,11 @@ from gi.repository import GdkPixbuf
 from gi.repository import Notify
 from gi.repository import GLib
 
-BUS_NAME = "es.slimbook.ServiceIndicator"
-BUS_PATH = "/es/slimbook/ServiceIndicator"
-
 Notify.init("Slimbok Client Notifications")
 notification = Notify.Notification.new("", "")
 notification.set_app_name("Slimbok Client Notifications")
 notification.set_timeout(Notify.EXPIRES_DEFAULT)
 notification.set_urgency(Notify.Urgency.NORMAL)
-
-dbus_service = None
 
 logging.basicConfig(
     level=logging.INFO,
@@ -182,22 +177,6 @@ def check_time_feeds():
 class ServiceIndicator(GObject.Object):
     def __init__(self):
         super().__init__()
-        xml = f"""
-            <node>
-              <interface name='es.slimbook.ServiceIndicator'>
-                  <method name='ShowPreferences'/>
-              </interface>
-            </node>
-            """
-        self.node = Gio.DBusNodeInfo.new_for_xml(xml)
-
-        self.bus = Gio.bus_own_name(
-            Gio.BusType.SESSION,
-            BUS_NAME,
-            Gio.BusNameOwnerFlags.ALLOW_REPLACEMENT,
-            None,
-            self.on_name_acquired,
-            None)
 
         GObject.signal_new(
             "preferences-close",
@@ -238,19 +217,6 @@ class ServiceIndicator(GObject.Object):
         GLib.timeout_add_seconds(5, self.on_notifications_timeout)
 
         self.feed_updating = False
-
-    def on_name_acquired(self, connection, name):
-        connection.register_object(
-            BUS_PATH,
-            self.node.interfaces[0],
-            self.on_message,
-            None,
-            None)
-
-    def on_message(self, connection, sender, path, interface, method, params, invo):
-        if method == "ShowPreferences":
-            self.show_preferences()
-            invo.return_value(None)
 
     def zmq_loop(self):
         while self.poller.poll(timeout=50):
