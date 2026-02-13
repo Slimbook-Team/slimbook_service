@@ -1,3 +1,13 @@
+slimbook (1.0.10) noble; urgency=medium
+
+  * PR37 from Antonio Masiá:
+  * Dropped dbus single application mechanism in favor of a simple pid file (it wasnt working anyways)
+  * Dropped preferences pop-up dbus method in favor of usr1 signal
+  * Dropped OptionParser in favor of a handcrafted one. OptionParser is already deprecated
+  * A bunch of code style
+
+ -- Slimbook <dev@slimbook.es>  Fri, 13 Feb 2026 19:26:55 +0100
+
 slimbook (1.0.9) noble; urgency=medium
 
   * Ignoring performance events on creative when ac is not available
