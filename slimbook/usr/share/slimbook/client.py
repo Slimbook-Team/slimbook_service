@@ -500,7 +500,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
         )
         link.set_name("link")
         link.set_halign(Gtk.Align.CENTER)
-        about_dialog.set_authors(["Slimbook <dev@slimbook.es>"])
+        about_dialog.set_authors(["Slimbook <dev@slimbook.es>","Antonio Masiá <ajmasia.dev@ysnp.link>"])
         about_dialog.set_documenters(["Slimbook <dev@slimbook.es>"])
         about_dialog.set_translator_credits(_("translator-credits"))
 
