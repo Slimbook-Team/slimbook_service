@@ -42,6 +42,9 @@ except Exception as e:
     print(e, file = sys.stderr)
     _ = str
 
+# will be handy to have this variable already here
+xdg_current_desktop = os.environ.get("XDG_CURRENT_DESKTOP")
+
 SLB_EVENT_QC71_SILENT_MODE_CHANGED = 0x00
 SLB_EVENT_QC71_SILENT_MODE_ON = 0x01
 SLB_EVENT_QC71_SILENT_MODE_OFF = 0x02
@@ -78,31 +81,59 @@ SLB_EVENT_UPOWER_POWER_SAVER = 0x4001
 SLB_EVENT_UPOWER_BALANCED    = 0x4002
 SLB_EVENT_UPOWER_PERFORMANCE = 0x4003
 
-SLB_EVENT_DATA = {
-    SLB_EVENT_QC71_SILENT_MODE_ON : [_("Silent Mode enabled"),"power-profile-power-saver-symbolic"],
-    SLB_EVENT_QC71_SILENT_MODE_OFF : [_("Silent Mode disabled"),"power-profile-balanced-symbolic"],
-    SLB_EVENT_QC71_SILENT_MODE_CHANGED : [_("Silent Mode changed"),"power-profile-balanced-symbolic"],
-    
-    SLB_EVENT_QC71_SUPER_LOCK_ON : [_("Super Key Lock enabled"),"preferences-system-privacy-symbolic"],
-    SLB_EVENT_QC71_SUPER_LOCK_OFF : [_("Super Key Lock disabled"),"preferences-system-privacy-symbolic"],
-    SLB_EVENT_QC71_SUPER_LOCK_CHANGED : [_("Super Key Lock changed"),"preferences-system-privacy-symbolic"],
-    
-    SLB_EVENT_QC71_SILENT_MODE : [_("Silent Mode"),"power-profile-power-saver-symbolic"],
-    SLB_EVENT_QC71_NORMAL_MODE : [_("Normal Mode"),"power-profile-balanced-symbolic"],
-    SLB_EVENT_QC71_PERFORMANCE_MODE : [_("Performance Mode"),"power-profile-performance-symbolic"],
-    SLB_EVENT_QC71_DYNAMIC_MODE : [_("Dynamic Mode"),"power-profile-power-saver-symbolic"],
+if xdg_current_desktop == "KDE":
+    SLB_EVENT_DATA = {
+        SLB_EVENT_QC71_SILENT_MODE_ON : [_("Silent Mode enabled"),"battery-profile-powersave-symbolic"],
+        SLB_EVENT_QC71_SILENT_MODE_OFF : [_("Silent Mode disabled"),"battery-profile-balanced-symbolic"],
+        SLB_EVENT_QC71_SILENT_MODE_CHANGED : [_("Silent Mode changed"),"battery-profile-balanced-symbolic"],
 
-    SLB_EVENT_TOUCHPAD_ON : [_("Touchpad enabled"),"input-touchpad-symbolic"],
-    SLB_EVENT_TOUCHPAD_OFF : [_("Touchpad disabled"),"input-touchpad-symbolic"],
-    SLB_EVENT_TOUCHPAD_CHANGED : [_("Touchpad changed"),"input-touchpad-symbolic"],
-    SLB_EVENT_WEBCAM_CHANGED : [_("Webcam changed"),"preferences-system-privacy-symbolic"],
-    SLB_EVENT_WEBCAM_ON : [_("Webcam enabled"),"preferences-system-privacy-symbolic"],
-    SLB_EVENT_WEBCAM_OFF : [_("Webcam disabled"),"preferences-system-privacy-symbolic"],
+        SLB_EVENT_QC71_SUPER_LOCK_ON : [_("Super Key Lock enabled"),"keyboard-layout"],
+        SLB_EVENT_QC71_SUPER_LOCK_OFF : [_("Super Key Lock disabled"),"keyboard-layout"],
+        SLB_EVENT_QC71_SUPER_LOCK_CHANGED : [_("Super Key Lock changed"),"keyboard-layout"],
 
-    SLB_EVENT_ENERGY_SAVER_MODE : [_("Energy Saver"),"power-profile-power-saver-symbolic"],
-    SLB_EVENT_BALANCED_MODE : [_("Balanced"),"power-profile-balanced-symbolic"],
-    SLB_EVENT_PERFORMANCE_MODE : [_("Performance"),"power-profile-performance-symbolic"]
-}
+        SLB_EVENT_QC71_SILENT_MODE : [_("Silent Mode"),"battery-profile-powersave-symbolic"],
+        SLB_EVENT_QC71_NORMAL_MODE : [_("Normal Mode"),"battery-profile-balanced-symbolic"],
+        SLB_EVENT_QC71_PERFORMANCE_MODE : [_("Performance Mode"),"battery-profile-performance-symbolic"],
+        SLB_EVENT_QC71_DYNAMIC_MODE : [_("Dynamic Mode"),"battery-profile-powersave-symbolic"],
+
+        SLB_EVENT_TOUCHPAD_ON : [_("Touchpad enabled"),"input-touchpad-on-symbolic"],
+        SLB_EVENT_TOUCHPAD_OFF : [_("Touchpad disabled"),"input-touchpad-off-symbolic"],
+        SLB_EVENT_TOUCHPAD_CHANGED : [_("Touchpad changed"),"touchpad_enabled"],
+        SLB_EVENT_WEBCAM_CHANGED : [_("Webcam changed"),"camera-on"],
+        SLB_EVENT_WEBCAM_ON : [_("Webcam enabled"),"camera-on"],
+        SLB_EVENT_WEBCAM_OFF : [_("Webcam disabled"),"camera-off"],
+
+        SLB_EVENT_ENERGY_SAVER_MODE : [_("Energy Saver"),"battery-profile-powersave-symbolic"],
+        SLB_EVENT_BALANCED_MODE : [_("Balanced"),"battery-profile-balanced-symbolic"],
+        SLB_EVENT_PERFORMANCE_MODE : [_("Performance"),"battery-profile-performance-symbolic"]
+    }
+
+else:
+    SLB_EVENT_DATA = {
+        SLB_EVENT_QC71_SILENT_MODE_ON : [_("Silent Mode enabled"),"power-profile-power-saver-symbolic"],
+        SLB_EVENT_QC71_SILENT_MODE_OFF : [_("Silent Mode disabled"),"power-profile-balanced-symbolic"],
+        SLB_EVENT_QC71_SILENT_MODE_CHANGED : [_("Silent Mode changed"),"power-profile-balanced-symbolic"],
+
+        SLB_EVENT_QC71_SUPER_LOCK_ON : [_("Super Key Lock enabled"),"preferences-system-privacy-symbolic"],
+        SLB_EVENT_QC71_SUPER_LOCK_OFF : [_("Super Key Lock disabled"),"preferences-system-privacy-symbolic"],
+        SLB_EVENT_QC71_SUPER_LOCK_CHANGED : [_("Super Key Lock changed"),"preferences-system-privacy-symbolic"],
+
+        SLB_EVENT_QC71_SILENT_MODE : [_("Silent Mode"),"power-profile-power-saver-symbolic"],
+        SLB_EVENT_QC71_NORMAL_MODE : [_("Normal Mode"),"power-profile-balanced-symbolic"],
+        SLB_EVENT_QC71_PERFORMANCE_MODE : [_("Performance Mode"),"power-profile-performance-symbolic"],
+        SLB_EVENT_QC71_DYNAMIC_MODE : [_("Dynamic Mode"),"power-profile-power-saver-symbolic"],
+
+        SLB_EVENT_TOUCHPAD_ON : [_("Touchpad enabled"),"input-touchpad-symbolic"],
+        SLB_EVENT_TOUCHPAD_OFF : [_("Touchpad disabled"),"input-touchpad-symbolic"],
+        SLB_EVENT_TOUCHPAD_CHANGED : [_("Touchpad changed"),"input-touchpad-symbolic"],
+        SLB_EVENT_WEBCAM_CHANGED : [_("Webcam changed"),"preferences-system-privacy-symbolic"],
+        SLB_EVENT_WEBCAM_ON : [_("Webcam enabled"),"preferences-system-privacy-symbolic"],
+        SLB_EVENT_WEBCAM_OFF : [_("Webcam disabled"),"preferences-system-privacy-symbolic"],
+
+        SLB_EVENT_ENERGY_SAVER_MODE : [_("Energy Saver"),"power-profile-power-saver-symbolic"],
+        SLB_EVENT_BALANCED_MODE : [_("Balanced"),"power-profile-balanced-symbolic"],
+        SLB_EVENT_PERFORMANCE_MODE : [_("Performance"),"power-profile-performance-symbolic"]
+    }
 
 PARAMS = {
             'first-time': True,
@@ -177,7 +208,6 @@ QC71_TRIPLE_PROFILE_TO_NOTIFICATION = {
 }
 
 #set a default dark theme for kde
-xdg_current_desktop = os.environ.get("XDG_CURRENT_DESKTOP")
 if xdg_current_desktop == "KDE":
     PARAMS['theme'] = 'dark'
 
