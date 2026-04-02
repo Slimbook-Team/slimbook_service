@@ -1,3 +1,9 @@
+slimbook (1.0.11~resolute) noble; urgency=medium
+
+  * Uploaded to 26.04
+
+ -- Slimbook <dev@slimbook.es>  Thu, 02 Apr 2026 07:54:47 +0200
+
 slimbook (1.0.11) noble; urgency=medium
 
   * Using a different set of icon names on KDE
