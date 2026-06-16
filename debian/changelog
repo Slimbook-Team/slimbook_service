@@ -1,3 +1,9 @@
+slimbook (1.0.12) resolute; urgency=medium
+
+  * Launching control panel from tray menu (if available)
+
+ -- Slimbook <dev@slimbook.es>  Tue, 16 Jun 2026 16:45:33 +0200
+
 slimbook (1.0.11~resolute) noble; urgency=medium
 
   * Uploaded to 26.04
