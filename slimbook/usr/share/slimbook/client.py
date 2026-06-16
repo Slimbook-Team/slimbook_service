@@ -437,6 +437,12 @@ class ServiceIndicator(GObject.Object):
         self.menu_preferences.show()
         menu.append(self.menu_preferences)
 
+        if (os.path.exists(common.CONTROL_PANEL_PATH)):
+            self.menu_control_panel = Gtk.MenuItem.new_with_label(_("Control Panel"))
+            self.menu_control_panel.connect("activate", self.on_control_panel_item)
+            self.menu_control_panel.show()
+            menu.append(self.menu_control_panel)
+
         separator = Gtk.SeparatorMenuItem()
         separator.show()
         menu.append(separator)
@@ -515,6 +521,9 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
     def on_preferences_item(self, widget, data=None):
         self.show_preferences()
+
+    def on_control_panel_item(self, widget, data=None):
+        subprocess.Popen([common.CONTROL_PANEL_PATH])
 
     def on_sysinfo_item(self, widget, data=None):
         logging.debug("system info")
