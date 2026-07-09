@@ -364,7 +364,8 @@ def main():
     
     module_loaded = slimbook.info.is_module_loaded()
     
-    _setup_keyd_hwdb()
+    if _find_keyd_device():
+        _setup_keyd_hwdb()
 
     if (platform == slimbook.info.SLB_PLATFORM_QC71):
         qc71_keyboard_thread = threading.Thread(
