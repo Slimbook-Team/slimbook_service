@@ -33,6 +33,9 @@ import threading
 import subprocess
 import os
 import sys
+
+# force WM_CLASS for window manager icon matching
+sys.argv[0] = "slimbook-indicator"
 import shutil
 import common
 import webbrowser
@@ -686,9 +689,8 @@ class PreferencesDialog(Adw.PreferencesDialog):
 
     def __init__(self):
         super().__init__()
+        self.set_wmclass("slimbook-indicator", "slimbook-indicator")
         self.set_title(_("Slimbook Preferences"))
-        self._changes = False
-        self.connect("closed", self._on_dialog_closed)
 
         page = Adw.PreferencesPage()
         self.add(page)
