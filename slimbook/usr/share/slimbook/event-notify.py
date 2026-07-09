@@ -65,6 +65,23 @@ settings = {
     common.OPT_AC_NOTIFICATIONS: True
 }
 
+_OSD_PROFILE_MAP = {
+    common.SLB_EVENT_ENERGY_SAVER_MODE: "power-saver",
+    common.SLB_EVENT_BALANCED_MODE: "balanced",
+    common.SLB_EVENT_PERFORMANCE_MODE: "performance",
+}
+
+def _get_active_user_uid():
+    try:
+        uid = subprocess.check_output(
+            "loginctl list-sessions --no-legend | head -1 | awk '{print $2}'",
+            shell=True, text=True).strip()
+        if uid and uid.isdigit():
+            return int(uid)
+    except:
+        pass
+    return None
+
 def set_power_profile(profile):
     #ToDo: refactor this using Dbus instead
     if (settings[common.OPT_POWER_PROFILE]):
@@ -167,20 +184,71 @@ def zmq_worker():
         
         socket_ctl.send_json({})
     
-def keyboard_worker():
-    
-    device_path = "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
-    # work around for buggy dmi info
+def _find_keyd_device():
     try:
-        device_path = slimbook.info.keyboard_device()
+        for path in evdev.list_devices():
+            device = evdev.InputDevice(path)
+            if device.name == "keyd virtual keyboard":
+                device.close()
+                return path
+            device.close()
     except:
         pass
+    return None
+
+_KEYD_HWDB_PATH = "/etc/udev/hwdb.d/99-slimbook-hotkeys.hwdb"
+_KEYD_HWDB_CONTENT = (
+    "evdev:atkbd:dmi:bvn*:bvr*:bd*:svn*:pn*:pvr*\n"
+    " KEYBOARD_KEY_f2=f16\n"
+    " KEYBOARD_KEY_f9=f17\n"
+    " KEYBOARD_KEY_e2=f18\n"
+)
+
+def _setup_keyd_hwdb():
+    try:
+        current = ""
+        if os.path.exists(_KEYD_HWDB_PATH):
+            with open(_KEYD_HWDB_PATH, "r") as f:
+                current = f.read()
+        if current != _KEYD_HWDB_CONTENT:
+            logger.info("installing keyd hwdb rules")
+            with open(_KEYD_HWDB_PATH, "w") as f:
+                f.write(_KEYD_HWDB_CONTENT)
+            subprocess.run(["systemd-hwdb", "update"])
+            subprocess.run(["udevadm", "trigger", "--sysname-match=event*"])
+            logger.info("hwdb updated, udev triggered")
+    except Exception as e:
+        logger.warning("failed to setup keyd hwdb: {0}".format(e))
+
+def keyboard_worker():
+    
+    device_path = _find_keyd_device()
+    uses_keyd = device_path is not None
+    if uses_keyd:
+        logger.info("using keyd virtual keyboard: {0}".format(device_path))
+    else:
+        device_path = "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
+        # work around for buggy dmi info
+        try:
+            device_path = slimbook.info.keyboard_device()
+        except:
+            pass
         
     device = evdev.InputDevice(device_path)
     
     state = {}
     
     for event in device.read_loop():
+        if uses_keyd:
+            if event.type == evdev.ecodes.EV_KEY and event.value == 1:
+                if event.code == evdev.ecodes.KEY_F16:
+                    slb_events.put(common.SLB_EVENT_ENERGY_SAVER_MODE)
+                elif event.code == evdev.ecodes.KEY_F17:
+                    slb_events.put(common.SLB_EVENT_BALANCED_MODE)
+                elif event.code == evdev.ecodes.KEY_F18:
+                    slb_events.put(common.SLB_EVENT_PERFORMANCE_MODE)
+            continue
+
         if (event.type == evdev.ecodes.EV_MSC):
         
             last = state.get(event.value)
@@ -231,6 +299,21 @@ def send_notify(code):
     dt = datetime.now()
     ts = datetime.timestamp(dt)
     data = {"code": code, "timestamp": ts}
+
+    profile_name = _OSD_PROFILE_MAP.get(code)
+    if profile_name:
+        uid = _get_active_user_uid()
+        if uid is not None:
+            try:
+                subprocess.run(
+                    "sudo -u '#{0}' env DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{0}/bus "
+                    "busctl --user call org.kde.plasmashell /org/kde/osdService "
+                    "org.kde.osdService powerProfileChanged s {1}".format(uid, profile_name),
+                    shell=True)
+                return
+            except:
+                pass
+
     socket_out.send_json(data)
     
 def main():
@@ -281,6 +364,8 @@ def main():
     
     module_loaded = slimbook.info.is_module_loaded()
     
+    _setup_keyd_hwdb()
+
     if (platform == slimbook.info.SLB_PLATFORM_QC71):
         qc71_keyboard_thread = threading.Thread(
             name='slimbook.service.qc71.keyboard', target=keyboard_worker)
