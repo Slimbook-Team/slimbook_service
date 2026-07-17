@@ -9,5 +9,5 @@ NoDisplay=false
 StartupNotify=false
 Encoding=UTF-8
 Name[ca_ES]=Servei Slimbook
-Name[es_ES]=Slimbook Service
+Name[es]=Servicio Slimbook
 Name=Slimbook Service
