@@ -33,9 +33,6 @@ import threading
 import subprocess
 import os
 import sys
-
-# force WM_CLASS for window manager icon matching
-sys.argv[0] = "slimbook-indicator"
 import shutil
 import common
 import webbrowser
@@ -46,6 +43,7 @@ import fnmatch
 import datetime
 from dateutil import parser
 
+sys.argv[0] = "slimbook-indicator"
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
