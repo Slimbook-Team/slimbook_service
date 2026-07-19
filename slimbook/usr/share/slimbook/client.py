@@ -73,6 +73,33 @@ notification.set_app_name("Slimbok Client Notifications")
 notification.set_timeout(Notify.EXPIRES_DEFAULT)
 notification.set_urgency(Notify.Urgency.NORMAL)
 
+_OSD_PROFILE_MAP = {
+    0x0700: "power-saver",
+    0x0800: "balanced",
+    0x0900: "performance",
+}
+
+def _maybe_show_osd(code):
+    profile_name = _OSD_PROFILE_MAP.get(code)
+    if not profile_name:
+        return False
+    try:
+        bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+        Gio.DBusConnection.call_sync(
+            bus,
+            "org.kde.plasmashell",
+            "/org/kde/osdService",
+            "org.kde.osdService",
+            "powerProfileChanged",
+            GLib.Variant("(s)", (profile_name,)),
+            None,
+            Gio.DBusCallFlags.NONE,
+            -1,
+            None)
+        return True
+    except:
+        return False
+
 logging.basicConfig(
     level=logging.INFO,
     format="[%(levelname)s] (%(threadName)-10s) %(message)s",
@@ -227,7 +254,8 @@ class ServiceIndicator(GObject.Object):
             if event is None:
                 continue
 
-            self.message("Slimbook", event[0], event[1])
+            if not _maybe_show_osd(code):
+                self.message("Slimbook", event[0], event[1])
 
         return True
 
