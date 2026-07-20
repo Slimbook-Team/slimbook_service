@@ -43,7 +43,6 @@ import fnmatch
 import datetime
 from dateutil import parser
 
-sys.argv[0] = "slimbook-indicator"
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -58,6 +57,7 @@ from gi.repository import Adw
 from gi.repository import Notify
 
 Adw.init()
+GLib.set_prgname("slimbook-indicator")
 
 Notify.init("Slimbook Client Notifications")
 notification = Notify.Notification.new("", "")
@@ -687,7 +687,6 @@ class PreferencesDialog(Adw.PreferencesDialog):
 
     def __init__(self):
         super().__init__()
-        self.set_wmclass("slimbook-indicator", "slimbook-indicator")
         self.set_title(_("Slimbook Preferences"))
 
         page = Adw.PreferencesPage()
