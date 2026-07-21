@@ -3,6 +3,7 @@ Type=Application
 Exec=/usr/bin/slimbookindicator
 Hidden=false
 NoDisplay=false
+StartupWMClass=slimbook-indicator
 Name[es_ES]=Slimbook Service
 Name=Slimbook Service
 X-GNOME-Autostart-Delay=3

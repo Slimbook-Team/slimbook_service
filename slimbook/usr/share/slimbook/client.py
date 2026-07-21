@@ -57,6 +57,7 @@ from gi.repository import Adw
 from gi.repository import Notify
 
 Adw.init()
+GLib.set_prgname("slimbook-indicator")
 
 Notify.init("Slimbook Client Notifications")
 notification = Notify.Notification.new("", "")
@@ -687,8 +688,6 @@ class PreferencesDialog(Adw.PreferencesDialog):
     def __init__(self):
         super().__init__()
         self.set_title(_("Slimbook Preferences"))
-        self._changes = False
-        self.connect("closed", self._on_dialog_closed)
 
         page = Adw.PreferencesPage()
         self.add(page)
