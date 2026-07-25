@@ -525,7 +525,7 @@ class ServiceIndicator(GObject.Object):
             license_type=Gtk.License.GPL_3_0,
             website="http://www.slimbook.es",
             issue_url="https://github.com/slimbook/slimbook_service/issues/new",
-            developers=["Slimbook <dev@slimbook.es>", "Antonio Masiá <ajmasia.dev@ysnp.link>","Óscar Fernández Díaz <oscfdezdz@tuta.io>"],
+            developers=["Slimbook <dev@slimbook.es>", "Antonio Masiá <ajmasia.dev@ysnp.link>","Óscar Fernández Díaz <oscfdezdz@tuta.io>","Vitaliy Elin (aka DayDve) <daydve@smbit.pro>"],
             documenters=["Slimbook <dev@slimbook.es>"],
             translator_credits=_("translator-credits"),
         )
