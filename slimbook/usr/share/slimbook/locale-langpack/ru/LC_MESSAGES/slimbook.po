@@ -1,57 +1,56 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Russian translation for slimbook_service.
+# Copyright (C) 2026 Slimbook
+# This file is distributed under the same license.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: slimbook_service\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-28 16:05+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2026-07-23 00:00+0300\n"
+"Last-Translator: \n"
+"Language-Team: Russian\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: client.py:386
 msgid "Notifications"
-msgstr ""
+msgstr "Уведомления"
 
 #: client.py:391
 msgid "System Information"
-msgstr ""
+msgstr "Информация о системе"
 
 #: client.py:395
 msgid "Preferences"
-msgstr ""
+msgstr "Настройки"
 
 #: client.py:403
 msgid "Control Panel"
-msgstr ""
+msgstr "Панель управления"
 
 #: client.py:411
 msgid "About"
-msgstr ""
+msgstr "О приложении"
 
 #: client.py:415 client.py:554 client.py:566
 msgid "Generate Report"
-msgstr ""
+msgstr "Создать отчёт"
 
 #: client.py:420
 msgid "Report a Bug…"
-msgstr ""
+msgstr "Сообщить об ошибке…"
 
 #: client.py:430
 msgid "Exit"
-msgstr ""
+msgstr "Выход"
 
 #: client.py:494 common.py:218
 msgid "Slimbook Service"
-msgstr ""
+msgstr "Slimbook Service"
 
 #: client.py:500
 msgid "translator-credits"
@@ -63,279 +62,282 @@ msgid ""
 "full report also includes sensitive data such as MAC address and board "
 "serial number"
 msgstr ""
+"Создаёт сжатый архив с информацией об оборудовании и программном обеспечении. "
+"Полный отчёт также включает конфиденциальные данные, такие как MAC-адрес и "
+"серийный номер материнской платы."
 
 #: client.py:572
 msgid "Report"
-msgstr ""
+msgstr "Отчёт"
 
 #: client.py:575
 msgid "Full Report"
-msgstr ""
+msgstr "Полный отчёт"
 
 #: client.py:584
 msgid "Generating…"
-msgstr ""
+msgstr "Создание…"
 
 #: client.py:591
 msgid "Open Folder"
-msgstr ""
+msgstr "Открыть папку"
 
 #: client.py:600
 msgid "Close"
-msgstr ""
+msgstr "Закрыть"
 
 #: client.py:620
 msgid "Error"
-msgstr ""
+msgstr "Ошибка"
 
 #: client.py:622
 msgid "The report could not be generated:\n"
-msgstr ""
+msgstr "Не удалось создать отчёт:\n"
 
 #: client.py:627
 msgid "Report Generated"
-msgstr ""
+msgstr "Отчёт создан"
 
 #: client.py:628
 msgid "Saved at "
-msgstr ""
+msgstr "Сохранён в "
 
 #: client.py:677
 msgid "Show Indicator"
-msgstr ""
+msgstr "Показывать индикатор"
 
 #: client.py:678
 msgid "Autostart"
-msgstr ""
+msgstr "Автозапуск"
 
 #: client.py:679
 msgid "Light-Mode Icon"
-msgstr ""
+msgstr "Светлая иконка"
 
 #: client.py:680
 msgid "Check Notifications"
-msgstr ""
+msgstr "Проверять уведомления"
 
 #: client.py:681
 msgid "Trackpad Lock"
-msgstr ""
+msgstr "Блокировка тачпада"
 
 #: client.py:682
 msgid "Set Power Profile"
-msgstr ""
+msgstr "Установить профиль питания"
 
 #: client.py:683
 msgid "AC Notifications"
-msgstr ""
+msgstr "Уведомления о зарядке"
 
 #: client.py:688
 msgid "Slimbook Preferences"
-msgstr ""
+msgstr "Настройки Slimbook"
 
 #: client.py:703
 msgid "Save"
-msgstr ""
+msgstr "Сохранить"
 
 #: client.py:777
 msgid "Slimbook System Information"
-msgstr ""
+msgstr "Информация о системе Slimbook"
 
 #: client.py:783
 msgid "Copy to Clipboard"
-msgstr ""
+msgstr "Копировать в буфер обмена"
 
 #: client.py:820
 msgid "Copied to clipboard"
-msgstr ""
+msgstr "Скопировано в буфер обмена"
 
 #: client.py:832
 msgid "Slimbook Notifications"
-msgstr ""
+msgstr "Уведомления Slimbook"
 
 #: client.py:839
 msgid "Refresh"
-msgstr ""
+msgstr "Обновить"
 
 #: client.py:896
 msgid "Nothing to Show"
-msgstr ""
+msgstr "Нечего показать"
 
 #: client.py:910
 msgid "Fetching…"
-msgstr ""
+msgstr "Загрузка…"
 
 #: common.py:86 common.py:113
 msgid "Silent Mode enabled"
-msgstr ""
+msgstr "Тихий режим включён"
 
 #: common.py:87 common.py:114
 msgid "Silent Mode disabled"
-msgstr ""
+msgstr "Тихий режим выключен"
 
 #: common.py:88 common.py:115
 msgid "Silent Mode changed"
-msgstr ""
+msgstr "Тихий режим изменён"
 
 #: common.py:90 common.py:117
 msgid "Super Key Lock enabled"
-msgstr ""
+msgstr "Блокировка клавиши Super включена"
 
 #: common.py:91 common.py:118
 msgid "Super Key Lock disabled"
-msgstr ""
+msgstr "Блокировка клавиши Super выключена"
 
 #: common.py:92 common.py:119
 msgid "Super Key Lock changed"
-msgstr ""
+msgstr "Блокировка клавиши Super изменена"
 
 #: common.py:94 common.py:121 common.py:278
 msgid "Silent Mode"
-msgstr ""
+msgstr "Тихий режим"
 
 #: common.py:95 common.py:122
 msgid "Normal Mode"
-msgstr ""
+msgstr "Обычный режим"
 
 #: common.py:96 common.py:123
 msgid "Performance Mode"
-msgstr ""
+msgstr "Режим производительности"
 
 #: common.py:97 common.py:124
 msgid "Dynamic Mode"
-msgstr ""
+msgstr "Динамический режим"
 
 #: common.py:99 common.py:126
 msgid "Touchpad enabled"
-msgstr ""
+msgstr "Тачпад включён"
 
 #: common.py:100 common.py:127
 msgid "Touchpad disabled"
-msgstr ""
+msgstr "Тачпад выключен"
 
 #: common.py:101 common.py:128
 msgid "Touchpad changed"
-msgstr ""
+msgstr "Тачпад изменён"
 
 #: common.py:102 common.py:129
 msgid "Webcam changed"
-msgstr ""
+msgstr "Веб-камера изменена"
 
 #: common.py:103 common.py:130
 msgid "Webcam enabled"
-msgstr ""
+msgstr "Веб-камера включена"
 
 #: common.py:104 common.py:131
 msgid "Webcam disabled"
-msgstr ""
+msgstr "Веб-камера выключена"
 
 #: common.py:106 common.py:133
 msgid "Energy Saver"
-msgstr ""
+msgstr "Экономия энергии"
 
 #: common.py:107 common.py:134
 msgid "Balanced"
-msgstr ""
+msgstr "Сбалансированный"
 
 #: common.py:108 common.py:135
 msgid "Performance"
-msgstr ""
+msgstr "Производительность"
 
 #: common.py:257
 msgid "Uptime"
-msgstr ""
+msgstr "Время работы"
 
 #: common.py:258
 msgid "Memory Free/Total"
-msgstr ""
+msgstr "Память свободно/всего"
 
 #: common.py:259
 msgid "Memory device"
-msgstr ""
+msgstr "Устройство памяти"
 
 #: common.py:260
 msgid "UMA"
-msgstr ""
+msgstr "UMA"
 
 #: common.py:261
 msgid "Disk Free/Total"
-msgstr ""
+msgstr "Диск свободно/всего"
 
 #: common.py:262
 msgid "Kernel"
-msgstr ""
+msgstr "Ядро"
 
 #: common.py:263
 msgid "OS"
-msgstr ""
+msgstr "ОС"
 
 #: common.py:264
 msgid "Desktop"
-msgstr ""
+msgstr "Рабочий стол"
 
 #: common.py:265
 msgid "Session"
-msgstr ""
+msgstr "Сессия"
 
 #: common.py:266
 msgid "Product"
-msgstr ""
+msgstr "Продукт"
 
 #: common.py:267
 msgid "Serial"
-msgstr ""
+msgstr "Серийный номер"
 
 #: common.py:268
 msgid "Bios Version"
-msgstr ""
+msgstr "Версия BIOS"
 
 #: common.py:269
 msgid "EC Version"
-msgstr ""
+msgstr "Версия EC"
 
 #: common.py:270
 msgid "Boot Mode"
-msgstr ""
+msgstr "Режим загрузки"
 
 #: common.py:271
 msgid "Secure Boot"
-msgstr ""
+msgstr "Безопасная загрузка"
 
 #: common.py:272
 msgid "CPU"
-msgstr ""
+msgstr "CPU"
 
 #: common.py:273
 msgid "TDP"
-msgstr ""
+msgstr "TDP"
 
 #: common.py:274
 msgid "GPU"
-msgstr ""
+msgstr "GPU"
 
 #: common.py:275
 msgid "Module loaded"
-msgstr ""
+msgstr "Загружен модуль"
 
 #: common.py:276
 msgid "Fn Lock"
-msgstr ""
+msgstr "Блокировка Fn"
 
 #: common.py:277
 msgid "Super Lock"
-msgstr ""
+msgstr "Блокировка Super"
 
 #: common.py:279
 msgid "Turbo Mode"
-msgstr ""
+msgstr "Режим турбо"
 
 #: common.py:280
 msgid "Profile"
-msgstr ""
+msgstr "Профиль"
 
 #: common.py:282
 msgid "Yes"
-msgstr ""
+msgstr "Да"
 
 #: common.py:283
 msgid "No"
-msgstr ""
+msgstr "Нет"
