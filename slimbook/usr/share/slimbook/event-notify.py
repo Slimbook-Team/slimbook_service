@@ -167,20 +167,57 @@ def zmq_worker():
         
         socket_ctl.send_json({})
     
+def _find_alt_keyboard():
+    try:
+        default = os.path.realpath(slimbook.info.keyboard_device())
+    except:
+        default = os.path.realpath("/dev/input/by-path/platform-i8042-serio-0-event-kbd")
+    for path in evdev.list_devices():
+        if os.path.realpath(path) == default:
+            continue
+        try:
+            device = evdev.InputDevice(path)
+            caps = device.capabilities()
+            device.close()
+            if evdev.ecodes.EV_KEY not in caps:
+                continue
+            if evdev.ecodes.EV_REL in caps or evdev.ecodes.EV_ABS in caps:
+                continue
+            if evdev.ecodes.KEY_F16 in caps[evdev.ecodes.EV_KEY]:
+                return path
+        except:
+            pass
+    return None
+
 def keyboard_worker():
     
-    device_path = "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
-    # work around for buggy dmi info
-    try:
-        device_path = slimbook.info.keyboard_device()
-    except:
-        pass
+    device_path = _find_alt_keyboard()
+    uses_alt = device_path is not None
+    if uses_alt:
+        logger.info("using alt keyboard device: {0}".format(device_path))
+    else:
+        device_path = "/dev/input/by-path/platform-i8042-serio-0-event-kbd"
+        # work around for buggy dmi info
+        try:
+            device_path = slimbook.info.keyboard_device()
+        except:
+            pass
         
     device = evdev.InputDevice(device_path)
     
     state = {}
     
     for event in device.read_loop():
+        if uses_alt:
+            if event.type == evdev.ecodes.EV_KEY and event.value == 1:
+                if event.code == evdev.ecodes.KEY_F16:
+                    slb_events.put(common.SLB_EVENT_ENERGY_SAVER_MODE)
+                elif event.code == evdev.ecodes.KEY_F17:
+                    slb_events.put(common.SLB_EVENT_BALANCED_MODE)
+                elif event.code == evdev.ecodes.KEY_F18:
+                    slb_events.put(common.SLB_EVENT_PERFORMANCE_MODE)
+            continue
+
         if (event.type == evdev.ecodes.EV_MSC):
         
             last = state.get(event.value)

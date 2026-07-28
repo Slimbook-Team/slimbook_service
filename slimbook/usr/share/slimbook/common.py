@@ -279,6 +279,8 @@ INFO_PROFILE = _("Profile")
 INFO_YES = _("Yes")
 INFO_NO = _("No")
 
+CONTROL_PANEL_PATH = "/usr/bin/slimbook-controlpanel"
+
 class Configuration(object):
     def __init__(self):
         self.params = PARAMS
