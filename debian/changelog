@@ -1,3 +1,14 @@
+slimbook (1.0.13) noble; urgency=medium
+
+  * Launching control panel from tray menu (if available)
+  * Migrate to GTK4
+  * KDE Plasma OSD Support
+  * Added WM_CLASS for application icon
+  * Allow alternative keyboard devices for notifications
+  * Added Russian translation 
+
+ -- Slimbook <dev@slimbook.es>  Tue, 28 Jul 2026 09:16:50 +0100
+
 slimbook (1.0.11) noble; urgency=medium
 
   * Using a different set of icon names on KDE
