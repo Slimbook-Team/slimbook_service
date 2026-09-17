@@ -1,3 +1,9 @@
+slimbook (1.0.15) resolute; urgency=medium
+
+  * This fix may solve #39, attaching only to keyd devices (where available). Thanks to Brainiarc7 and DayDve for their implication in this fix
+
+ -- Slimbook <dev@slimbook.es>  Thu, 17 Sep 2026 17:00:48 +0200
+
 slimbook (1.0.14) resolute; urgency=medium
 
   * Added GTK4 dependencies
