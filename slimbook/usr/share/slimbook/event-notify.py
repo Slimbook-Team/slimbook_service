@@ -248,6 +248,18 @@ def keyboard_worker():
             elif (event.value == slimbook.info.SLB_SCAN_PERFORMANCE_MODE):
                 slb_events.put(common.SLB_EVENT_PERFORMANCE_MODE)
 
+def touchpad_scancode_worker():
+    try:
+        path = slimbook.info.keyboard_device()
+        device = evdev.InputDevice(path)
+        logger.info("touchpad scancode worker watching {0}".format(path))
+        for event in device.read_loop():
+            if (event.type == evdev.ecodes.EV_MSC and
+                    event.value == slimbook.info.SLB_SCAN_TOUCHPAD_SWITCH):
+                slb_events.put(common.SLB_EVENT_TOUCHPAD_CHANGED)
+    except Exception as e:
+        logger.warning("touchpad scancode worker error: {0}".format(e))
+
 def qc71_module_worker():
     logger.debug("qc71 keyboard worker start")
     device = evdev.InputDevice(slimbook.info.module_device())
@@ -323,6 +335,11 @@ def main():
         qc71_keyboard_thread = threading.Thread(
             name='slimbook.service.qc71.keyboard', target=keyboard_worker)
         qc71_keyboard_thread.start()
+
+        touchpad_thread = threading.Thread(
+            name='slimbook.service.qc71.touchpad', target=touchpad_scancode_worker)
+        touchpad_thread.daemon = True
+        touchpad_thread.start()
             
         if (module_loaded):
             logger.info("Setting qc71 manual mode")
