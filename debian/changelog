@@ -1,3 +1,9 @@
+slimbook (1.0.15) noble; urgency=medium
+
+  * This fix may solve #39, attaching only to keyd devices (where available). Thanks to Brainiarc7 and DayDve for their implication in this fix
+
+ -- Slimbook <dev@slimbook.es>  Fri, 18 Sep 2026 09:58:55 +0200
+
 slimbook (1.0.14) noble; urgency=medium
 
   * Added GTK4 dependencies
