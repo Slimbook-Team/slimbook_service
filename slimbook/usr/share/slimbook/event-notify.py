@@ -168,25 +168,26 @@ def zmq_worker():
         socket_ctl.send_json({})
     
 def _find_alt_keyboard():
-    try:
-        default = os.path.realpath(slimbook.info.keyboard_device())
-    except:
-        default = os.path.realpath("/dev/input/by-path/platform-i8042-serio-0-event-kbd")
+    remapper_names = os.getenv("SLIMBOOK_REMAPPER_NAMES", "keyd").split(",")
+
     for path in evdev.list_devices():
-        if os.path.realpath(path) == default:
-            continue
         try:
             device = evdev.InputDevice(path)
-            caps = device.capabilities()
+            name = (device.name or "").lower()
+            phys = (device.phys or "").lower()
             device.close()
-            if evdev.ecodes.EV_KEY not in caps:
-                continue
-            if evdev.ecodes.EV_REL in caps or evdev.ecodes.EV_ABS in caps:
-                continue
-            if evdev.ecodes.KEY_F16 in caps[evdev.ecodes.EV_KEY]:
-                return path
+
+            for remapper in remapper_names:
+                remapper = remapper.strip().lower()
+
+                if not remapper:
+                    continue
+
+                if (phys == "" or remapper in phys) and (remapper in name):
+                    return path
         except:
             pass
+
     return None
 
 def keyboard_worker():
