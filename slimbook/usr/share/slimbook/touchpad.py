@@ -34,6 +34,7 @@ class Touchpad:
     STATE_UNKNOWN = 0
     STATE_LOCKED = 1
     STATE_UNLOCKED = 2
+    STATE_PARTIAL = 3
     
     def __init__(self):
         self.mode = Touchpad.MODE_UNKNOWN
@@ -46,8 +47,7 @@ class Touchpad:
             fd = os.open(device,os.O_RDWR)
             info = iohid.get_device_info(fd)
             found = False
-        
-            # ProX/Executive touchpad
+            # ProX/Executive/Evo/Creative touchpad
             if (info.bus == iohid.HID_BUS_I2C and info.vendor == 0x93A):
                 report = iohid.get_report_descriptor(fd)
                 reports = iohid.parse_report_descriptor(report)
@@ -78,9 +78,10 @@ class Touchpad:
                 try:
                     self.get_state()
                     return
-                except:
+                except e:
                     #some devices fails with a errno 22 (Invalid Argument)
                     #better to fallback to evdev grab method
+                    print(e)
                     found = False
     
         found = False
@@ -124,29 +125,42 @@ class Touchpad:
         self.get_state()
     
         if (self.mode == Touchpad.MODE_HIDRAW and self.fd>0) or (self.mode == Touchpad.MODE_EVDEV and self.device):
-            if self.state == Touchpad.STATE_LOCKED:
-                
-                self.unlock()
-            elif self.state == Touchpad.STATE_UNLOCKED:
-                
+            if self.state == Touchpad.STATE_UNLOCKED:
                 self.lock()
-            elif self.state == Touchpad.STATE_UNKNOWN:
+            else:
                 self.unlock()
+            
+    def get_bits(self):
+        """Raw value of the two switch bits, or 0 if not available."""
+        if self.mode != Touchpad.MODE_HIDRAW or self.fd <= 0:
+            return 0
+        # This ioctl intermittently fails with EINVAL on some devices. It is
+        # worth retrying: falling back to the evdev grab method loses the
+        # hardware lock, and with it the touchpad LED.
+        for attempt in range(4):
+            try:
+                return int(iohid.get_feature(self.fd, self.report_id, 1)[0])
+            except OSError as e:
+                if e.errno != 22 or attempt == 3:
+                    raise
+                time.sleep(0.01)
+        return 0
         
     def get_state(self):
         
         if self.mode == Touchpad.MODE_HIDRAW and self.fd>0:
             self.state = Touchpad.MODE_UNKNOWN
-            data = iohid.get_feature(self.fd, self.report_id,1)
+            data = self.get_bits() & 0x03
             # mask is hardcoded, in the future maybe would be
             # better to obtain it from report descriptor
-            data = int(data[0]) & 0x03
             
             if (data == 0):
                 self.state = Touchpad.STATE_LOCKED
-            else:
+            elif (data == 0x03):
                 self.state = Touchpad.STATE_UNLOCKED
-        
+            else:
+                self.state = Touchpad.STATE_PARTIAL
+                
         return self.state
         
     def valid(self):
