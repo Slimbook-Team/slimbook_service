@@ -737,10 +737,14 @@ class PreferencesDialog(Adw.PreferencesDialog):
         self.btn_save.connect("clicked", self._on_btn_save_clicked)
         group.add(self.btn_save)
 
+        self._changes = False
+
         self._load_preferences()
 
         for attr, __ in self._PREFS:
             getattr(self, attr).connect("notify::active", self._on_switch_changed)
+
+        self.connect("closed", self._on_dialog_closed)
 
     def _on_switch_changed(self, row, _param):
         self._changes = True
