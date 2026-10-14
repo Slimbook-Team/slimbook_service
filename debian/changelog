@@ -1,3 +1,10 @@
+slimbook (1.0.16) resolute; urgency=medium
+
+  * Fixes #55: Preferences window greyed out from menu
+  * Partial fix from PR #51: Follows the spirit of the PR but not doing driver re-binding
+
+ -- Slimbook <dev@slimbook.es>  Wed, 14 Oct 2026 13:22:52 +0200
+
 slimbook (1.0.15) resolute; urgency=medium
 
   * This fix may solve #39, attaching only to keyd devices (where available). Thanks to Brainiarc7 and DayDve for their implication in this fix
