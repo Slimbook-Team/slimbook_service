@@ -175,7 +175,12 @@ def _find_alt_keyboard():
             device = evdev.InputDevice(path)
             name = (device.name or "").lower()
             phys = (device.phys or "").lower()
+            keys = device.capabilities().get(evdev.ecodes.EV_KEY, [])
             device.close()
+
+            # remappers may also expose a virtual pointer, skip it
+            if evdev.ecodes.KEY_F16 not in keys:
+                continue
 
             for remapper in remapper_names:
                 remapper = remapper.strip().lower()
