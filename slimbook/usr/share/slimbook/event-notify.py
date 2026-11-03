@@ -41,7 +41,7 @@ import time
 
 logger = logging.getLogger("slimbook.service")
 logging.basicConfig(format='%(levelname)s-%(message)s')
-logger.setLevel(logging.INFO)
+logger.setLevel(os.getenv("SLIMBOOK_LOG_LEVEL", "INFO").upper())
 
 context = zmq.Context()
 socket_out = context.socket(zmq.PUB)
